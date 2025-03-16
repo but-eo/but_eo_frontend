@@ -1,20 +1,47 @@
-<<<<<<< HEAD
-# project
+# 팀 프로젝트: 스포츠 매칭 시스템
 
-A new Flutter project.
+## 팀명: **but_eo**
+- **소속**: 영진전문대 5조
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
+## 📍 프로젝트 개요
+우리는 다양한 스포츠 종목을 매칭해주는 시스템을 만들 계획입니다.  
+다양한 스포츠를 즐기는 사람들이 쉽고 빠르게 매칭되어 함께 즐길 수 있도록 도와주는 플랫폼을 개발할 것입니다.
 
-A few resources to get you started if this is your first Flutter project:
+## 🎮 매칭 가능한 스포츠
+- **축구**
+- **탁구**
+- **풋살**
+- **농구**
+- **배드민턴**
+- **테니스**
+  
+이 외에도 다양한 스포츠 매칭을 지원할 예정입니다!
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+---
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-=======
-# but_eo_frontend
->>>>>>> 75b09daf85175b678da60907ce5f4d5339944442
+## 🔧 기술 스택
+- **프론트엔드**: flutter, HTML, CSS , javascript
+- **백엔드**: java, springboot
+- **데이터베이스**:  MySQL
+- **버전 관리**: Git, GitHub
+- **서버**: AWS 
+
+## 🎯 목표
+이 프로젝트의 목표는 사용자가 원하는 스포츠 종목에 맞춰 빠르게 매칭하고, 보다 나은 스포츠 경험을 제공하는 것입니다. 사용자 인터페이스(UI)를 직관적으로 만들어 누구나 쉽게 이용할 수 있도록 할 예정입니다.
+
+---
+
+## 🚀 진행 계획
+1. **기초 설계 및 DB 구조 설계**
+2. **매칭 알고리즘 개발**
+3. **프론트엔드 디자인 및 기능 구현**
+4. **백엔드 API 개발 및 통합**
+5. **테스트 및 배포**
+
+프로젝트 진행 중에는 주기적으로 **GitHub**을 통해 협업하며, 각자의 역할을 맡아 효율적으로 개발을 진행할 것입니다.
+
+---
+
+### 함께 만들어가는 **but_eo** 팀의 스포츠 매칭 시스템, 기대해 주세요! ✨
