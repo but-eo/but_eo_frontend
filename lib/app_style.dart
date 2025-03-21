@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 
 
-const String facebook = "assets/icons/facebook.svg";
-const String google = "assets/icons/google.svg";
-const String kakao = "assets/icons/kakao.svg";
 
 const String userIcon = "assets/icons/userIcon.svg";
 const String lockIcon = "assets/icons/lock.svg";
