@@ -1,8 +1,13 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:project/appColors/app_colors.dart';
 import 'package:project/app_style.dart';
+import 'package:project/pages/signup.dart';
+import 'package:project/widgets/login_button.dart';
 
 class Login extends StatefulWidget {
+  static String id = "/login";
   const Login({super.key});
 
   @override
@@ -53,17 +58,20 @@ class _LoginState extends State<Login> {
                   decoration: InputDecoration(
                     hintText: "이메일을 입력하세요",
                     prefixIcon: IconButton(
-                      onPressed: null,
+                      onPressed: null, 
                       icon: SvgPicture.asset(userIcon),
                     ),
                   ),
                   validator: (String? value){
                     if(value?.isEmpty ?? true) return '이메일을 입력하세요';
                     if(value!.contains(RegExp( //이메일 검증
-                        r'^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$')
+                        r'^[a-zA-Z0-9+-_.]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$')
                     )
-                    ) return '이메일의 형태가 올바르지 않습니다';
-                    else return null;
+                    ) {
+                      return "이메일의 형태가 올바르지 않습니다";
+                    } else {
+                      return null;
+                    }
                   },
                 ),
                 SizedBox(height: size.height * 0.016),
@@ -82,16 +90,24 @@ class _LoginState extends State<Login> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly, //요소 간 간격 조절
                   children: [
-                    TextButton(onPressed: null, child: Text("회원가입")),
-                    TextButton(onPressed: null, child: Text("아이디 찾기")),
-                    TextButton(onPressed: null, child: Text("비밀번호 찾기")),
+                    TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pushNamedAndRemoveUntil( //특정화면으로 이동하면서 이전 모든 화면을 스택에서 제거 (새 화면을 띄우고 뒤로가기 버튼을 눌러도 이전 화면으로 돌아갈 수 없음)
+                              Signup.id, //이동할 경로의 이름
+                              (route) => false //스택의 모든 화면 제거
+                          );
+                        },
+                        child: Text("회원가입"),
+                    ), //회원가입 폼으로 이동
+                    TextButton(onPressed: null, child: Text("아이디 찾기")), //아이디 찾기 폼으로 이동
+                    TextButton(onPressed: null, child: Text("비밀번호 찾기")), //비밀번호 찾기 폼으로 이동
                   ],
                 ),
                 //체크박스
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Checkbox(
+                    Checkbox( //항상 로그인
                       value: always_login,
                       activeColor: kLightTextColor,
                       onChanged: (bool? value) {
@@ -101,6 +117,8 @@ class _LoginState extends State<Login> {
                       },
                     ),
                     Text("로그인 상태 유지"),
+                    
+                    //아이디 기억하기
                     SizedBox(width: 20),
                     Checkbox(
                       value: id_remember,
@@ -117,7 +135,7 @@ class _LoginState extends State<Login> {
                 SizedBox(height: size.height * 0.03),
                 ElevatedButton(
                   //누르면 뒤에 그림자가 생기는 버튼
-                  onPressed: () {},
+                  onPressed: () {}, //TODO : 로그인 버튼 누르면 데이터 전송
                   child: Text(
                     "로그인",
                     style: Theme.of(context).textTheme.titleMedium,
@@ -138,55 +156,46 @@ class _LoginState extends State<Login> {
                     const Expanded(child: Divider(color: kLightTextColor)),
                   ],
                 ),
+                
+                //로그인 버튼
                 SizedBox(
                   height: 20,
                 ),
-                Row(
+                Column(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly, //요소 간 간격 조절
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    //facebook button
-                    MaterialButton(
-                      shape: OutlineInputBorder(
-                        borderSide: BorderSide(width: 0.5, color: Colors.grey),
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      onPressed: null,
+                    GestureDetector(
+                      onTap: (){
 
-                      child: SvgPicture.asset(
-                        facebook,
-                        color: Colors.black12,
-                        width: 45,
+                      },
+                      child : loginButton(
+                          context,
+                          'assets/icons/naver_icon.png',
+                          '네이버 로그인',
+                          Colors.white,
+                          AppColors.baseGreenColor,
+                          AppColors.baseGreenColor
                       ),
                     ),
-                    //google button
-                    SizedBox(width: size.width * 0.08),
-                    MaterialButton(
-                      shape: OutlineInputBorder(
-                        borderSide: BorderSide(width: 0.5, color: Colors.grey),
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      onPressed: null,
+                    
+                    //카카오 button
+                    SizedBox(height: size.height * 0.01),
+                    
+                    
+                    GestureDetector(
+                      onTap: (){
 
-                      child: SvgPicture.asset(
-                        google,
-                        color: Colors.black12,
-                        width: 45,
+                      },
+                      child : loginButton(
+                          context,
+                          'assets/icons/kakao_icon.png',
+                          '카카오 로그인',
+                          Colors.black87,
+                          Colors.yellow.withOpacity(0.7),
+                          Colors.yellow
                       ),
-                    ),
-                    //kakao button
-                    SizedBox(width: size.width * 0.08),
-                    MaterialButton(
-                      shape: OutlineInputBorder(
-                        borderSide: BorderSide(width: 0.5, color: Colors.grey),
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      onPressed: null,
 
-                      child: SvgPicture.asset(
-                        kakao,
-                        color: Colors.black12,
-                        width: 45,
-                      ),
                     ),
                   ],
                 ),
