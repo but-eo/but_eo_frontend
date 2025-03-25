@@ -7,14 +7,13 @@ import '../app_style.dart';
 import '../widgets/login_button.dart';
 
 class Signup extends StatelessWidget {
-  static String id = "/signup";
+  static String id = "/";
   final _formKey = GlobalKey<FormState>(); // Form 추적키
 
   String _email = '';
   String _password = '';
   String _confirmPassword = '';
   String _nickName = '';
-  String _tel = '';
 
   void submitForm() {
     if (_formKey.currentState!.validate()) {
@@ -66,14 +65,14 @@ class Signup extends StatelessWidget {
                       //가입 폼
                       //이메일
                       RichText( //다양한 스타일의 텍스트를 적용하는 텍스트 위젯
-                          text: TextSpan(
+                        text: TextSpan(
                             children: [
                               TextSpan( //RichText의 조각 -> 한 문장 내에서도 특정 부분만 색깔을 다르게 한다던지 가능
                                 text : '이메일',
                                 style: TextStyle(
-                                  color: kBlackColor,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold
+                                    color: kBlackColor,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold
                                 ),
                               ),
                               TextSpan(
@@ -85,7 +84,7 @@ class Signup extends StatelessWidget {
                                 ),
                               )
                             ]
-                          ),
+                        ),
                       )
                       ,
                       SizedBox(height: size.height*0.01,),
@@ -103,10 +102,12 @@ class Signup extends StatelessWidget {
                           if (value.isEmpty) {
                             return '이메일을 입력하세요.';
                           }
-                          else if(_email.contains(RegExp( //이메일 검증
+                          else if(
+                          !RegExp( //이메일 검증
                               r'^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z0-9-.]+$')
+                              .hasMatch(_email)
                           )
-                          ) {
+                          {
                             return "이메일의 형태가 올바르지 않습니다";
                           } else {
                             return null;
@@ -262,7 +263,24 @@ class Signup extends StatelessWidget {
                           _confirmPassword = value!;
                         },
                       ),
-
+                      SizedBox(height: size.height * 0.01),
+                      Row(
+                        children: [
+                          Expanded( // TextField에 공간을 채워주기 위한 Expanded 추가
+                            child: TextField(
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                hintText: '인증번호 입력',
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          ElevatedButton(
+                            onPressed: () {},
+                            child: Text("인증번호 전송"),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -277,6 +295,7 @@ class Signup extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
+
               ],
             ),
           ),
