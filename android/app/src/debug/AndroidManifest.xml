@@ -4,4 +4,19 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+
+    <activity
+            android:name="com.kakao.sdk.flutter.FollowChannelHandlerActivity"
+            android:exported="true">
+        <intent-filter>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+
+            <!-- 카카오 로그인 Redirect URI -->
+            <data android:scheme="kakao카카오네이티브키입력" android:host="oauth"/>
+            <!-- Redirect URI: "kakao${NATIVE_APP_KEY}://channel" -->
+            <data android:scheme="kakao카카오네이티브키입력" android:host="channel"/>
+        </intent-filter>
+    </activity>
 </manifest>
