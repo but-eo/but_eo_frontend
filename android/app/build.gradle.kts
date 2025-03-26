@@ -5,7 +5,11 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+
+
 android {
+
+
     namespace = "com.example.project"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "27.0.12077973"
@@ -28,6 +32,8 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+
     }
 
     buildTypes {
@@ -38,6 +44,7 @@ android {
         }
     }
 }
+
 
 flutter {
     source = "../.."
