@@ -3,19 +3,18 @@ import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 import 'package:project/app_style.dart';
 import 'package:project/pages/Sign.dart';
 import 'package:project/pages/login/login.dart';
-import 'package:project/pages/signup.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
   // await dotenv.load(fileName: "key.env");
-  //
-  // KakaoSdk.init(
-  //   nativeAppKey: dotenv.get('KAKAO_NATIVE_APP_KEY'),
-  //   javaScriptAppKey: dotenv.get('KAKAO_JAVASCRIPT_APP_KEY'),
-  // );
+
+  KakaoSdk.init(
+    nativeAppKey: 'd91548ab43a2e8cd79ab5957765cd8ee',
+    javaScriptAppKey: '3c64fa2eecc2196abe34620a62aba475',
+  );
 
   runApp(const MyApp());
 }

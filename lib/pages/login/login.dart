@@ -1,13 +1,18 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 import 'package:project/appColors/app_colors.dart';
 import 'package:project/app_style.dart';
+import 'package:project/main.dart';
 import 'package:project/pages/Sign.dart';
+import 'package:project/pages/home.dart';
 import 'package:project/widgets/login_button.dart';
 
 class Login extends StatefulWidget {
   static String id = "/login";
+
   const Login({super.key});
 
   @override
@@ -19,15 +24,12 @@ class _LoginState extends State<Login> {
   bool always_login = false;
   bool id_remember = false;
 
-
-
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     return Scaffold(
       body: SingleChildScrollView(
         child: SafeArea(
-          
           child: Container(
             // decoration: BoxDecoration(
             //   gradient: LinearGradient(
@@ -59,7 +61,6 @@ class _LoginState extends State<Login> {
                     ).textTheme.titleSmall!.copyWith(fontSize: 15), //appStyle
                   ),
 
-
                   //로그인 필드
                   SizedBox(height: size.height * 0.02, width: size.width * 0.9),
                   TextFormField(
@@ -71,12 +72,14 @@ class _LoginState extends State<Login> {
                         icon: SvgPicture.asset(userIcon),
                       ),
                     ),
-                    validator: (String? value){
-                      if(value?.isEmpty ?? true) return '이메일을 입력하세요';
-                      if(value!.contains(RegExp( //이메일 검증
-                          r'^[a-zA-Z0-9+-_.]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$')
-                      )
-                      ) {
+                    validator: (String? value) {
+                      if (value?.isEmpty ?? true) return '이메일을 입력하세요';
+                      if (value!.contains(
+                        RegExp(
+                          //이메일 검증
+                          r'^[a-zA-Z0-9+-_.]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$',
+                        ),
+                      )) {
                         return "이메일의 형태가 올바르지 않습니다";
                       } else {
                         return null;
@@ -97,26 +100,32 @@ class _LoginState extends State<Login> {
                   ),
                   SizedBox(height: size.height * 0.021),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly, //요소 간 간격 조절
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    //요소 간 간격 조절
                     children: [
                       TextButton(
                         onPressed: () {
-                          Navigator.of(context).pushNamedAndRemoveUntil( //특정화면으로 이동하면서 이전 모든 화면을 스택에서 제거 (새 화면을 띄우고 뒤로가기 버튼을 눌러도 이전 화면으로 돌아갈 수 없음)
-                              Sign.id, //이동할 경로의 이름
-                                  (route) => false //스택의 모든 화면 제거
+                          Navigator.of(context).pushNamedAndRemoveUntil(
+                            //특정화면으로 이동하면서 이전 모든 화면을 스택에서 제거 (새 화면을 띄우고 뒤로가기 버튼을 눌러도 이전 화면으로 돌아갈 수 없음)
+                            Sign.id, //이동할 경로의 이름
+                            (route) => false, //스택의 모든 화면 제거
                           );
                         },
                         child: Text("회원가입"),
-                      ), //회원가입 폼으로 이동
-                      TextButton(onPressed: null, child: Text("아이디 찾기")), //아이디 찾기 폼으로 이동
-                      TextButton(onPressed: null, child: Text("비밀번호 찾기")), //비밀번호 찾기 폼으로 이동
+                      ),
+                      //회원가입 폼으로 이동
+                      TextButton(onPressed: null, child: Text("아이디 찾기")),
+                      //아이디 찾기 폼으로 이동
+                      TextButton(onPressed: null, child: Text("비밀번호 찾기")),
+                      //비밀번호 찾기 폼으로 이동
                     ],
                   ),
                   //체크박스
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Checkbox( //항상 로그인
+                      Checkbox(
+                        //항상 로그인
                         value: always_login,
                         activeColor: kLightTextColor,
                         onChanged: (bool? value) {
@@ -167,44 +176,40 @@ class _LoginState extends State<Login> {
                   ),
 
                   //로그인 버튼
-                  SizedBox(
-                    height: 20,
-                  ),
+                  SizedBox(height: 20),
                   Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly, //요소 간 간격 조절
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    //요소 간 간격 조절
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       GestureDetector(
-                        onTap: (){
-
-                        },
-                        child : loginButton(
-                            context,
-                            'assets/icons/naver_icon.png',
-                            '네이버 로그인',
-                            Colors.white,
-                            AppColors.baseGreenColor,
-                            AppColors.baseGreenColor
+                        onTap: () {},
+                        child: loginButton(
+                          context,
+                          'assets/icons/naver_icon.png',
+                          '네이버 로그인',
+                          Colors.white,
+                          AppColors.baseGreenColor,
+                          AppColors.baseGreenColor,
                         ),
                       ),
 
                       //카카오 button
                       SizedBox(height: size.height * 0.01),
 
-
                       GestureDetector(
-                        onTap: (){
-
+                        onTap: () {
+                          signInWithKakao();
+                          print('카카오톡 로그인 시도중');
                         },
-                        child : loginButton(
-                            context,
-                            'assets/icons/kakao_icon.png',
-                            '카카오 로그인',
-                            Colors.black87,
-                            Colors.yellow.withOpacity(0.7),
-                            Colors.yellow
+                        child: loginButton(
+                          context,
+                          'assets/icons/kakao_icon.png',
+                          '카카오 로그인',
+                          Colors.black87,
+                          Colors.yellow.withOpacity(0.7),
+                          Colors.yellow,
                         ),
-
                       ),
                     ],
                   ),
@@ -212,10 +217,44 @@ class _LoginState extends State<Login> {
               ),
             ),
           ),
-
-
         ),
       ),
     );
+  }
+
+  void navigateToMainPage() {
+    Navigator.of(
+      context,
+    ).pushReplacement(MaterialPageRoute(builder: (context) => Home()));
+  }
+
+  Future<void> signInWithKakao() async {
+    // 카카오톡 실행 가능 여부 확인
+    if (await isKakaoTalkInstalled()) {
+      try {
+        // 카카오톡으로 로그인 시도
+        await UserApi.instance.loginWithKakaoTalk().then((value) {
+          print('카카오톡 로그인 성공: $value');
+          navigateToMainPage();
+        });
+      } catch (error) {
+        print('카카오톡으로 로그인 실패: $error');
+        // 카카오톡에 연결된 계정이 없는 경우 카카오계정 로그인 시도
+        await UserApi.instance.loginWithKakaoAccount().then((value) {
+          print('카카오계정 로그인 성공: $value');
+          navigateToMainPage();
+        });
+      }
+    } else {
+      // 카카오톡이 설치되지 않았을 때 카카오계정으로 로그인 시도
+      try {
+        await UserApi.instance.loginWithKakaoAccount().then((value) {
+          print('카카오계정으로 로그인 성공: $value');
+          navigateToMainPage();
+        });
+      } catch (error) {
+        print('카카오계정 로그인 실패: $error');
+      }
+    }
   }
 }
