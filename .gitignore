@@ -12,6 +12,9 @@
 .swiftpm/
 migrate_working_dir/
 
+# Environment variables
+key.env
+
 # IntelliJ related
 *.iml
 *.ipr
@@ -43,3 +46,9 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Ignore Gradle project-specific cache directory
+.gradle
+
+# Ignore Gradle build output directory
+build
