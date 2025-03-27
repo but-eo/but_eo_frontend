@@ -44,6 +44,7 @@ class _LoginState extends State<Login> {
               ),
               child: Column(
                 children: [
+                  
                   Align(
                     alignment: Alignment.topCenter, //상단 중앙 정렬
                     child: Image.asset(logoImage, height: size.height * 0.1),
@@ -153,7 +154,15 @@ class _LoginState extends State<Login> {
                   SizedBox(height: size.height * 0.03),
                   ElevatedButton(
                     //누르면 뒤에 그림자가 생기는 버튼
-                    onPressed: () {}, //TODO : 로그인 버튼 누르면 데이터 전송
+                    onPressed: () {
+                      //TODO: 로그인 버튼 누르면 데이터 전송하고 검증해서 홈으로 이동 혹은 다시 로그인 시도
+                      // if(true){
+
+                      // }
+                      // else{
+
+                      // }
+                    }, 
                     child: Text(
                       "로그인",
                       style: Theme.of(context).textTheme.titleMedium,
