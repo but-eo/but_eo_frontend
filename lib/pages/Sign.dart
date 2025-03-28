@@ -62,15 +62,16 @@ class _SignState extends State<Sign> {
     final dio = Dio();
     try {
       final response = await dio.post(
-        "https://05e11d7c-f01d-4fb4-aabd-7849216efc8c.mock.pstmn.io/auth/register", //spring boot로 전송할 주소
+        "http://192.168.0.127:0714/api/users/register",
+        // "https://05e11d7c-f01d-4fb4-aabd-7849216efc8c.mock.pstmn.io/auth/register", //spring boot로 전송할 주소
         data: {
           'email': email,
           'password': password,
-          'nickname': nickname,
+          'name': nickname,
           'tel': tel,
-          'sex': sex,
-          'prefer': prefer,
-          'year': year,
+          'gender': sex,
+          'preferSports': prefer,
+          'birthYear': year,
           'region': region,
         },
       );
