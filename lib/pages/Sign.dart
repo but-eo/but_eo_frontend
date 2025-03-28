@@ -1,12 +1,15 @@
 import 'package:dio/dio.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
-
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:project/appColors/app_colors.dart';
 import 'package:project/app_style.dart';
 import 'package:project/pages/login/login.dart';
 import 'package:project/widgets/login_button.dart';
+import 'package:project/formatter/phoneformatter.dart';
 
 class Sign extends StatefulWidget {
   static String id = "/signup";
@@ -44,7 +47,6 @@ class _SignState extends State<Sign> {
   String _password = '';
   String _confirmPassword = '';
   String _nickName = '';
-  String _tel = '';
 
   //유저 정보 전송(dio 활용)
   Future<void> registerUser(
@@ -83,6 +85,71 @@ class _SignState extends State<Sign> {
       print('회원가입 실패 : ${e}');
     }
   }
+
+  // 전화번호 인증
+  TextEditingController phoneController = TextEditingController(); //전화번호 컨트롤러
+  TextEditingController confirmController =
+      TextEditingController(); // 인증번호 컨트롤러
+
+  FocusNode phoneNumber = FocusNode();
+  FocusNode otpFocusNode = FocusNode();
+
+  bool authOk = false;
+
+  bool passwordHide = true;
+  bool requestedAuth = false;
+  String verificationId = "";
+  bool showLoading = false;
+
+  // late FirebaseAuth _auth = FirebaseAuth.instance;
+
+  // void signInWithPhoneAuthCredential(
+  //   PhoneAuthCredential phoneAuthCredential,
+  // ) async {
+  //   setState(() {
+  //     showLoading = true;
+  //   });
+  //   try {
+  //     final authCredential = await _auth.signInWithCredential(
+  //       phoneAuthCredential,
+  //     );
+  //     setState(() {
+  //       showLoading = false;
+  //     });
+  //     if (authCredential?.user != null) {
+  //       setState(() {
+  //         print("인증완료 및 로그인성공");
+  //         authOk = true;
+  //         requestedAuth = false;
+  //       });
+  //       if (_auth.currentUser != null) {
+  //         await _auth.currentUser!.delete();
+  //         print("Auth 정보 삭제");
+  //       }
+  //       _auth.signOut();
+  //       print("로그아웃");
+  //     }
+  //   } on FirebaseAuthException catch (e) {
+  //     setState(() {
+  //       print("인증 실패 ");
+  //       showLoading = false;
+  //     });
+
+  //     await Fluttertoast.showToast(
+  //       msg: e.message!,
+  //       toastLength: Toast.LENGTH_SHORT,
+  //       timeInSecForIosWeb: 1,
+  //       backgroundColor: Colors.red,
+  //       fontSize: 16.0,
+  //     );
+  //   }
+  // }
+
+  // void dispose() { //메모리 누수 방지?
+  //   phoneController.dispose();
+  //   confirmController.dispose();
+  //   super.dispose();
+  // }
 
   // 드롭다운메뉴 아이템 초기 값 설정
   @override
@@ -374,6 +441,7 @@ class _SignState extends State<Sign> {
                           Flexible(
                             // 🚀 TextFormField의 크기를 유동적으로 변경
                             child: TextFormField(
+                              controller: phoneController,
                               keyboardType: TextInputType.number,
                               decoration: InputDecoration(
                                 contentPadding: EdgeInsets.symmetric(
@@ -382,9 +450,7 @@ class _SignState extends State<Sign> {
                                 hintText: "010-0000-0000",
                                 border: OutlineInputBorder(),
                               ),
-                              onSaved: (value) {
-                                _tel = value!;
-                              },
+                              
                             ),
                           ),
                           SizedBox(width: 10),
@@ -393,8 +459,42 @@ class _SignState extends State<Sign> {
                             width: 100, // 적절한 너비 설정
                             height: 50, // 적절한 높이 설정
                             child: ElevatedButton(
-                              onPressed: () {
+                              onPressed: () async{
                                 // 인증번호 전송 로직
+                                // await _auth.verifyPhoneNumber(
+                                //   timeout: const Duration(seconds: 60),
+                                //   codeAutoRetrievalTimeout: (String verificationId) {
+                                //     // Auto-resolution timed out...
+                                //   },
+                                //   phoneNumber: phoneController.text,
+                                //   verificationCompleted: (phoneAuthCredential) async {
+                                //     print("otp 문자옴");
+                                //   },
+                                //   verificationFailed: (verificationFailed) async {
+                                //     print(verificationFailed.code);
+ 
+                                //     print("코드발송실패");
+                                //     setState(() {
+                                //       showLoading = false;
+                                //     });
+                                //   },
+                                //   codeSent: (verificationId, resendingToken) async {
+                                //     print("코드보냄");
+                                //     Fluttertoast.showToast(
+                                //         msg: "${phoneController.text}로 인증코드를 발송하였습니다..",
+                                //         toastLength: Toast.LENGTH_SHORT,
+                                //         timeInSecForIosWeb: 1,
+                                //         backgroundColor: Colors.green,
+                                //         fontSize: 12.0
+                                //     );
+                                //     setState(() {
+                                //       requestedAuth=true;
+                                //       FocusScope.of(context).requestFocus(otpFocusNode);
+                                //       showLoading = false;
+                                //       this.verificationId = verificationId;
+                                //     });
+                                //   },
+                                // );
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.white, // 배경색을 빨간색으로 설정
@@ -417,6 +517,7 @@ class _SignState extends State<Sign> {
                           Flexible(
                             // 🚀 TextFormField의 크기를 유동적으로 변경
                             child: TextFormField(
+                              controller: confirmController,
                               keyboardType: TextInputType.number,
                               decoration: InputDecoration(
                                 contentPadding: EdgeInsets.symmetric(
@@ -434,7 +535,12 @@ class _SignState extends State<Sign> {
                             height: 50, // 적절한 높이 설정
                             child: ElevatedButton(
                               onPressed: () {
-                                // 인증번호 전송 로직
+                                // 인증번호 확인 로직
+                                // PhoneAuthCredential phoneAuthCredential =
+                                //   PhoneAuthProvider.credential(
+                                //       verificationId: verificationId, smsCode: confirmController.text);
+ 
+                                //   signInWithPhoneAuthCredential(phoneAuthCredential);
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.white, // 배경색을 빨간색으로 설정
@@ -450,6 +556,7 @@ class _SignState extends State<Sign> {
                           ),
                         ],
                       ),
+
                       //드롭다운
                       SizedBox(height: size.height * 0.03),
                       RichText(
@@ -748,12 +855,12 @@ class _SignState extends State<Sign> {
                     if (_formKey.currentState!.validate()) {
                       _formKey.currentState!.save(); //입력 데이터 저장
 
-                      if (_password == _confirmPassword) {
+                      if (_password == _confirmPassword) { //authOk
                         registerUser(
                           _email,
                           _password,
                           _nickName,
-                          _tel,
+                          phoneController.text,
                           _selectedSex ?? '선택하지 않음',
                           _selectedPrefer ?? '선호종목 없음',
                           _selectedYear ?? '선택하지 않음',
@@ -770,9 +877,9 @@ class _SignState extends State<Sign> {
                               '지역: $_selectedRegions',
                         );
                         Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(builder: (context) => Login()),
-                        (route) => false,
-                      );
+                          MaterialPageRoute(builder: (context) => Login()),
+                          (route) => false,
+                        );
                       }
                     }
                   }, //TODO : 로그인 버튼 누르면 데이터 전송
