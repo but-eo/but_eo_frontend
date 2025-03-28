@@ -1,3 +1,5 @@
+// import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,7 +9,7 @@ import 'package:project/appColors/app_colors.dart';
 import 'package:project/app_style.dart';
 import 'package:project/main.dart';
 import 'package:project/pages/Sign.dart';
-import 'package:project/pages/home.dart';
+import 'package:project/pages/home/home.dart';
 import 'package:project/widgets/login_button.dart';
 
 class Login extends StatefulWidget {
@@ -20,6 +22,8 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
+  
+
   //체크박스 변수
   bool always_login = false;
   bool id_remember = false;
@@ -153,7 +157,16 @@ class _LoginState extends State<Login> {
                   SizedBox(height: size.height * 0.03),
                   ElevatedButton(
                     //누르면 뒤에 그림자가 생기는 버튼
-                    onPressed: () {}, //TODO : 로그인 버튼 누르면 데이터 전송
+                    onPressed: () {
+                      //TODO: 로그인 버튼 누르면 데이터 전송하고 검증해서 홈으로 이동 혹은 다시 로그인 시도
+                      // if(true){
+
+                      // }
+                      // else{
+
+                      // }
+                      navigateToMainPage();
+                    },
                     child: Text(
                       "로그인",
                       style: Theme.of(context).textTheme.titleMedium,
@@ -222,6 +235,7 @@ class _LoginState extends State<Login> {
     );
   }
 
+  //홈으로 이동
   void navigateToMainPage() {
     Navigator.of(
       context,
