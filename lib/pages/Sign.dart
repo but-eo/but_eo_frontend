@@ -77,15 +77,18 @@ class _SignState extends State<Sign> {
       );
       print('Response data : ${response.data}');
       if (response.statusCode == 200) {
-        String token =
-            response.data['token']; //백엔드에서 받을 토큰 data['token']에서 token은
-        //스프링에서 토큰을 저장한 변수명과 일치해야함
-        print('회원가입 성공, $token');
+        // String token =
+        //     response.data['token']; //백엔드에서 받을 토큰 data['token']에서 token은
+        // //스프링에서 토큰을 저장한 변수명과 일치해야함
+
+        print('회원가입 성공');
       }
     } catch (e) {
       print('회원가입 실패 : ${e}');
     }
   }
+
+  
 
   // 전화번호 인증
   TextEditingController phoneController = TextEditingController(); //전화번호 컨트롤러
@@ -451,7 +454,6 @@ class _SignState extends State<Sign> {
                                 hintText: "010-0000-0000",
                                 border: OutlineInputBorder(),
                               ),
-                              
                             ),
                           ),
                           SizedBox(width: 10),
@@ -460,7 +462,7 @@ class _SignState extends State<Sign> {
                             width: 100, // 적절한 너비 설정
                             height: 50, // 적절한 높이 설정
                             child: ElevatedButton(
-                              onPressed: () async{
+                              onPressed: () async {
                                 // 인증번호 전송 로직
                                 // await _auth.verifyPhoneNumber(
                                 //   timeout: const Duration(seconds: 60),
@@ -473,7 +475,7 @@ class _SignState extends State<Sign> {
                                 //   },
                                 //   verificationFailed: (verificationFailed) async {
                                 //     print(verificationFailed.code);
- 
+
                                 //     print("코드발송실패");
                                 //     setState(() {
                                 //       showLoading = false;
@@ -540,7 +542,7 @@ class _SignState extends State<Sign> {
                                 // PhoneAuthCredential phoneAuthCredential =
                                 //   PhoneAuthProvider.credential(
                                 //       verificationId: verificationId, smsCode: confirmController.text);
- 
+
                                 //   signInWithPhoneAuthCredential(phoneAuthCredential);
                               },
                               style: ElevatedButton.styleFrom(
@@ -856,7 +858,8 @@ class _SignState extends State<Sign> {
                     if (_formKey.currentState!.validate()) {
                       _formKey.currentState!.save(); //입력 데이터 저장
 
-                      if (_password == _confirmPassword) { //authOk
+                      if (_password == _confirmPassword) {
+                        //authOk
                         registerUser(
                           _email,
                           _password,

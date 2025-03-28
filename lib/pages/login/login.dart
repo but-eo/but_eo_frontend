@@ -1,5 +1,6 @@
 // import 'package:firebase_auth/firebase_auth.dart';
 // import 'package:firebase_core/firebase_core.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -22,7 +23,27 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
-  
+  //로그인 메소드
+  Future<void> loginUser(String email, String password) async {
+    final dio = Dio();
+    try {
+      final response = await dio.post(
+        "http://192.168.0.127:0714/api/users/login",
+
+        data: {'email': email, 'password': password},
+      );
+      print('Response data : ${response.data}');
+      if (response.statusCode == 200) {
+        String token =
+            response.data['token']; //백엔드에서 받을 토큰 data['token']에서 token은
+        //스프링에서 토큰을 저장한 변수명과 일치해야함
+
+        print('로그인 성공, $token');
+      }
+    } catch (e) {
+      print('로그인 실패 : ${e}');
+    }
+  }
 
   //체크박스 변수
   bool always_login = false;
