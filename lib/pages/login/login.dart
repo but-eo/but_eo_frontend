@@ -1,3 +1,6 @@
+// import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:firebase_core/firebase_core.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,7 +10,7 @@ import 'package:project/appColors/app_colors.dart';
 import 'package:project/app_style.dart';
 import 'package:project/main.dart';
 import 'package:project/pages/Sign.dart';
-import 'package:project/pages/home.dart';
+import 'package:project/pages/home/home.dart';
 import 'package:project/widgets/login_button.dart';
 
 class Login extends StatefulWidget {
@@ -20,6 +23,28 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
+  //로그인 메소드
+  Future<void> loginUser(String email, String password) async {
+    final dio = Dio();
+    try {
+      final response = await dio.post(
+        "http://192.168.0.127:0714/api/users/login",
+
+        data: {'email': email, 'password': password},
+      );
+      print('Response data : ${response.data}');
+      if (response.statusCode == 200) {
+        String token =
+            response.data['token']; //백엔드에서 받을 토큰 data['token']에서 token은
+        //스프링에서 토큰을 저장한 변수명과 일치해야함
+
+        print('로그인 성공, $token');
+      }
+    } catch (e) {
+      print('로그인 실패 : ${e}');
+    }
+  }
+
   //체크박스 변수
   bool always_login = false;
   bool id_remember = false;
@@ -44,7 +69,6 @@ class _LoginState extends State<Login> {
               ),
               child: Column(
                 children: [
-                  
                   Align(
                     alignment: Alignment.topCenter, //상단 중앙 정렬
                     child: Image.asset(logoImage, height: size.height * 0.1),
@@ -162,7 +186,8 @@ class _LoginState extends State<Login> {
                       // else{
 
                       // }
-                    }, 
+                      navigateToMainPage();
+                    },
                     child: Text(
                       "로그인",
                       style: Theme.of(context).textTheme.titleMedium,
@@ -231,6 +256,7 @@ class _LoginState extends State<Login> {
     );
   }
 
+  //홈으로 이동
   void navigateToMainPage() {
     Navigator.of(
       context,
