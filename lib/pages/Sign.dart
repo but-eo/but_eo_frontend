@@ -62,7 +62,8 @@ class _SignState extends State<Sign> {
     final dio = Dio();
     try {
       final response = await dio.post(
-        "http://192.168.0.127:0714/api/users/register",
+        //  , 192.168.0.127
+        "http://192.168.45.179:0714/api/users/register",
         // "https://05e11d7c-f01d-4fb4-aabd-7849216efc8c.mock.pstmn.io/auth/register", //spring boot로 전송할 주소
         data: {
           'email': email,
@@ -504,7 +505,7 @@ class _SignState extends State<Sign> {
                                 foregroundColor: Colors.black, // 텍스트 색을 흰색으로 설정
                               ).copyWith(
                                 side: WidgetStateProperty.all(
-                                  //테두리리
+                                  //테두리
                                   BorderSide(color: Colors.black, width: 1),
                                 ),
                               ),
