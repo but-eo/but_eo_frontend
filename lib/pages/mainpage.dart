@@ -41,7 +41,7 @@ class _MainState extends State<Main> {
   final List<Widget> _pages = [
     Homepage(),
     Matchpage(),
-    Chatpage(),
+    ChatPage(),
     Recordpage(),
     Mypage(),
   ];
@@ -102,8 +102,8 @@ class _MainState extends State<Main> {
                     0,
                     0,
                   ), // 메뉴의 위치 설정 (left, top, right, bottom)
-                  items: [
-                    PopupMenuItem(
+                  items: <PopupMenuEntry<dynamic>>[
+                    PopupMenuItem<int>(
                       value: 1,
                       child: ListTile(
                         leading:
@@ -123,15 +123,24 @@ class _MainState extends State<Main> {
                         title: Text(userName ?? "이름 없음"),
                       ),
                     ),
-                    PopupMenuItem(
+                    PopupMenuItem<int>(
                       value: 2, // 메뉴 항목의 값
-                      child: Text('옵션 1'),
+                      child: Text('내 정보'),
                     ),
-                    PopupMenuItem(
+                    PopupMenuItem<int>(
                       value: 3, // 메뉴 항목의 값
-                      child: Text('옵션 2'),
+                      child: Text('My Team'),
                     ),
-                    PopupMenuItem(
+                    PopupMenuItem<int>(
+                      value: 4, // 메뉴 항목의 값
+                      child: Text('경기 일정'),
+                    ),
+                    PopupMenuItem<int>(
+                      value: 5, // 메뉴 항목의 값
+                      child: Text('설정'),
+                    ),
+                    const PopupMenuDivider(),
+                    PopupMenuItem<int>(
                       onTap: () {
                         // logout(); //토큰 정보 삭제
                         Navigator.of(context).pushNamedAndRemoveUntil(
@@ -140,7 +149,7 @@ class _MainState extends State<Main> {
                           (route) => false, //스택의 모든 화면 제거
                         );
                       },
-                      value: 3, // 메뉴 항목의 값
+                      value: 6, // 메뉴 항목의 값
                       child: Text('로그아웃'),
                     ),
                   ],

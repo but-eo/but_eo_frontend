@@ -190,7 +190,7 @@ class _SignState extends State<Sign> {
                         (route) => false,
                       );
                     },
-                    icon: Image.asset("assets/icons/back.png"),
+                    icon: Icon(Icons.arrow_back), 
                   ),
                 ),
                 Align(

@@ -19,5 +19,4 @@ class Mypage extends StatelessWidget {
     );
   }
 
-  
 }
