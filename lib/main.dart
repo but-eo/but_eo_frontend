@@ -14,8 +14,8 @@ void main() async {
 
 
   KakaoSdk.init(
-    nativeAppKey: 'd91548ab43a2e8cd79ab5957765cd8ee',
-    javaScriptAppKey: '3c64fa2eecc2196abe34620a62aba475',
+    nativeAppKey: '43571ff25dd7d58c93282d1029654bd9',
+    javaScriptAppKey: '4f8d5998dff250032e60538ceeb1a2ac',
   );
 
   runApp(const MyApp());
