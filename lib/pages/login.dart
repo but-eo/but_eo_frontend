@@ -6,17 +6,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
-import 'package:project/appColors/app_colors.dart';
-import 'package:project/app_style.dart';
+import 'package:project/appStyle/app_colors.dart';
+import 'package:project/appStyle/app_style.dart';
 import 'package:project/main.dart';
 import 'package:project/pages/Sign.dart';
-import 'package:project/pages/home/home.dart';
+import 'package:project/pages/mainpage.dart';
 import 'package:project/widgets/login_button.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Login extends StatefulWidget {
   static String id = "/login";
 
-  const Login({super.key});
+  const Login({super.key}); 
 
   @override
   State<Login> createState() => _LoginState();
@@ -37,9 +38,14 @@ class _LoginState extends State<Login> {
       print('Response data : ${response.data}');
       if (response.statusCode == 200) {
         String token =
-            response.data['token']; //백엔드에서 받을 토큰 data['token']에서 token은
+            response.data['accesstoken']; //백엔드에서 받을 토큰 data['token']에서 token은
         //스프링에서 토큰을 저장한 변수명과 일치해야함
         print('로그인 성공 $token');
+
+        //토큰 저장
+        final prefs = await SharedPreferences.getInstance(); //디바이스 내부 저장소에 저장
+        await prefs.setString('accesstoken', token);
+
         setState(() {
           loginAuth = true;
         });
@@ -225,12 +231,13 @@ class _LoginState extends State<Login> {
                         print(email); // 저장된 이메일 출력
                         print(password);
 
-                        await loginUser(email!, password!);
-                        print(loginAuth);
-                        if (loginAuth) {
-                          navigateToMainPage();
-                        }
+                        // await loginUser(email!, password!);
+                        // print(loginAuth);
+                        // if (loginAuth) {
+                        //   navigateToMainPage();
+                        // }
                       }
+                      navigateToMainPage();
                       //로그인 검증
                     },
                     child: Text(
@@ -305,7 +312,7 @@ class _LoginState extends State<Login> {
   void navigateToMainPage() {
     Navigator.of(
       context,
-    ).pushReplacement(MaterialPageRoute(builder: (context) => Home()));
+    ).pushReplacement(MaterialPageRoute(builder: (context) => Main()));
   }
 
   Future<void> signInWithKakao() async {

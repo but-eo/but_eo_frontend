@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:project/widgets/image_slider_widgets.dart';
 
-class Mypage extends StatelessWidget {
-  const Mypage({super.key});
+class Matchpage extends StatelessWidget {
+  const Matchpage({super.key});
 
   @override
   Widget build(BuildContext context) {

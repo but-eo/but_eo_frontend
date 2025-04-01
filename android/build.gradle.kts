@@ -2,7 +2,6 @@ allprojects {
     repositories {
         google()
         mavenCentral()
-        maven { url = java.net.URI("https://devrepo.kakao.com/nexus/content/groups/public/") }
     }
 }
 
@@ -20,11 +19,3 @@ subprojects {
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }
-
-// plugins {
-//   // ...
-
-//   // Add the dependency for the Google services Gradle plugin
-//   id("com.google.gms.google-services") version "4.4.2" apply false
-
-// }

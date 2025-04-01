@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:project/appColors/app_colors.dart';
-import 'package:project/app_style.dart';
-import 'package:project/pages/login/login.dart';
+import 'package:project/appStyle/app_colors.dart';
+import 'package:project/appStyle/app_style.dart';
+import 'package:project/pages/login.dart';
 import 'package:project/widgets/login_button.dart';
 import 'package:project/formatter/phoneformatter.dart';
 

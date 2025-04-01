@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
-import 'package:project/app_style.dart';
+import 'package:project/appStyle/app_style.dart';
 import 'package:project/pages/Sign.dart';
-import 'package:project/pages/home/home.dart';
-import 'package:project/pages/login/login.dart';
+import 'package:project/pages/mainpage.dart';
+import 'package:project/pages/login.dart';
 // import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
@@ -33,7 +33,7 @@ class MyApp extends StatelessWidget {
       theme: appTheme,
       routes: {
         Sign.id: (context) => Sign(), Login.id: (context) => Login(),
-        Home.id: (context) => Home()
+        Main.id: (context) => Main()
         },
       home: Login(),
     );

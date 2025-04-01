@@ -17,6 +17,7 @@ class CustomBottomNavBar extends StatelessWidget {
       selectedItemColor: Colors.black, // 선택된 아이템 색상 (검은색)
       unselectedItemColor: Colors.grey, // 선택되지 않은 아이템 색상 (회색)
       showUnselectedLabels: true, // 선택되지 않은 아이템의 레이블을 표시
+      type: BottomNavigationBarType.fixed, // 아이템 간격 고정
       items: const [
         BottomNavigationBarItem(
           icon: Icon(Icons.home),
