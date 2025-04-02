@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:project/pages/chatroompage.dart';
+import 'package:project/chat/chat_main.dart';
 import 'package:project/widgets/image_slider_widgets.dart';
 
 class ChatPage extends StatelessWidget {
@@ -8,6 +8,7 @@ class ChatPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      
       body: ListView.builder(
         itemCount: 10,
         itemBuilder: (context, index) {
@@ -56,7 +57,7 @@ class ChatPage extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder:
-                      (context) => ChatRoomPage(userName: '친구 ${index + 1}'),
+                      (context) => ChatMainPage(username: '친구 ${index + 1}'),
                 ),
               );
             },

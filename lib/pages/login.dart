@@ -32,10 +32,10 @@ class _LoginState extends State<Login> {
     final dio = Dio();
     try {
       final response = await dio.post(
-        //  192.168.45.179
+        //192.168.45.179, 10.30.3.43, 192.168.0.127
         "http://192.168.0.127:0714/api/users/login",
         data: {'email': email, 'password': password},
-      );
+      ); 
       print('Response data : ${response.data}');
       if (response.statusCode == 200) {
         String token =
@@ -238,8 +238,6 @@ class _LoginState extends State<Login> {
                           navigateToMainPage();
                         }
                       }
-                      // navigateToMainPage();
-                      //로그인 검증
                     },
                     child: Text(
                       "로그인",
