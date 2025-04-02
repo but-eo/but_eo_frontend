@@ -32,19 +32,19 @@ class _LoginState extends State<Login> {
     final dio = Dio();
     try {
       final response = await dio.post(
-        "http://192.168.45.179:0714/api/users/login",
+        "http://192.168.0.129:0714/api/users/login",
         data: {'email': email, 'password': password},
       );
       print('Response data : ${response.data}');
       if (response.statusCode == 200) {
         String token =
-            response.data['accesstoken']; //백엔드에서 받을 토큰 data['token']에서 token은
+            response.data['accessToken']; //백엔드에서 받을 토큰 data['token']에서 token은
         //스프링에서 토큰을 저장한 변수명과 일치해야함
         print('로그인 성공 $token');
 
         //토큰 저장
         final prefs = await SharedPreferences.getInstance(); //디바이스 내부 저장소에 저장
-        await prefs.setString('accesstoken', token);
+        await prefs.setString('accessToken', token);
 
         setState(() {
           loginAuth = true;
@@ -231,13 +231,13 @@ class _LoginState extends State<Login> {
                         print(email); // 저장된 이메일 출력
                         print(password);
 
-                        // await loginUser(email!, password!);
-                        // print(loginAuth);
-                        // if (loginAuth) {
-                        //   navigateToMainPage();
-                        // }
+                        await loginUser(email!, password!);
+                        print(loginAuth);
+                        if (loginAuth) {
+                          navigateToMainPage();
+                        }
                       }
-                      navigateToMainPage();
+                      // navigateToMainPage();
                       //로그인 검증
                     },
                     child: Text(
