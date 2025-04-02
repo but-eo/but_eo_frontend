@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project/widgets/image_slider_widgets.dart';
 
 class ChatRoomPage extends StatelessWidget {
   final String userName;
