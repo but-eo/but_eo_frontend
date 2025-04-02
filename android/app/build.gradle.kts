@@ -5,10 +5,13 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+
 android {
     namespace = "com.example.project"
     compileSdk = flutter.compileSdkVersion
+    //3.31 수정
     ndkVersion = flutter.ndkVersion
+        //  27.0.12077973 flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
