@@ -33,7 +33,7 @@ class _MainState extends State<Main> {
     // 위젯 로딩이 실행될 때
     // TODO: implement initState
     super.initState();
-    fetchUserInfo(); //
+    // fetchUserInfo(); 
   }
 
   int _selectedIndex = 0;
