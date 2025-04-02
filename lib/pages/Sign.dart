@@ -62,8 +62,8 @@ class _SignState extends State<Sign> {
     final dio = Dio();
     try {
       final response = await dio.post(
-        //  , 192.168.0.127
-        "http://192.168.45.179:0714/api/users/register",
+        //  ,    192.168.45.179
+        "http://192.168.0.127:0714/api/users/register",
         // "https://05e11d7c-f01d-4fb4-aabd-7849216efc8c.mock.pstmn.io/auth/register", //spring boot로 전송할 주소
         data: {
           'email': email,
@@ -79,9 +79,8 @@ class _SignState extends State<Sign> {
       print('Response data : ${response.data}');
       if (response.statusCode == 200) {
         // String token =
-        //     response.data['token']; //백엔드에서 받을 토큰 data['token']에서 token은
-        // //스프링에서 토큰을 저장한 변수명과 일치해야함
-
+        //     response.data['accesstoken']; //백엔드에서 받을 토큰 data['token']에서 token은
+        //스프링에서 토큰을 저장한 변수명과 일치해야함
         print('회원가입 성공');
       }
     } catch (e) {
@@ -197,7 +196,7 @@ class _SignState extends State<Sign> {
                   alignment: Alignment.topCenter, //상단 중앙 정렬
                   child: Image.asset(logoImage, height: size.height * 0.1),
                 ),
-                SizedBox(height: size.height * 0.023),
+                SizedBox(height:  size.height * 0.023),
                 Text(
                   "Sign Up",
                   style: Theme.of(context).textTheme.titleLarge, //appStyle
