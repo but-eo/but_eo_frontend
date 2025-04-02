@@ -50,7 +50,7 @@ class _MainState extends State<Main> {
   Future<void> fetchUserInfo() async {
     final dio = Dio();
     final prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('accesstoken');
+    String? token = prefs.getString('accessToken');
 
     if (token == null) {
       print("로그인이 필요합니다.");
@@ -59,7 +59,7 @@ class _MainState extends State<Main> {
 
     try {
       final response = await dio.get(
-        "http://192.168.45.179:0714/api/users/my-info",
+        "http://192.168.0.129:0714/api/users/my-info",
         options: Options(headers: {"Authorization": "Bearer $token"}),
       );
       if (response.statusCode == 200) {
