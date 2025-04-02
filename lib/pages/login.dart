@@ -1,25 +1,71 @@
+// import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:firebase_core/firebase_core.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
-import 'package:project/appColors/app_colors.dart';
-import 'package:project/app_style.dart';
+import 'package:project/appStyle/app_colors.dart';
+import 'package:project/appStyle/app_style.dart';
 import 'package:project/main.dart';
 import 'package:project/pages/Sign.dart';
-import 'package:project/pages/home.dart';
+import 'package:project/pages/mainpage.dart';
 import 'package:project/widgets/login_button.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Login extends StatefulWidget {
   static String id = "/login";
 
-  const Login({super.key});
+  const Login({super.key}); 
 
   @override
   State<Login> createState() => _LoginState();
 }
 
 class _LoginState extends State<Login> {
+  final _formKey = GlobalKey<FormState>();
+
+  bool loginAuth = false;
+  //
+  Future<void> loginUser(String email, String password) async {
+    final dio = Dio();
+    try {
+      final response = await dio.post(
+        //192.168.45.179, 10.30.3.43, 192.168.0.127
+        "http://192.168.0.127:0714/api/users/login",
+        data: {'email': email, 'password': password},
+      ); 
+      print('Response data : ${response.data}');
+      if (response.statusCode == 200) {
+        String token =
+            response.data['accessToken']; //백엔드에서 받을 토큰 data['token']에서 token은
+        //스프링에서 토큰을 저장한 변수명과 일치해야함
+        print('로그인 성공 $token');
+
+        //토큰 저장
+        final prefs = await SharedPreferences.getInstance(); //디바이스 내부 저장소에 저장
+        await prefs.setString('accessToken', token);
+
+        setState(() {
+          loginAuth = true;
+        });
+      }
+    } catch (e) {
+      if (e is DioException) {
+        print('로그인 실패: ${e.response?.statusCode} - ${e.response?.data}');
+      } else {
+        print('로그인 실패 (예상치 못한 오류): $e');
+      }
+      setState(() {
+        loginAuth = false;
+      });
+    }
+  }
+
+  String? email = "";
+  String? password = "";
+
   //체크박스 변수
   bool always_login = false;
   bool id_remember = false;
@@ -44,7 +90,6 @@ class _LoginState extends State<Login> {
               ),
               child: Column(
                 children: [
-                  
                   Align(
                     alignment: Alignment.topCenter, //상단 중앙 정렬
                     child: Image.asset(logoImage, height: size.height * 0.1),
@@ -62,43 +107,70 @@ class _LoginState extends State<Login> {
                     ).textTheme.titleSmall!.copyWith(fontSize: 15), //appStyle
                   ),
 
-                  //로그인 필드
-                  SizedBox(height: size.height * 0.02, width: size.width * 0.9),
-                  TextFormField(
-                    style: TextStyle(color: kLightTextColor),
-                    decoration: InputDecoration(
-                      hintText: "이메일을 입력하세요",
-                      prefixIcon: IconButton(
-                        onPressed: null,
-                        icon: SvgPicture.asset(userIcon),
-                      ),
-                    ),
-                    validator: (String? value) {
-                      if (value?.isEmpty ?? true) return '이메일을 입력하세요';
-                      if (value!.contains(
-                        RegExp(
-                          //이메일 검증
-                          r'^[a-zA-Z0-9+-_.]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$',
+                  Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        //로그인 필드
+                        SizedBox(
+                          height: size.height * 0.02,
+                          width: size.width * 0.9,
                         ),
-                      )) {
-                        return "이메일의 형태가 올바르지 않습니다";
-                      } else {
-                        return null;
-                      }
-                    },
-                  ),
-                  SizedBox(height: size.height * 0.016),
-                  TextFormField(
-                    obscureText: true,
-                    style: TextStyle(color: kLightTextColor),
-                    decoration: InputDecoration(
-                      hintText: "비밀번호를 입력하세요",
-                      prefixIcon: IconButton(
-                        onPressed: null,
-                        icon: SvgPicture.asset(userIcon),
-                      ),
+                        TextFormField(
+                          style: TextStyle(color: kLightTextColor),
+                          decoration: InputDecoration(
+                            hintText: "이메일을 입력하세요",
+                            prefixIcon: IconButton(
+                              onPressed: null,
+                              icon: SvgPicture.asset(userIcon),
+                            ),
+                          ),
+                          validator: (String? value) {
+                            email = value!;
+                            if (value?.isEmpty ?? true) return '이메일을 입력하세요';
+                            if (!RegExp(
+                              //이메일 검증
+                              r'^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z0-9-.]+$',
+                            ).hasMatch(email!)) {
+                              return "이메일의 형태가 올바르지 않습니다";
+                            } else {
+                              return null;
+                            }
+                          },
+                          onSaved: (value) {
+                            email = value!;
+                            print("현재 이메일 : $email");
+                          },
+                        ),
+                        SizedBox(height: size.height * 0.016),
+                        TextFormField(
+                          obscureText: true,
+                          style: TextStyle(color: kLightTextColor),
+                          decoration: InputDecoration(
+                            hintText: "비밀번호를 입력하세요",
+                            prefixIcon: IconButton(
+                              onPressed: null,
+                              icon: SvgPicture.asset(userIcon),
+                            ),
+                          ),
+                          validator: (String? value) {
+                            password = value!;
+                            if (value?.isEmpty ?? true) return '패스워드를 입력하세요';
+                            if (value.length < 6) {
+                              return "비밀번호 6자리 이상 입력해주세요.";
+                            } else {
+                              return null;
+                            }
+                          },
+                          onSaved: (value) {
+                            password = value!;
+                            print("현재 패스워드 : $password");
+                          },
+                        ),
+                      ],
                     ),
                   ),
+
                   SizedBox(height: size.height * 0.021),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -154,15 +226,19 @@ class _LoginState extends State<Login> {
                   SizedBox(height: size.height * 0.03),
                   ElevatedButton(
                     //누르면 뒤에 그림자가 생기는 버튼
-                    onPressed: () {
-                      //TODO: 로그인 버튼 누르면 데이터 전송하고 검증해서 홈으로 이동 혹은 다시 로그인 시도
-                      // if(true){
+                    onPressed: () async{
+                      if (_formKey.currentState!.validate()) {
+                        _formKey.currentState!.save(); // onSaved 호출
+                        print(email); // 저장된 이메일 출력
+                        print(password);
 
-                      // }
-                      // else{
-
-                      // }
-                    }, 
+                        await loginUser(email!, password!);
+                        print(loginAuth);
+                        if (loginAuth) {
+                          navigateToMainPage();
+                        }
+                      }
+                    },
                     child: Text(
                       "로그인",
                       style: Theme.of(context).textTheme.titleMedium,
@@ -231,10 +307,11 @@ class _LoginState extends State<Login> {
     );
   }
 
+  //홈으로 이동
   void navigateToMainPage() {
     Navigator.of(
       context,
-    ).pushReplacement(MaterialPageRoute(builder: (context) => Home()));
+    ).pushReplacement(MaterialPageRoute(builder: (context) => Main()));
   }
 
   Future<void> signInWithKakao() async {
@@ -244,6 +321,7 @@ class _LoginState extends State<Login> {
         // 카카오톡으로 로그인 시도
         await UserApi.instance.loginWithKakaoTalk().then((value) {
           print('카카오톡 로그인 성공: $value');
+          
           navigateToMainPage();
         });
       } catch (error) {

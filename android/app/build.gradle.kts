@@ -6,13 +6,12 @@ plugins {
 }
 
 
-
 android {
-
-
     namespace = "com.example.project"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = "27.0.12077973"
+    //3.31 수정
+    ndkVersion = flutter.ndkVersion
+        //  27.0.12077973 flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -32,8 +31,6 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-
-
     }
 
     buildTypes {
@@ -44,7 +41,6 @@ android {
         }
     }
 }
-
 
 flutter {
     source = "../.."
