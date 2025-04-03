@@ -4,7 +4,6 @@ import 'package:project/appStyle/app_style.dart';
 import 'package:project/pages/Sign.dart';
 import 'package:project/pages/mainpage.dart';
 import 'package:project/pages/login.dart';
-import 'package:project/pages/myteam.dart';
 // import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
@@ -12,7 +11,7 @@ void main() async {
   // await dotenv.load(fileName: "key.env");
 
   // Firebase.initializeApp();
-
+  connectWebSocket(); //웹소켓 연결
 
   KakaoSdk.init(
     nativeAppKey: '43571ff25dd7d58c93282d1029654bd9',
