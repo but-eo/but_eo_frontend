@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:project/chat/chat_main.dart';
 
 
-class MainPage extends StatelessWidget {
-  const MainPage({super.key});
+class ChatInvite extends StatelessWidget {
+  const ChatInvite({super.key});
  
   @override
   Widget build(BuildContext context) {

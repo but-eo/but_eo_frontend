@@ -34,9 +34,13 @@ class _ChatAreaState extends State<ChatArea> {
  
           return Stack(
             children: [
-              Text("${data['username']}"),
+              
+              Text(
+                "${data['username']}",
+                
+              ),
               Card(
-                margin: const EdgeInsets.fromLTRB(0, 20, 0, 10),
+                margin: const EdgeInsets.fromLTRB(20, 20, 0, 10),
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
                   child: Text(data['message']),
