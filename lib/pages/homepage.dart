@@ -16,7 +16,7 @@ class Homepage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 카테고리 버튼
+            // 카테고리리 버튼
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: SingleChildScrollView(
@@ -81,15 +81,7 @@ class Homepage extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "홈"),
-          BottomNavigationBarItem(icon: Icon(Icons.sports_soccer), label: "매칭찾기"),
-          BottomNavigationBarItem(icon: Icon(Icons.chat), label: "채팅방"),
-          BottomNavigationBarItem(icon: Icon(Icons.list), label: "전적보기"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "마이페이지"),
-        ],
-      ),
+
     );
   }
 

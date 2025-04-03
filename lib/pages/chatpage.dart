@@ -15,7 +15,7 @@ class ChatPage extends StatelessWidget {
             leading: ClipRRect(
               borderRadius: BorderRadius.circular(20.0), // ✅ 네모에서 둥근 모서리 설정
               child: Image.asset(
-                'assets/images/logo.png',
+                'assets/images/Logo.png',
                 width: 50.0, // 원하는 크기 조절
                 height: 50.0,
                 fit: BoxFit.cover, // 이미지를 잘 맞게 조정

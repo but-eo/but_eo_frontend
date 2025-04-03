@@ -4,6 +4,7 @@ import 'package:project/appStyle/app_style.dart';
 import 'package:project/pages/Sign.dart';
 import 'package:project/pages/mainpage.dart';
 import 'package:project/pages/login.dart';
+import 'package:project/pages/myteam.dart';
 // import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
@@ -33,7 +34,8 @@ class MyApp extends StatelessWidget {
       theme: appTheme,
       routes: {
         Sign.id: (context) => Sign(), Login.id: (context) => Login(),
-        Main.id: (context) => Main()
+        Main.id: (context) => Main(),
+        '/myteam': (context) => MyTeamPage(), // 이 부분 추가
         },
       home: Login(),
     );
