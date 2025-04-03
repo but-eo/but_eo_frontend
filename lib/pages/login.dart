@@ -32,7 +32,8 @@ class _LoginState extends State<Login> {
     final dio = Dio();
     try {
       final response = await dio.post(
-        "http://192.168.0.129:0714/api/users/login",
+        //  192.168.45.179
+        "http://192.168.0.127:0714/api/users/login",
         data: {'email': email, 'password': password},
       );
       print('Response data : ${response.data}');
@@ -322,6 +323,7 @@ class _LoginState extends State<Login> {
         // 카카오톡으로 로그인 시도
         await UserApi.instance.loginWithKakaoTalk().then((value) {
           print('카카오톡 로그인 성공: $value');
+          
           navigateToMainPage();
         });
       } catch (error) {

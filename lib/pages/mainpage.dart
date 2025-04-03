@@ -33,7 +33,7 @@ class _MainState extends State<Main> {
     // 위젯 로딩이 실행될 때
     // TODO: implement initState
     super.initState();
-    fetchUserInfo(); //
+    // fetchUserInfo(); 
   }
 
   int _selectedIndex = 0;
@@ -130,6 +130,9 @@ class _MainState extends State<Main> {
                     PopupMenuItem<int>(
                       value: 3, // 메뉴 항목의 값
                       child: Text('My Team'),
+                      onTap: () {
+                        Navigator.of(context).pushNamed('/myteam');
+                      },
                     ),
                     PopupMenuItem<int>(
                       value: 4, // 메뉴 항목의 값
