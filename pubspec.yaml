@@ -11,7 +11,7 @@ environment:
 
 
 dependencies:
-  
+
 
   flutter_masked_text2: ^0.9.1
 
@@ -59,7 +59,6 @@ flutter:
     - assets/images/
     - assets/icons/
   #   - images/a_dot_ham.jpeg
-    - assets/images/logo.png
 
 
   fonts:
