@@ -62,8 +62,8 @@ class _SignState extends State<Sign> {
     final dio = Dio();
     try {
       final response = await dio.post(
-        //  ,    192.168.45.179
-        "http://192.168.0.127:0714/api/users/register",
+        //192.168.45.179, 10.30.3.43, 192.168.0.127
+        "http://192.168.0.68:0714/api/users/register",
         // "https://05e11d7c-f01d-4fb4-aabd-7849216efc8c.mock.pstmn.io/auth/register", //spring boot로 전송할 주소
         data: {
           'email': email,

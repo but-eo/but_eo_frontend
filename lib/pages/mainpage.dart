@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:project/appStyle/app_colors.dart';
-import 'package:project/pages/chatpage.dart';
+import 'package:project/chat/chatpage.dart';
 import 'package:project/pages/homepage.dart';
 import 'package:project/pages/login.dart';
 import 'package:project/pages/logout.dart';
@@ -142,7 +142,7 @@ class _MainState extends State<Main> {
                     const PopupMenuDivider(),
                     PopupMenuItem<int>(
                       onTap: () {
-                        // logout(); //토큰 정보 삭제
+                        logout(); //토큰 정보 삭제
                         Navigator.of(context).pushNamedAndRemoveUntil(
                           //특정화면으로 이동하면서 이전 모든 화면을 스택에서 제거 (새 화면을 띄우고 뒤로가기 버튼을 눌러도 이전 화면으로 돌아갈 수 없음)
                           Login.id, //이동할 경로의 이름

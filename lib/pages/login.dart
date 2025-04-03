@@ -1,5 +1,7 @@
 // import 'package:firebase_auth/firebase_auth.dart';
 // import 'package:firebase_core/firebase_core.dart';
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -9,15 +11,16 @@ import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 import 'package:project/appStyle/app_colors.dart';
 import 'package:project/appStyle/app_style.dart';
 import 'package:project/main.dart';
-import 'package:project/pages/Sign.dart';
+import 'package:project/pages/sign.dart';
 import 'package:project/pages/mainpage.dart';
 import 'package:project/widgets/login_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 class Login extends StatefulWidget {
   static String id = "/login";
 
-  const Login({super.key}); 
+  const Login({super.key});
 
   @override
   State<Login> createState() => _LoginState();
@@ -32,8 +35,8 @@ class _LoginState extends State<Login> {
     final dio = Dio();
     try {
       final response = await dio.post(
-        //  192.168.45.179
-        "http://192.168.0.127:0714/api/users/login",
+        //192.168.45.179,  192.168.0.127  192.168.0.68
+        "http://192.168.0.68:0714/api/users/login",
         data: {'email': email, 'password': password},
       );
       print('Response data : ${response.data}');
@@ -226,20 +229,19 @@ class _LoginState extends State<Login> {
                   SizedBox(height: size.height * 0.03),
                   ElevatedButton(
                     //누르면 뒤에 그림자가 생기는 버튼
-                    onPressed: () async{
+                    onPressed: () async {
                       if (_formKey.currentState!.validate()) {
                         _formKey.currentState!.save(); // onSaved 호출
                         print(email); // 저장된 이메일 출력
                         print(password);
 
-                        await loginUser(email!, password!);
-                        print(loginAuth);
-                        if (loginAuth) {
-                          navigateToMainPage();
-                        }
+                        // await loginUser(email!, password!);
+                        // print(loginAuth);
+                        // if (loginAuth) {
+                        //   navigateToMainPage();
+                        // }
+                        navigateToMainPage();
                       }
-                      // navigateToMainPage();
-                      //로그인 검증
                     },
                     child: Text(
                       "로그인",
@@ -316,34 +318,81 @@ class _LoginState extends State<Login> {
     ).pushReplacement(MaterialPageRoute(builder: (context) => Main()));
   }
 
-  Future<void> signInWithKakao() async {
-    // 카카오톡 실행 가능 여부 확인
-    if (await isKakaoTalkInstalled()) {
-      try {
-        // 카카오톡으로 로그인 시도
-        await UserApi.instance.loginWithKakaoTalk().then((value) {
-          print('카카오톡 로그인 성공: $value');
-          
-          navigateToMainPage();
-        });
-      } catch (error) {
-        print('카카오톡으로 로그인 실패: $error');
-        // 카카오톡에 연결된 계정이 없는 경우 카카오계정 로그인 시도
-        await UserApi.instance.loginWithKakaoAccount().then((value) {
-          print('카카오계정 로그인 성공: $value');
-          navigateToMainPage();
-        });
-      }
+  Future<void> sendDataToServer(
+    String refreshToken,
+    String email,
+    String nickname,
+    String profileimage,
+    String gender,
+    String birthyear,
+  ) async {
+    final url = Uri.parse("http://192.168.0.68:0714/api/users/kakao/login");
+    final response = await http.post(
+      url,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "refreshToken": refreshToken,
+        "email": email,
+        "nickName": nickname,
+        "gender": gender,
+        "birthYear": birthyear,
+        "profileImage": profileimage,
+      }),
+    );
+    if (response.statusCode == 200) {
+      print("서버 전송 성공: ${response.body}");
     } else {
-      // 카카오톡이 설치되지 않았을 때 카카오계정으로 로그인 시도
-      try {
-        await UserApi.instance.loginWithKakaoAccount().then((value) {
-          print('카카오계정으로 로그인 성공: $value');
-          navigateToMainPage();
-        });
-      } catch (error) {
-        print('카카오계정 로그인 실패: $error');
+      print("서버 전송 실패: ${response.statusCode}");
+    }
+  }
+
+  Future<void> signInWithKakao() async {
+    try {
+      OAuthToken token;
+
+      // 카카오톡 실행 가능 여부 확인
+      if (await isKakaoTalkInstalled()) {
+        try {
+          token = await UserApi.instance.loginWithKakaoTalk();
+          print('카카오톡 로그인 성공');
+        } catch (error) {
+          print('카카오톡 로그인 실패: $error');
+          token = await UserApi.instance.loginWithKakaoAccount();
+          print('카카오계정 로그인 성공');
+        }
+      } else {
+        token = await UserApi.instance.loginWithKakaoAccount();
+        print('카카오계정 로그인 성공');
       }
+
+      // 로그인 성공 후 사용자 정보 가져오기
+      User user = await UserApi.instance.me();
+
+      String accessToken = token.accessToken;
+      String refreshToken = token.refreshToken ?? "";
+      String email = user.kakaoAccount?.email ?? "이메일 없음";
+      String nickname = user.kakaoAccount?.profile?.nickname ?? "닉네임 없음";
+      String profileImage = user.kakaoAccount?.profile?.profileImageUrl ?? "";
+      String gender = user.kakaoAccount?.gender?.name ?? "";
+      String birthYear = user.kakaoAccount?.birthyear ?? "";
+
+      print("accessToken : " + accessToken);
+      print("refreshToken : " + refreshToken);
+      print("email : " + email);
+      // 서버로 사용자 데이터 전송
+      await sendDataToServer(
+        refreshToken,
+        email,
+        nickname,
+        profileImage,
+        gender,
+        birthYear,
+      );
+
+      // 메인 페이지 이동
+      navigateToMainPage();
+    } catch (error) {
+      print('로그인 실패: $error');
     }
   }
 }
