@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
  
-String HOST = ' 192.168.0.68'; // 서버 호스트
+String HOST = '192.168.0.111'; // 서버 호스트
 int PORT = 3000; // 서버 포트
 List<dynamic> clients = []; // 클라이언트 목록
  

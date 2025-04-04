@@ -4,6 +4,8 @@ import 'package:project/appStyle/app_style.dart';
 import 'package:project/pages/Sign.dart';
 import 'package:project/pages/mainpage.dart';
 import 'package:project/pages/login.dart';
+import 'package:project/pages/myteam.dart';
+import 'package:project/websocket/websocket_client.dart';
 // import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
@@ -16,7 +18,9 @@ void main() async {
   KakaoSdk.init(
     nativeAppKey: '43571ff25dd7d58c93282d1029654bd9',
     javaScriptAppKey: '4f8d5998dff250032e60538ceeb1a2ac',
+
   );
+  getKeyHash();
 
   runApp(const MyApp());
 }
@@ -39,4 +43,9 @@ class MyApp extends StatelessWidget {
       home: Login(),
     );
   }
+
+}
+void getKeyHash() async {
+  final keyHash = await KakaoSdk.origin;
+  print('카카오 키 해시: $keyHash');
 }
