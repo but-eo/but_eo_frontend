@@ -59,7 +59,7 @@ class _MainState extends State<Main> {
 
     try {
       final response = await dio.get(
-        "http://192.168.0.129:0714/api/users/my-info",
+        "http://192.168.0.73:0714/api/users/my-info",
         options: Options(headers: {"Authorization": "Bearer $token"}),
       );
       if (response.statusCode == 200) {

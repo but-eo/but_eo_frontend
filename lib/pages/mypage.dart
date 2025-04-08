@@ -1,8 +1,57 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dio/dio.dart';
 import 'package:project/pages/EditProfilePage.dart'; // 수정 페이지 import
 
-class MyPageScreen extends StatelessWidget {
+class MyPageScreen extends StatefulWidget {
   const MyPageScreen({super.key});
+
+  @override
+  State<MyPageScreen> createState() => _MyPageScreenState();
+}
+
+class _MyPageScreenState extends State<MyPageScreen> {
+  String? nickname = "로딩 중...";
+  String? _profileImageUrl;
+
+  // ✅ baseUrl: 시뮬레이터에서 서버 접근할 때 사용
+  final String baseUrl = "http://10.0.2.2:714";
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUserInfo();
+  }
+
+  Future<void> fetchUserInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+
+    if (token == null) {
+      print("❌ 토큰 없음");
+      return;
+    }
+
+    final dio = Dio();
+    try {
+      final res = await dio.get(
+        "$baseUrl/api/users/me",
+        options: Options(headers: {"Authorization": "Bearer $token"}),
+      );
+
+      if (res.statusCode == 200) {
+        print("🟢 유저 정보: ${res.data}");
+        setState(() {
+          nickname = res.data['name'] ?? "닉네임 없음";
+          _profileImageUrl = res.data['profile'];
+        });
+      } else {
+        print("❌ 사용자 정보 불러오기 실패: ${res.statusCode}");
+      }
+    } catch (e) {
+      print("❗ 사용자 정보 요청 중 오류: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,14 +62,23 @@ class MyPageScreen extends StatelessWidget {
           child: CircleAvatar(
             radius: 50,
             backgroundColor: Colors.purpleAccent.withOpacity(0.2),
-            child: const Icon(Icons.person, size: 50, color: Colors.white),
+            backgroundImage: _profileImageUrl != null && _profileImageUrl!.isNotEmpty
+                ? NetworkImage(
+              _profileImageUrl!.startsWith("http")
+                  ? _profileImageUrl!
+                  : "$baseUrl${_profileImageUrl!}",
+            )
+                : null,
+            child: _profileImageUrl == null || _profileImageUrl!.isEmpty
+                ? const Icon(Icons.person, size: 50, color: Colors.white)
+                : null,
           ),
         ),
         const SizedBox(height: 10),
-        const Center(
+        Center(
           child: Text(
-            'IM_HERO',
-            style: TextStyle(
+            nickname ?? '',
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
@@ -29,18 +87,20 @@ class MyPageScreen extends StatelessWidget {
         const SizedBox(height: 20),
         const Divider(height: 1),
 
-        // ✅ 회원정보 수정 → EditProfilePage로 이동
         _buildListTile(
           context,
           '회원정보 수정',
-          onTap: () {
-            Navigator.push(
+          onTap: () async {
+            final result = await Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const EditProfilePage()),
             );
+            if (result == true) {
+              fetchUserInfo(); // ✅ 수정되었을 때만 다시 불러오기
+            }
           },
-        ),
 
+        ),
         _buildListTile(context, '마이 팀'),
         _buildListTile(context, '내가 작성한 글 보기'),
         _buildListTile(context, '내가 남긴 댓글 보기'),
