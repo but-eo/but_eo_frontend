@@ -53,61 +53,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
-  Future<void> updateUserInfo() async {
-    if (passwordController.text != confirmPasswordController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("비밀번호가 일치하지 않습니다.")),
-      );
-      return;
-    }
-
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('accessToken');
-    if (token == null) return;
-
-    final dio = Dio();
-
-    try {
-      final formData = FormData.fromMap({
-        "nickname": nicknameController.text,
-        "password": passwordController.text,
-        "birthYear": selectedBirthYear,
-        "preferSports": selectedSport,
-        "region": selectedRegion,
-        if (profileImage != null)
-          "profileImage": await MultipartFile.fromFile(
-            profileImage!.path,
-            filename: profileImage!.name,
-          ),
-      });
-
-      final response = await dio.post(
-        "http://192.168.0.111:0714/api/users/update-all", // 🛠️ 여긴 서버에 맞게 조정
-        data: formData,
-        options: Options(headers: {
-          "Authorization": "Bearer $token",
-          "Content-Type": "multipart/form-data",
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("회원정보가 수정되었습니다.")),
-        );
-        Navigator.pop(context);
-      } else {
-        print("❌ 수정 실패: ${response.statusCode} / ${response.data}");
-      }
-    } catch (e) {
-      print("❗ 오류 발생: $e");
-    }
-  }
-
   Future<void> pickProfileImage() async {
     final picker = ImagePicker();
 
     final picked = await picker.pickImage(
-      source: ImageSource.camera, // ✅ 카메라에서 촬영
+      source: ImageSource.camera,
       imageQuality: 85,
       preferredCameraDevice: CameraDevice.front,
     );
@@ -116,6 +66,62 @@ class _EditProfilePageState extends State<EditProfilePage> {
       setState(() {
         profileImage = picked;
       });
+    }
+  }
+
+  Future<void> updateUserInfo() async {
+    print("✅ 수정 버튼 눌림");
+
+    if (passwordController.text != confirmPasswordController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("비밀번호가 일치하지 않습니다.")),
+      );
+      return;
+    }
+    print("hi");
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+    if (token == null) return;
+    print("*");
+    try {
+      print("*");
+      final formData = FormData.fromMap({
+        "name": nicknameController.text,
+        "password": passwordController.text,
+        "birthYear": selectedBirthYear,
+        "preferSports": selectedSport,
+        "region": selectedRegion,
+        if (profileImage != null)
+          "profile": await MultipartFile.fromFile(
+            profileImage!.path,
+            filename: profileImage!.name,
+          ),
+      });
+      print("*");
+
+      final dio = Dio();
+      final response = await dio.patch(
+        "http://192.168.0.111:0714/api/users/update",
+        data: formData,
+        options: Options(headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "multipart/form-data",
+        }),
+      );
+
+      print("응답 코드: ${response.statusCode}");
+      print("🟢 서버 응답 내용: ${response.data}");
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("회원정보가 수정되었습니다.")),
+        );
+        Navigator.pop(context);
+      } else {
+        print("❌ 서버 응답 에러: ${response.data}");
+      }
+    } catch (e) {
+      print("❗ 수정 실패: $e");
     }
   }
 
