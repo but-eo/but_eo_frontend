@@ -37,7 +37,7 @@ class _LoginState extends State<Login> {
       final response = await dio.post(
         //192.168.45.179,  192.168.0.127  192.168.0.68
         //
-        "http://192.168.0.111:0714/api/users/login",
+        "http://192.168.0.72:0714/api/users/login",
         data: {'email': email, 'password': password},
       );
       print('Response data : ${response.data}');
@@ -327,7 +327,7 @@ class _LoginState extends State<Login> {
     String gender,
     String birthyear,
   ) async {
-    final url = Uri.parse("http://192.168.0.111:0714/api/users/kakao/login");
+    final url = Uri.parse("http://192.168.0.72:0714/api/users/kakao/login");
     final response = await http.post(
       url,
       headers: {"Content-Type": "application/json"},
