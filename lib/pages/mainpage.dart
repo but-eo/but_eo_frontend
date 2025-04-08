@@ -43,7 +43,7 @@ class _MainState extends State<Main> {
     Matchpage(),
     ChatPage(),
     Recordpage(),
-    Mypage(),
+    MyPageScreen(),
   ];
 
   //사용자 정보 불러오기 -> 토큰을 통해
