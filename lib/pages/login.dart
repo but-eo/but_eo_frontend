@@ -39,7 +39,11 @@ class _LoginState extends State<Login> {
         //192.168.45.179,  192.168.0.127  192.168.0.68
         // 192.168.0.73
         //
-        "http://192.168.0.73:0714/api/users/login",
+
+//         "http://192.168.0.73:0714/api/users/login",
+
+        "http://192.168.0.72:0714/api/users/login",
+
         data: {'email': email, 'password': password},
       );
       print('Response data : ${response.data}');
@@ -336,13 +340,25 @@ class _LoginState extends State<Login> {
     ).pushReplacement(MaterialPageRoute(builder: (context) => Main()));
   }
 
-  Future<void> sendDataToServer(String refreshToken,
-      String email,
-      String nickname,
-      String profileimage,
-      String gender,
-      String birthyear,) async {
-    final url = Uri.parse("http://192.168.0.73:0714/api/users/kakao/login");
+
+//   Future<void> sendDataToServer(String refreshToken,
+//       String email,
+//       String nickname,
+//       String profileimage,
+//       String gender,
+//       String birthyear,) async {
+//     final url = Uri.parse("http://192.168.0.73:0714/api/users/kakao/login");
+
+  Future<void> sendDataToServer(
+    String refreshToken,
+    String email,
+    String nickname,
+    String profileimage,
+    String gender,
+    String birthyear,
+  ) async {
+    final url = Uri.parse("http://192.168.0.72:0714/api/users/kakao/login");
+
     final response = await http.post(
       url,
       headers: {"Content-Type": "application/json"},
