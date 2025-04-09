@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:project/widgets/image_slider_widgets.dart';
 
-class Recordpage extends StatelessWidget {
-  const Recordpage({super.key});
+class Board extends StatelessWidget {
+  const Board({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +14,7 @@ class Recordpage extends StatelessWidget {
 
     return Column(
       children: [
-        ImageSliderWidgets(bannerUrlItems: bannerUrlItems),
+
       ],
     );
   }
