@@ -116,7 +116,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("회원정보가 수정되었습니다.")),
         );
-        Navigator.pop(context);
+        Navigator.pop(context,true);
       } else {
         print("❌ 서버 응답 에러: ${response.data}");
       }
