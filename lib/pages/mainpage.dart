@@ -7,7 +7,7 @@ import 'package:project/pages/login.dart';
 import 'package:project/pages/logout.dart';
 import 'package:project/pages/matchpage.dart';
 import 'package:project/pages/mypage.dart';
-import 'package:project/pages/recordpage.dart';
+import 'package:project/pages/board.dart';
 import 'package:project/widgets/bottom_navigation.dart';
 import 'package:dio/dio.dart';
 import 'package:project/widgets/image_slider_widgets.dart';
@@ -80,7 +80,7 @@ class _MainState extends State<Main> {
     Homepage(),
     Matchpage(),
     ChatPage(),
-    Recordpage(),
+    Board(),
     MyPageScreen(),
   ];
 

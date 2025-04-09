@@ -522,12 +522,14 @@ class _LoginState extends State<Login> {
     final dio = Dio();
     try {
       final response = await dio.post(
+
         "http://10.0.2.2:714/api/users/login",
         data: {
           'email': email,
           'password': password,
           'loginType': 'BUTEO', // 명시적으로 로그인 타입 전달
         },
+
       );
 
       if (response.statusCode == 200) {
@@ -722,5 +724,90 @@ class _LoginState extends State<Login> {
         ),
       ),
     );
+  }
+
+  //홈으로 이동
+  void navigateToMainPage() {
+    Navigator.of(
+      context,
+    ).pushReplacement(MaterialPageRoute(builder: (context) => Main()));
+  }
+
+  Future<void> sendDataToServer(
+    String refreshToken,
+    String email,
+    String nickname,
+    String profileimage,
+    String gender,
+    String birthyear,
+  ) async {
+    final url = Uri.parse("http://192.168.0.72:0714/api/users/kakao/login");
+    final response = await http.post(
+      url,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "refreshToken": refreshToken,
+        "email": email,
+        "nickName": nickname,
+        "gender": gender,
+        "birthYear": birthyear,
+        "profileImage": profileimage,
+      }),
+    );
+    if (response.statusCode == 200) {
+      print("서버 전송 성공: ${response.body}");
+    } else {
+      print("서버 전송 실패: ${response.statusCode}");
+    }
+  }
+
+  Future<void> signInWithKakao() async {
+    try {
+      OAuthToken token;
+
+      // 카카오톡 실행 가능 여부 확인
+      if (await isKakaoTalkInstalled()) {
+        try {
+          token = await UserApi.instance.loginWithKakaoTalk();
+          print('카카오톡 로그인 성공');
+        } catch (error) {
+          print('카카오톡 로그인 실패: $error');
+          token = await UserApi.instance.loginWithKakaoAccount();
+          print('카카오계정 로그인 성공');
+        }
+      } else {
+        token = await UserApi.instance.loginWithKakaoAccount();
+        print('카카오계정 로그인 성공');
+      }
+
+      // 로그인 성공 후 사용자 정보 가져오기
+      User user = await UserApi.instance.me();
+
+      String accessToken = token.accessToken;
+      String refreshToken = token.refreshToken ?? "";
+      String email = user.kakaoAccount?.email ?? "이메일 없음";
+      String nickname = user.kakaoAccount?.profile?.nickname ?? "닉네임 없음";
+      String profileImage = user.kakaoAccount?.profile?.profileImageUrl ?? "";
+      String gender = user.kakaoAccount?.gender?.name ?? "";
+      String birthYear = user.kakaoAccount?.birthyear ?? "";
+
+      print("accessToken : " + accessToken);
+      print("refreshToken : " + refreshToken);
+      print("email : " + email);
+      // 서버로 사용자 데이터 전송
+      await sendDataToServer(
+        refreshToken,
+        email,
+        nickname,
+        profileImage,
+        gender,
+        birthYear,
+      );
+
+      // 메인 페이지 이동
+      navigateToMainPage();
+    } catch (error) {
+      print('로그인 실패: $error');
+    }
   }
 }
