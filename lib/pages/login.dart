@@ -17,6 +17,8 @@ import 'package:project/widgets/login_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
+import '../utils/token_storage.dart';
+
 class Login extends StatefulWidget {
   static String id = "/login";
 
@@ -44,8 +46,11 @@ class _LoginState extends State<Login> {
       if (response.statusCode == 200) {
         String token =
             response.data['accessToken']; //백엔드에서 받을 토큰 data['token']에서 token은
+        String userId = response.data['userId'];
         //스프링에서 토큰을 저장한 변수명과 일치해야함
         print('로그인 성공 $token');
+        //토큰, userId 저장
+        await TokenStorage.saveTokens(token);
 
         //토큰 저장
         final prefs = await SharedPreferences.getInstance(); //디바이스 내부 저장소에 저장
@@ -341,6 +346,14 @@ class _LoginState extends State<Login> {
       }),
     );
     if (response.statusCode == 200) {
+      //토큰과
+      final data = jsonDecode(response.body);
+      final accessToken = data['accessToken'];
+      //아직 userId 안줌
+      //final userId = data['userId'];
+
+      //저장
+      await TokenStorage.saveTokens(accessToken);
       print("서버 전송 성공: ${response.body}");
     } else {
       print("서버 전송 실패: ${response.statusCode}");
