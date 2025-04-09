@@ -1,40 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:project/pages/board/board_detail_page.dart';
 import 'package:project/pages/board/widgets/board_list_item.dart';
+import 'package:project/data/mock_posts.dart';
+
 
 class BoardPage extends StatelessWidget {
   const BoardPage({super.key});
-
-  final List<Map<String, dynamic>> mockPosts = const [
-    {
-      "title": "배드민턴 라켓",
-      "category": "자유",
-      "writer": "작성자",
-      "date": "15.03.28",
-      "comments": 3,
-    },
-    {
-      "title": "맨유 요즘 왜이럼?",
-      "category": "자유",
-      "writer": "작성자",
-      "date": "15.03.28",
-      "comments": 7,
-    },
-    {
-      "title": "계대에서 농구할사람",
-      "category": "자유",
-      "writer": "작성자",
-      "date": "15.03.28",
-      "comments": 3,
-    },
-    {
-      "title": "손흥민 폼 미쳤다",
-      "category": "자유",
-      "writer": "작성자",
-      "date": "15.03.28",
-      "comments": 3,
-    },
-  ];
 
 
   @override
@@ -54,11 +25,19 @@ class BoardPage extends StatelessWidget {
                 date: post["date"],
                 commentCount: post["comments"],
               onTap :() {
-                  Navigator.push(
-                      context, 
-                      MaterialPageRoute(
-                          builder: (_) => BoardDetailPage(title: post["title"]))
-                  );
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => BoardDetailPage(
+                      title: post["title"],
+                      content: "본문 내용 ~~",
+                      author: post["writer"],
+                      date: post["date"],
+                      views: 123,  // 임의의 조회수, 실제 데이터로 교체해야 함
+                    ),
+                  ),
+                );
+
               }
             );
           }
