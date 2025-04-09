@@ -3,21 +3,20 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> logoutKakao() async {
   try {
-    await UserApi.instance.logout();
-    print('로그아웃 성공, SDK에서 토큰 폐기');
+    await UserApi.instance.unlink(); // 또는 logout()
+    print('✅ 카카오 로그아웃 성공');
   } catch (error) {
-    print('로그아웃 실패, SDK에서 토큰 폐기 $error');
+    print('❌ 카카오 로그아웃 실패: $error');
   }
 }
 
-Future<void> logout() async{
+Future<void> logout() async {
   final prefs = await SharedPreferences.getInstance();
-  await prefs.remove('accesstoken');
-  print('로그아웃 완료, 토큰 삭제');
+  await prefs.remove('accessToken'); // ✅ 키명 정확히 확인
+  print('✅ 일반 로그아웃: 토큰 삭제 완료');
 }
 
-//토큰 가져오기
 Future<String?> getToken() async {
   final prefs = await SharedPreferences.getInstance();
-  return prefs.getString('accesstoken');
+  return prefs.getString('accessToken');
 }
