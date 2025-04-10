@@ -38,7 +38,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
     final dio = Dio();
     final res = await dio.get(
-      "http://192.168.0.111:0714/api/users/my-info",
+      "http://192.168.0.73:0714/api/users/my-info",
       options: Options(headers: {"Authorization": "Bearer $token"}),
     );
 
@@ -101,7 +101,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
       final dio = Dio();
       final response = await dio.patch(
-        "http://192.168.0.111:0714/api/users/update",
+        "http://192.168.0.73:0714/api/users/update",
         data: formData,
         options: Options(headers: {
           "Authorization": "Bearer $token",
