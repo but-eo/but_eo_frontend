@@ -17,52 +17,61 @@ class _MyPageScreenState extends State<MyPageScreen> {
   // ✅ baseUrl: 시뮬레이터에서 서버 접근할 때 사용
   final String baseUrl = "http://10.0.2.2:714";
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   fetchUserInfo();
-  // }
+// <<<<<<< kakaologintoken
   @override
   void initState() {
     super.initState();
-    printAccessToken("MyPage");
     fetchUserInfo();
   }
 
-  Future<void> printAccessToken(String label) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('accessToken');
-    print("🔑 [$label] accessToken: $token");
-  }
 
-  Future<void> printUserInfo(String label) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('accessToken');
+//   // @override
+//   // void initState() {
+//   //   super.initState();
+//   //   fetchUserInfo();
+//   // }
+//   @override
+//   void initState() {
+//     super.initState();
+//     printAccessToken("MyPage");
+//     fetchUserInfo();
+//   }
 
-    if (token == null) {
-      print("❌ [$label] 토큰 없음");
-      return;
-    }
+//   Future<void> printAccessToken(String label) async {
+//     final prefs = await SharedPreferences.getInstance();
+//     final token = prefs.getString('accessToken');
+//     print("🔑 [$label] accessToken: $token");
+//   }
 
-    final dio = Dio();
-    try {
-      final res = await dio.get(
-        "http://10.0.2.2:714/api/users/me",
-        options: Options(headers: {"Authorization": "Bearer $token"}),
-      );
+//   Future<void> printUserInfo(String label) async {
+//     final prefs = await SharedPreferences.getInstance();
+//     final token = prefs.getString('accessToken');
 
-      if (res.statusCode == 200) {
-        print("👤 [$label] 로그인된 사용자 정보: ${res.data}");
-      } else {
-        print("❌ [$label] 유저 정보 불러오기 실패: ${res.statusCode}");
-      }
-    } catch (e) {
-      print("❗ [$label] 사용자 정보 요청 에러: $e");
-    }
-  }
+//     if (token == null) {
+//       print("❌ [$label] 토큰 없음");
+//       return;
+//     }
+
+//     final dio = Dio();
+//     try {
+//       final res = await dio.get(
+//         "http://10.0.2.2:714/api/users/me",
+//         options: Options(headers: {"Authorization": "Bearer $token"}),
+//       );
+
+//       if (res.statusCode == 200) {
+//         print("👤 [$label] 로그인된 사용자 정보: ${res.data}");
+//       } else {
+//         print("❌ [$label] 유저 정보 불러오기 실패: ${res.statusCode}");
+//       }
+//     } catch (e) {
+//       print("❗ [$label] 사용자 정보 요청 에러: $e");
+//     }
+//   }
 
 
 
+// >>>>>>> main
   Future<void> fetchUserInfo() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
