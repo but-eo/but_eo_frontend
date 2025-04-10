@@ -7,10 +7,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
+
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
+import 'package:flutter_naver_login/flutter_naver_login.dart';
+
 import 'package:project/appStyle/app_colors.dart';
 import 'package:project/appStyle/app_style.dart';
-import 'package:project/main.dart';
+
 import 'package:project/pages/sign.dart';
 import 'package:project/pages/mainpage.dart';
 import 'package:project/widgets/login_button.dart';
@@ -230,18 +233,19 @@ class _LoginState extends State<Login> {
                   ElevatedButton(
                     //누르면 뒤에 그림자가 생기는 버튼
                     onPressed: () async {
-                      if (_formKey.currentState!.validate()) {
-                        _formKey.currentState!.save(); // onSaved 호출
-                        print(email); // 저장된 이메일 출력
-                        print(password);
+                      // if (_formKey.currentState!.validate()) {
+                      //   _formKey.currentState!.save(); // onSaved 호출
+                      //   print(email); // 저장된 이메일 출력
+                      //   print(password);
 
-                        // await loginUser(email!, password!);
-                        // print(loginAuth);
-                        // if (loginAuth) {
-                        //   navigateToMainPage();
-                        // }
-                        navigateToMainPage();
-                      }
+                      //   // await loginUser(email!, password!);
+                      //   // print(loginAuth);
+                      //   // if (loginAuth) {
+                      //   //   navigateToMainPage();
+                      //   // }
+                      //   navigateToMainPage();
+                      // }
+                      navigateToMainPage();
                     },
                     child: Text(
                       "로그인",
@@ -272,7 +276,9 @@ class _LoginState extends State<Login> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       GestureDetector(
-                        onTap: () {},
+                        onTap: () {
+                          loginWithNaver();
+                        },
                         child: loginButton(
                           context,
                           'assets/icons/naver_icon.png',
@@ -359,6 +365,7 @@ class _LoginState extends State<Login> {
           print('카카오톡 로그인 실패: $error');
           token = await UserApi.instance.loginWithKakaoAccount();
           print('카카오계정 로그인 성공');
+          
         }
       } else {
         token = await UserApi.instance.loginWithKakaoAccount();
@@ -395,4 +402,62 @@ class _LoginState extends State<Login> {
       print('로그인 실패: $error');
     }
   }
+
+  Future<void> loginWithNaver() async {
+    final url = Uri.parse("https://nid.naver.com/nidlogin.logout");
+    final response = await http.get(url); // http 패키지 사용
+    
+    try {
+      print("네이버 로그인 시도중");
+      var accessToken;
+      var tokenType;
+      final result = await FlutterNaverLogin.logIn();
+
+      print("로그인 상태 : ${result.status}");
+      NaverAccessToken res = await FlutterNaverLogin.currentAccessToken;
+      final tempAccessToken = res.accessToken;
+      final tempTokenType = res.tokenType;
+
+      print('accessToken : $tempAccessToken');
+      print('tokenType : $tempTokenType');
+      
+      if(tempAccessToken!=null && tempAccessToken.isNotEmpty){
+        setState(() {
+          accessToken = tempAccessToken;
+          tokenType = tempTokenType;
+        });
+        navigateToMainPage();
+      } else{
+        print("네이버 로그인 실패 사유: ${result.errorMessage}");
+      }
+    } catch (e) {
+      print("에러 : ${e}");
+    }
+  }
+  // //네이버 회원 정보 가져오기
+  // Future<void> fetchNaverUserDetail(String accessToken) async {
+  //   const String url = "https://openapi.naver.com/v1/nid/me";
+
+  //   final response = await http.get(
+  //     Uri.parse(url),
+  //     headers: {'Authorization': 'Bearer $accessToken'},
+  //   );
+
+  //   if (response.statusCode == 200) {
+  //     var data = json.decode(response.body);
+  //     var userInfo = data['response'];
+
+  //     String id = userInfo['id'];
+  //     String name = userInfo['name'];
+  //     String email = userInfo['email'];
+
+  //     print("Naver ID: $id");
+  //     print("Name: $name");
+  //     print("Email: $email");
+
+  //     // TODO: 이 정보를 서버로 보내거나 앱 내 사용자 상태 저장 등에 활용
+  //   } else {
+  //     print("Failed to fetch user info. status: ${response.statusCode}");
+  //   }
+  // }
 }

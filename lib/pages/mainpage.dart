@@ -76,8 +76,11 @@ class _MainState extends State<Main> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: Scaffold(
-        appBar: AppBar(
+        appBar: _selectedIndex == 2 
+        ? null
+        : AppBar(
           title: Text(
             "BUTTEO",
             style: TextStyle(
@@ -145,7 +148,7 @@ class _MainState extends State<Main> {
                     const PopupMenuDivider(),
                     PopupMenuItem<int>(
                       onTap: () {
-                        logout(); //토큰 정보 삭제
+                        //TODO : 백엔드로 로그아웃 요청
                         Navigator.of(context).pushNamedAndRemoveUntil(
                           //특정화면으로 이동하면서 이전 모든 화면을 스택에서 제거 (새 화면을 띄우고 뒤로가기 버튼을 눌러도 이전 화면으로 돌아갈 수 없음)
                           Login.id, //이동할 경로의 이름
@@ -174,7 +177,7 @@ class _MainState extends State<Main> {
           selectedIndex: _selectedIndex,
           onTap: (index) {
             setState(() {
-              _selectedIndex = index;
+              _selectedIndex = index; 
             });
           },
         ),

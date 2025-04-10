@@ -3,10 +3,10 @@ import 'package:stomp_dart_client/stomp_dart_client.dart';
 late StompClient stompClient; // `late`로 선언
 
 void connectWebSocket() {
-  stompClient = StompClient( // 여기서 초기화
-    config: StompConfig(
-      url: 'ws://192.168.45.179:714/ws',
-      onConnect: (StompFrame frame) {
+  stompClient = StompClient( //Spring WebSocket에서 STOMP 엔드포인트를 등록할 때 사용하는 클래스
+    config: StompConfig( //Flutter에서 사용하는 클래스로 StompClient를 초기화 할 때 사용
+      url: 'ws://192.168.0.68:714/ws', 
+      onConnect: (StompFrame frame) { //Stomp 프로토콜로 주고받는 메시지를 표현한 클래스
         print('WebSocket 연결 성공!');
 
         // 메시지 구독

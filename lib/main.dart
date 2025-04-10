@@ -4,6 +4,9 @@ import 'package:project/appStyle/app_style.dart';
 import 'package:project/pages/Sign.dart';
 import 'package:project/pages/mainpage.dart';
 import 'package:project/pages/login.dart';
+import 'package:project/pages/myteam.dart';
+import 'package:project/websocket/websocket_client.dart';
+
 // import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
@@ -40,3 +43,5 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+
