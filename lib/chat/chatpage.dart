@@ -47,8 +47,6 @@ class _ChatPageState extends State<ChatPage> {
   // 채팅방 생성 다이얼로그
   void _showCreateChatDialog(BuildContext context) {
     TextEditingController _controller = TextEditingController();
-    List<Map<String, dynamic>> localSearchResults = [];
-    Map<String, bool> localSelectedUsers = {};
 
     showDialog(
       context: context,
@@ -56,7 +54,7 @@ class _ChatPageState extends State<ChatPage> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: Text("대화 상대 선택"),
+              title: Text("대화상대 선택"),
               content: SizedBox(
                 width: double.maxFinite,
                 child: Column(
@@ -78,8 +76,8 @@ class _ChatPageState extends State<ChatPage> {
                               localSearchResults = results;
                               localSelectedUsers.clear();
                               for (var user in localSearchResults) {
-                                localSelectedUsers[user['id'].toString()] =
-                                    false;
+                                var userId = user['id'].toString();
+                                localSelectedUsers[userId] = false;
                               }
                             });
                           },
@@ -95,12 +93,14 @@ class _ChatPageState extends State<ChatPage> {
                           final user = localSearchResults[index];
                           final userId = user['id'].toString();
                           return ListTile(
-                            leading: CircleAvatar(
-                              backgroundImage: NetworkImage(
-                                user['profileUrl'] ??
-                                    'https://via.placeholder.com/150',
-                              ),
-                            ),
+                            leading:
+                                user['profile'] != null
+                                    ? CircleAvatar(
+                                      backgroundImage: NetworkImage(
+                                        user['profile'],
+                                      ),
+                                    )
+                                    : CircleAvatar(child: Icon(Icons.person)),
                             title: Text(user['name']),
                             trailing: Checkbox(
                               value: localSelectedUsers[userId] ?? false,
@@ -108,6 +108,7 @@ class _ChatPageState extends State<ChatPage> {
                                 setState(() {
                                   localSelectedUsers[userId] = value ?? false;
                                 });
+                                print(localSelectedUsers[userId]);
                               },
                             ),
                           );
