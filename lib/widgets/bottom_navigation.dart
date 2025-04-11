@@ -33,7 +33,7 @@ class CustomBottomNavBar extends StatelessWidget {
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.scoreboard),
-          label: "전적보기",
+          label: "게시판",
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.person),
