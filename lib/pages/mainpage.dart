@@ -80,7 +80,7 @@ class _MainState extends State<Main> {
     Homepage(),
     Matchpage(),
     ChatPage(),
-    Recordpage(),
+    Board(),
     MyPageScreen(),
   ];
 
