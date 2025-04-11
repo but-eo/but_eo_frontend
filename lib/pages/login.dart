@@ -13,6 +13,7 @@ import 'package:project/appStyle/app_style.dart';
 import 'package:project/main.dart';
 import 'package:project/pages/sign.dart';
 import 'package:project/pages/mainpage.dart';
+import 'package:project/utils/token_storage.dart';
 import 'package:project/widgets/login_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -47,6 +48,7 @@ class _LoginState extends State<Login> {
         //스프링에서 토큰을 저장한 변수명과 일치해야함
         print('로그인 성공 $token');
 
+        //await TokenStorage.saveTokens(token);
         //토큰 저장
         final prefs = await SharedPreferences.getInstance(); //디바이스 내부 저장소에 저장
         await prefs.setString('accessToken', token);
@@ -281,7 +283,12 @@ class _LoginState extends State<Login> {
                           Colors.white,
                           AppColors.baseGreenColor,
                           AppColors.baseGreenColor,
+                              () {
+                            print('네이버 로그인 클릭됨');
+                            // TODO: 네이버 로그인 로직 연결 시도
+                          },
                         ),
+
                       ),
 
                       //카카오 button
@@ -293,13 +300,18 @@ class _LoginState extends State<Login> {
                           print('카카오톡 로그인 시도중');
                         },
                         child: loginButton(
-                          context,
-                          'assets/icons/kakao_icon.png',
-                          '카카오 로그인',
-                          Colors.black87,
-                          Colors.yellow.withOpacity(0.7),
-                          Colors.yellow,
+                            context,
+                            'assets/icons/kakao_icon.png',
+                            '카카오 로그인',
+                            Colors.black87,
+                            Colors.yellow.withOpacity(0.7),
+                            Colors.yellow,
+                                () {
+                              signInWithKakao();
+                              print('카카오 로그인 시도');
+                            }
                         ),
+
                       ),
                     ],
                   ),
@@ -389,6 +401,12 @@ class _LoginState extends State<Login> {
         gender,
         birthYear,
       );
+
+      final prefs = await SharedPreferences.getInstance();
+      final storeToken = prefs.getString('accessToken');
+      if (storeToken != null) {
+        await TokenStorage.saveTokens(storeToken);
+      }
 
       // 메인 페이지 이동
       navigateToMainPage();
