@@ -487,6 +487,7 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_naver_login/flutter_naver_login.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 import 'package:project/appStyle/app_colors.dart';
@@ -546,60 +547,199 @@ class _LoginState extends State<Login> {
   }
 
   // 카카오 로그인
+  // Future<void> signInWithKakao() async {
+  //   try {
+  //     OAuthToken token;
+  //     if (await isKakaoTalkInstalled()) {
+  //       try {
+  //         token = await UserApi.instance.loginWithKakaoTalk();
+  //       } catch (_) {
+  //         token = await UserApi.instance.loginWithKakaoAccount();
+  //       }
+  //     } else {
+  //       token = await UserApi.instance.loginWithKakaoAccount();
+  //     }
+  //
+  //     final user = await UserApi.instance.me();
+  //
+  //     final accessToken = token.accessToken;
+  //     final refreshToken = token.refreshToken ?? "";
+  //     final email = user.kakaoAccount?.email ?? "이메일 없음";
+  //     final nickname = user.kakaoAccount?.profile?.nickname ?? "닉네임 없음";
+  //     final profileImage = user.kakaoAccount?.profile?.profileImageUrl ?? "";
+  //     final gender = user.kakaoAccount?.gender?.name ?? "";
+  //     final birthYear = user.kakaoAccount?.birthyear ?? "";
+  //
+  //     final response = await http.post(
+  //       Uri.parse("http://192.168.0.111:714/api/users/kakao/login"),
+  //       headers: {"Content-Type": "application/json"},
+  //       body: jsonEncode({
+  //         "refreshToken": refreshToken,
+  //         "email": email,
+  //         "nickName": nickname,
+  //         "gender": gender,
+  //         "birthYear": birthYear,
+  //         "profileImage": profileImage,
+  //         "loginType": "KAKAO",
+  //         "region": "미입력"
+  //       }),
+  //     );
+  //
+  //     if (response.statusCode == 200) {
+  //       final json = jsonDecode(response.body);
+  //       final serverAccessToken = json['accessToken'];
+  //
+  //       final prefs = await SharedPreferences.getInstance();
+  //       await prefs.setString('accessToken', serverAccessToken);
+  //       print("🧪 저장한 서버 accessToken: $serverAccessToken");
+  //
+  //       navigateToMainPage();
+  //     } else {
+  //       print("❌ 서버 로그인 실패: ${response.statusCode}");
+  //     }
+  //   } catch (e) {
+  //     print('카카오 로그인 실패: $e');
+  //   }
+  // }
+
+  Future<void> sendDataToServer(
+      String refreshToken,
+      String email,
+      String nickname,
+      String profileimage,
+      String gender,
+      String birthyear,
+      ) async {
+    final url = Uri.parse("http://192.168.0.111:0714/api/users/kakao/login");
+    final response = await http.post(
+      url,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "refreshToken": refreshToken,
+        "email": email,
+        "nickName": nickname,
+        "gender": gender,
+        "birthYear": birthyear,
+        "profileImage": profileimage,
+      }),
+    );
+    if (response.statusCode == 200) {
+      print("서버 전송 성공: ${response.body}");
+    } else {
+      print("서버 전송 실패: ${response.statusCode}");
+    }
+  }
+
   Future<void> signInWithKakao() async {
     try {
       OAuthToken token;
+
+      // 카카오톡 실행 가능 여부 확인
       if (await isKakaoTalkInstalled()) {
         try {
           token = await UserApi.instance.loginWithKakaoTalk();
-        } catch (_) {
+          print('카카오톡 로그인 성공');
+        } catch (error) {
+          print('카카오톡 로그인 실패: $error');
           token = await UserApi.instance.loginWithKakaoAccount();
+          print('카카오계정 로그인 성공');
+
         }
       } else {
         token = await UserApi.instance.loginWithKakaoAccount();
+        print('카카오계정 로그인 성공');
       }
 
-      final user = await UserApi.instance.me();
+      // 로그인 성공 후 사용자 정보 가져오기
+      User user = await UserApi.instance.me();
 
-      final accessToken = token.accessToken;
-      final refreshToken = token.refreshToken ?? "";
-      final email = user.kakaoAccount?.email ?? "이메일 없음";
-      final nickname = user.kakaoAccount?.profile?.nickname ?? "닉네임 없음";
-      final profileImage = user.kakaoAccount?.profile?.profileImageUrl ?? "";
-      final gender = user.kakaoAccount?.gender?.name ?? "";
-      final birthYear = user.kakaoAccount?.birthyear ?? "";
+      String accessToken = token.accessToken;
+      String refreshToken = token.refreshToken ?? "";
+      String email = user.kakaoAccount?.email ?? "이메일 없음";
+      String nickname = user.kakaoAccount?.profile?.nickname ?? "닉네임 없음";
+      String profileImage = user.kakaoAccount?.profile?.profileImageUrl ?? "";
+      String gender = user.kakaoAccount?.gender?.name ?? "";
+      String birthYear = user.kakaoAccount?.birthyear ?? "";
 
-      final response = await http.post(
-        Uri.parse("http://192.168.0.111:714/api/users/kakao/login"),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
-          "refreshToken": refreshToken,
-          "email": email,
-          "nickName": nickname,
-          "gender": gender,
-          "birthYear": birthYear,
-          "profileImage": profileImage,
-          "loginType": "KAKAO",
-          "region": "미입력"
-        }),
+      print("accessToken : " + accessToken);
+      print("refreshToken : " + refreshToken);
+      print("email : " + email);
+      // 서버로 사용자 데이터 전송
+      await sendDataToServer(
+        refreshToken,
+        email,
+        nickname,
+        profileImage,
+        gender,
+        birthYear,
       );
 
-      if (response.statusCode == 200) {
-        final json = jsonDecode(response.body);
-        final serverAccessToken = json['accessToken'];
-
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('accessToken', serverAccessToken);
-        print("🧪 저장한 서버 accessToken: $serverAccessToken");
-
-        navigateToMainPage();
-      } else {
-        print("❌ 서버 로그인 실패: ${response.statusCode}");
-      }
-    } catch (e) {
-      print('카카오 로그인 실패: $e');
+      // 메인 페이지 이동
+      navigateToMainPage();
+    } catch (error) {
+      print('로그인 실패: $error');
     }
   }
+
+  Future<void> loginWithNaver() async {
+    final url = Uri.parse("https://nid.naver.com/nidlogin.logout");
+    final response = await http.get(url); // http 패키지 사용
+
+    try {
+      print("네이버 로그인 시도중");
+      var accessToken;
+      var tokenType;
+      final result = await FlutterNaverLogin.logIn();
+
+      print("로그인 상태 : ${result.status}");
+      NaverAccessToken res = await FlutterNaverLogin.currentAccessToken;
+      final tempAccessToken = res.accessToken;
+      final tempTokenType = res.tokenType;
+
+      print('accessToken : $tempAccessToken');
+      print('tokenType : $tempTokenType');
+
+      if(tempAccessToken!=null && tempAccessToken.isNotEmpty){
+        setState(() {
+          accessToken = tempAccessToken;
+          tokenType = tempTokenType;
+        });
+        navigateToMainPage();
+      } else{
+        print("네이버 로그인 실패 사유: ${result.errorMessage}");
+      }
+    } catch (e) {
+      print("에러 : ${e}");
+    }
+  }
+  // //네이버 회원 정보 가져오기
+  // Future<void> fetchNaverUserDetail(String accessToken) async {
+  //   const String url = "https://openapi.naver.com/v1/nid/me";
+
+  //   final response = await http.get(
+  //     Uri.parse(url),
+  //     headers: {'Authorization': 'Bearer $accessToken'},
+  //   );
+
+  //   if (response.statusCode == 200) {
+  //     var data = json.decode(response.body);
+  //     var userInfo = data['response'];
+
+  //     String id = userInfo['id'];
+  //     String name = userInfo['name'];
+  //     String email = userInfo['email'];
+
+  //     print("Naver ID: $id");
+  //     print("Name: $name");
+  //     print("Email: $email");
+
+  //     // TODO: 이 정보를 서버로 보내거나 앱 내 사용자 상태 저장 등에 활용
+  //   } else {
+  //     print("Failed to fetch user info. status: ${response.statusCode}");
+  //   }
+  // }
+
+
 
   void navigateToMainPage() {
     Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => Main()));
@@ -704,7 +844,9 @@ class _LoginState extends State<Login> {
                 Column(
                   children: [
                     GestureDetector(
-                      onTap: () {},
+                      onTap: () {
+                        loginWithNaver();
+                      },
                       child: loginButton(context, 'assets/icons/naver_icon.png', '네이버 로그인', Colors.white,
                           AppColors.baseGreenColor, AppColors.baseGreenColor),
                     ),
