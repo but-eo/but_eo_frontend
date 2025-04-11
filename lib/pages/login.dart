@@ -522,7 +522,7 @@ class _LoginState extends State<Login> {
     final dio = Dio();
     try {
       final response = await dio.post(
-        "http://10.0.2.2:714/api/users/login",
+        "http://192.168.0.111:714/api/users/login",
         data: {
           'email': email,
           'password': password,
@@ -570,7 +570,7 @@ class _LoginState extends State<Login> {
       final birthYear = user.kakaoAccount?.birthyear ?? "";
 
       final response = await http.post(
-        Uri.parse("http://10.0.2.2:714/api/users/kakao/login"),
+        Uri.parse("http://192.168.0.111:714/api/users/kakao/login"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
           "refreshToken": refreshToken,

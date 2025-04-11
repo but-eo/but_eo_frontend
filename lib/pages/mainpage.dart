@@ -60,7 +60,7 @@ class _MainState extends State<Main> {
     final dio = Dio();
     try {
       final res = await dio.get(
-        "http://10.0.2.2:714/api/users/me",
+        "http://192.168.0.111:714/api/users/me",
         options: Options(headers: {"Authorization": "Bearer $token"}),
       );
 
@@ -116,7 +116,10 @@ class _MainState extends State<Main> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(
+        appBar:
+        _selectedIndex == 2
+            ? null
+        : AppBar(
           title: Text(
             "BUTTEO",
             style: TextStyle(

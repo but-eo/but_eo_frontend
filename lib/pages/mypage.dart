@@ -15,7 +15,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
   String? _profileImageUrl;
 
   // ✅ baseUrl: 시뮬레이터에서 서버 접근할 때 사용
-  final String baseUrl = "http://10.0.2.2:714";
+  final String baseUrl = "http://192.168.0.111:714";
 
   // @override
   // void initState() {
@@ -47,7 +47,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
     final dio = Dio();
     try {
       final res = await dio.get(
-        "http://10.0.2.2:714/api/users/me",
+        "http://192.168.0.111:714/api/users/me",
         options: Options(headers: {"Authorization": "Bearer $token"}),
       );
 
