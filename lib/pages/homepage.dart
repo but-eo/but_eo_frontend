@@ -30,6 +30,7 @@ class Homepage extends StatelessWidget {
                     _categoryButton("볼링"),
                     _categoryButton("테니스"),
                     _categoryButton("배드민턴"),
+                    _categoryButton("야구"),
                   ],
                 ),
               ),
