@@ -32,7 +32,7 @@ class CustomBottomNavBar extends StatelessWidget {
           label: "채팅방",
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.article),
+          icon: Icon(Icons.scoreboard),
           label: "게시판",
         ),
         BottomNavigationBarItem(
