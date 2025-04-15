@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 import 'package:project/appStyle/app_style.dart';
@@ -7,13 +8,12 @@ import 'package:project/pages/login.dart';
 import 'package:project/pages/myteam.dart';
 import 'package:project/websocket/websocket_client.dart';
 
-// import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // await dotenv.load(fileName: "key.env");
-
-  // Firebase.initializeApp();
+  await Firebase.initializeApp();
+  
   connectWebSocket(); //웹소켓 연결
 
   KakaoSdk.init(

@@ -86,7 +86,7 @@ class _ChatPageState extends State<ChatPage> {
                     ),
                     const SizedBox(height: 12),
                     SizedBox(
-                      height: 250, // ✅ 직접 높이 지정 (이게 중요!)
+                      height: 250, // 
                       child: ListView.builder(
                         itemCount: localSearchResults.length,
                         itemBuilder: (context, index) {
@@ -150,7 +150,7 @@ Future<List<Map<String, dynamic>>> searchUser(String nickname) async {
   Map<String, bool> selectedUsers = {};
   try {
     final response = await dio.get(
-      "http://192.168.0.68:0714/api/users/search",
+      "http://172.29.0.102:0714/api/users/search",
       queryParameters: {'name': nickname},
     );
     if (response.statusCode == 200 && response.data is List) {
@@ -167,7 +167,7 @@ Future<void> searchAll() async {
   final dio = Dio();
   try {
     final response = await dio.get(
-      "http://192.168.0.68:0714/api/users/searchAll",
+      "http://172.29.0.102:0714/api/users/searchAll",
     );
     print('Response data : ${response.data}');
     if (response.statusCode == 200) {
