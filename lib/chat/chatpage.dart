@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:project/appStyle/app_colors.dart';
 import 'package:project/appStyle/app_colors.dart';
 
 class ChatPage extends StatefulWidget {
@@ -40,7 +42,7 @@ class _ChatPageState extends State<ChatPage> {
             ),
           ],
         ),
-      ),
+      )
     );
   }
 

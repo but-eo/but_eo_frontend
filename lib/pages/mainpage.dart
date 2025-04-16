@@ -7,12 +7,11 @@ import 'package:project/pages/login.dart';
 import 'package:project/pages/logout.dart';
 import 'package:project/pages/matchpage.dart';
 import 'package:project/pages/mypage.dart';
-import 'package:project/pages/recordpage.dart';
+import 'package:project/pages/Board.dart';
 import 'package:project/widgets/bottom_navigation.dart';
 import 'package:dio/dio.dart';
 import 'package:project/widgets/image_slider_widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 
 class Main extends StatefulWidget {
   static String id = "/main";
@@ -28,12 +27,51 @@ class _MainState extends State<Main> {
   String profileImageUrl = ""; //프로필 이미지
   bool isLoading = true;
 
+  // @override
+  // void initState() {
+  //   // 위젯 로딩이 실행될 때
+  //   // TODO: implement initState
+  //   super.initState();
+  //   // fetchUserInfo();
+  // }
+
   @override
   void initState() {
-    // 위젯 로딩이 실행될 때
-    // TODO: implement initState
     super.initState();
-    // fetchUserInfo(); 
+    fetchUserInfo();
+    printAccessToken("MainPage");
+  }
+
+  Future<void> printAccessToken(String label) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+    print("🔑 [$label] accessToken: $token");
+  }
+
+  Future<void> printUserInfo(String label) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+
+    if (token == null) {
+      print("❌ [$label] 토큰 없음");
+      return;
+    }
+
+    final dio = Dio();
+    try {
+      final res = await dio.get(
+        "http://172.29.0.102:714/api/users/me",
+        options: Options(headers: {"Authorization": "Bearer $token"}),
+      );
+
+      if (res.statusCode == 200) {
+        print("👤 [$label] 로그인된 사용자 정보: ${res.data}");
+      } else {
+        print("❌ [$label] 유저 정보 불러오기 실패: ${res.statusCode}");
+      }
+    } catch (e) {
+      print("❗ [$label] 사용자 정보 요청 에러: $e");
+    }
   }
 
   int _selectedIndex = 0;
@@ -42,8 +80,8 @@ class _MainState extends State<Main> {
     Homepage(),
     Matchpage(),
     ChatPage(),
-    Recordpage(),
-    Mypage(),
+    Board(),
+    MyPageScreen(),
   ];
 
   //사용자 정보 불러오기 -> 토큰을 통해
@@ -64,8 +102,9 @@ class _MainState extends State<Main> {
       );
       if (response.statusCode == 200) {
         print("사용자 정보 가져오기 성공: ${response.data}");
-        // userName = response.data['name'];
-        // profileImageUrl = response.data['profileImage'];
+         userName = response.data['name'];
+         profileImageUrl = response.data['profileImage'];
+         print(userName);
         isLoading = false;
       }
     } catch (e) {
@@ -78,8 +117,9 @@ class _MainState extends State<Main> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        appBar: _selectedIndex == 2 
-        ? null
+        appBar:
+        _selectedIndex == 2
+            ? null
         : AppBar(
           title: Text(
             "BUTTEO",
@@ -148,7 +188,7 @@ class _MainState extends State<Main> {
                     const PopupMenuDivider(),
                     PopupMenuItem<int>(
                       onTap: () {
-                        //TODO : 백엔드로 로그아웃 요청
+                        logoutKakao();
                         Navigator.of(context).pushNamedAndRemoveUntil(
                           //특정화면으로 이동하면서 이전 모든 화면을 스택에서 제거 (새 화면을 띄우고 뒤로가기 버튼을 눌러도 이전 화면으로 돌아갈 수 없음)
                           Login.id, //이동할 경로의 이름
@@ -177,7 +217,7 @@ class _MainState extends State<Main> {
           selectedIndex: _selectedIndex,
           onTap: (index) {
             setState(() {
-              _selectedIndex = index; 
+              _selectedIndex = index;
             });
           },
         ),
@@ -185,6 +225,3 @@ class _MainState extends State<Main> {
     );
   }
 }
-
-
-

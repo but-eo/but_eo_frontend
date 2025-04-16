@@ -7,13 +7,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
-
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 import 'package:flutter_naver_login/flutter_naver_login.dart';
 
 import 'package:project/appStyle/app_colors.dart';
 import 'package:project/appStyle/app_style.dart';
-
+import 'package:project/main.dart';
 import 'package:project/pages/sign.dart';
 import 'package:project/pages/mainpage.dart';
 import 'package:project/widgets/login_button.dart';
@@ -32,48 +31,36 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   final _formKey = GlobalKey<FormState>();
 
+  String? email = "";
+  String? password = "";
+
   bool loginAuth = false;
-  //
+  bool always_login = false;
+  bool id_remember = false;
+
+  // 일반 로그인
   Future<void> loginUser(String email, String password) async {
     final dio = Dio();
     try {
       final response = await dio.post(
         "http://172.29.0.102:0714/api/users/login",
-        data: {'email': email, 'password': password},
+        data: {'email': email, 'password': password, 'loginType': 'BUTEO'},
       );
       print('Response data : ${response.data}');
       if (response.statusCode == 200) {
-        String token =
-            response.data['accessToken']; //백엔드에서 받을 토큰 data['token']에서 token은
-        //스프링에서 토큰을 저장한 변수명과 일치해야함
-        print('로그인 성공 $token');
-
-        //토큰 저장
-        final prefs = await SharedPreferences.getInstance(); //디바이스 내부 저장소에 저장
+        final token = response.data['accessToken'];
+        final prefs = await SharedPreferences.getInstance();
         await prefs.setString('accessToken', token);
+        print('🔑 [Login - BUTEO] 저장된 accessToken: $token');
 
-        setState(() {
-          loginAuth = true;
-        });
+        setState(() => loginAuth = true);
+        navigateToMainPage();
       }
     } catch (e) {
-      if (e is DioException) {
-        print('로그인 실패: ${e.response?.statusCode} - ${e.response?.data}');
-      } else {
-        print('로그인 실패 (예상치 못한 오류): $e');
-      }
-      setState(() {
-        loginAuth = false;
-      });
+      print('❌ 일반 로그인 실패: $e');
+      setState(() => loginAuth = false);
     }
   }
-
-  String? email = "";
-  String? password = "";
-
-  //체크박스 변수
-  bool always_login = false;
-  bool id_remember = false;
 
   @override
   Widget build(BuildContext context) {
@@ -346,6 +333,18 @@ class _LoginState extends State<Login> {
     );
     if (response.statusCode == 200) {
       print("서버 전송 성공: ${response.body}");
+
+      // ✅ 응답에서 accessToken 꺼내기
+      final responseData = jsonDecode(response.body);
+      final serverAccessToken = responseData['accessToken'];
+
+      if (serverAccessToken != null) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('accessToken', serverAccessToken); // ✅ 저장
+        print("서버 accessToken 저장 완료: $serverAccessToken");
+      } else {
+        print("서버에서 accessToken이 누락됨");
+      }
     } else {
       print("서버 전송 실패: ${response.statusCode}");
     }
@@ -364,7 +363,6 @@ class _LoginState extends State<Login> {
           print('카카오톡 로그인 실패: $error');
           token = await UserApi.instance.loginWithKakaoAccount();
           print('카카오계정 로그인 성공');
-          
         }
       } else {
         token = await UserApi.instance.loginWithKakaoAccount();
@@ -405,7 +403,7 @@ class _LoginState extends State<Login> {
   Future<void> loginWithNaver() async {
     final url = Uri.parse("https://nid.naver.com/nidlogin.logout");
     final response = await http.get(url); // http 패키지 사용
-    
+
     try {
       print("네이버 로그인 시도중");
       var accessToken;
@@ -419,14 +417,14 @@ class _LoginState extends State<Login> {
 
       print('accessToken : $tempAccessToken');
       print('tokenType : $tempTokenType');
-      
-      if(tempAccessToken!=null && tempAccessToken.isNotEmpty){
+
+      if (tempAccessToken != null && tempAccessToken.isNotEmpty) {
         setState(() {
           accessToken = tempAccessToken;
           tokenType = tempTokenType;
         });
         navigateToMainPage();
-      } else{
+      } else {
         print("네이버 로그인 실패 사유: ${result.errorMessage}");
       }
     } catch (e) {
