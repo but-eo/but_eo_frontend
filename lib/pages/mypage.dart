@@ -14,9 +14,8 @@ class MyPageScreen extends StatefulWidget {
 class _MyPageScreenState extends State<MyPageScreen> {
   String? nickname = "로딩 중...";
   String? _profileImageUrl;
+  final String baseUrl = "http://${ApiConstants.serverUrl}:714";
 
-  // ✅ baseUrl: 시뮬레이터에서 서버 접근할 때 사용
-  final String baseUrl = "http://192.168.0.72:714";
 
   // @override
   // void initState() {

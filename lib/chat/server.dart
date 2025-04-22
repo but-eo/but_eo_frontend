@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
+
+import 'package:project/contants/api_contants.dart';
  
-String HOST = '192.168.0.150'; // 서버 호스트
+String HOST = ApiConstants.serverUrl; // 서버 호스트
 int PORT = 3000; // 서버 포트
 List<dynamic> clients = []; // 클라이언트 목록
  

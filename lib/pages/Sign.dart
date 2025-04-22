@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 // import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -11,6 +13,7 @@ import 'package:project/contants/api_contants.dart';
 import 'package:project/pages/login.dart';
 import 'package:project/widgets/login_button.dart';
 import 'package:project/formatter/phoneformatter.dart';
+import 'package:http/http.dart' as http;
 
 class Sign extends StatefulWidget {
   static String id = "/signup";
@@ -63,6 +66,7 @@ class _SignState extends State<Sign> {
     final dio = Dio();
     try {
       final response = await dio.post(
+
         //192.168.45.179, 10.30.3.43, 192.168.0.127
 
         // 192.168.0.73
@@ -73,6 +77,7 @@ class _SignState extends State<Sign> {
         // 192.168.0.111
         //"http://192.168.0.111:0714/api/users/register",
         "${ApiConstants.baseUrl}/users/register",
+
 
         // "https://05e11d7c-f01d-4fb4-aabd-7849216efc8c.mock.pstmn.io/auth/register", //spring boot로 전송할 주소
         data: {
@@ -98,7 +103,33 @@ class _SignState extends State<Sign> {
     }
   }
 
-  
+  //이메일 검증
+  Future<bool> checkEmail(String email) async {
+    try {
+      final response = await http.post(
+        Uri.parse("${ApiConstants.baseUrl}/users/check_email"),
+        headers: {'Content-Type': 'application/json'},
+        
+        body: jsonEncode({'email': email}),
+      );
+
+      if (response.statusCode == 200) {
+        // 서버 응답이 정상일 때
+        final data = jsonDecode(response.body);
+        if (data['exist'] != null) {
+          return data['exist'] == true;
+        } else {
+          throw Exception('잘못된 응답 형식');
+        }
+      } else {
+        throw Exception('이메일 중복 확인 실패: 서버 응답 코드 ${response.statusCode}');
+      }
+    } catch (e) {
+      // 예외 처리: 네트워크 오류나 JSON 파싱 오류 등
+      print("Error checking email: $e");
+      throw Exception('이메일 중복 확인 실패: $e');
+    }
+  }
 
   // 전화번호 인증
   TextEditingController phoneController = TextEditingController(); //전화번호 컨트롤러
@@ -114,56 +145,6 @@ class _SignState extends State<Sign> {
   bool requestedAuth = false;
   String verificationId = "";
   bool showLoading = false;
-
-  // late FirebaseAuth _auth = FirebaseAuth.instance;
-
-  // void signInWithPhoneAuthCredential(
-  //   PhoneAuthCredential phoneAuthCredential,
-  // ) async {
-  //   setState(() {
-  //     showLoading = true;
-  //   });
-  //   try {
-  //     final authCredential = await _auth.signInWithCredential(
-  //       phoneAuthCredential,
-  //     );
-  //     setState(() {
-  //       showLoading = false;
-  //     });
-  //     if (authCredential?.user != null) {
-  //       setState(() {
-  //         print("인증완료 및 로그인성공");
-  //         authOk = true;
-  //         requestedAuth = false;
-  //       });
-  //       if (_auth.currentUser != null) {
-  //         await _auth.currentUser!.delete();
-  //         print("Auth 정보 삭제");
-  //       }
-  //       _auth.signOut();
-  //       print("로그아웃");
-  //     }
-  //   } on FirebaseAuthException catch (e) {
-  //     setState(() {
-  //       print("인증 실패 ");
-  //       showLoading = false;
-  //     });
-
-  //     await Fluttertoast.showToast(
-  //       msg: e.message!,
-  //       toastLength: Toast.LENGTH_SHORT,
-  //       timeInSecForIosWeb: 1,
-  //       backgroundColor: Colors.red,
-  //       fontSize: 16.0,
-  //     );
-  //   }
-  // }
-
-  // void dispose() { //메모리 누수 방지?
-  //   phoneController.dispose();
-  //   confirmController.dispose();
-  //   super.dispose();
-  // }
 
   // 드롭다운메뉴 아이템 초기 값 설정
   @override
@@ -199,13 +180,15 @@ class _SignState extends State<Sign> {
                         (route) => false,
                       );
                     },
-                    icon: Icon(Icons.arrow_back), 
+                    icon: Icon(Icons.arrow_back),
                   ),
                 ),
                 Align(
                   alignment: Alignment.topCenter, //상단 중앙 정렬
                   child: Image.asset(logoImage, height: size.height * 0.15),
                 ),
+
+                SizedBox(height: size.height * 0.023),
                 Text(
                   "Sign Up",
                   style: Theme.of(
@@ -247,6 +230,7 @@ class _SignState extends State<Sign> {
                       ),
                       SizedBox(height: size.height * 0.01),
                       TextFormField(
+                        keyboardType: TextInputType.emailAddress,
                         style: TextStyle(color: kLightTextColor),
                         decoration: InputDecoration(
                           hintText: "이메일을 입력하세요",
@@ -467,41 +451,7 @@ class _SignState extends State<Sign> {
                             height: 50, // 적절한 높이 설정
                             child: ElevatedButton(
                               onPressed: () async {
-                                // 인증번호 전송 로직
-                                // await _auth.verifyPhoneNumber(
-                                //   timeout: const Duration(seconds: 60),
-                                //   codeAutoRetrievalTimeout: (String verificationId) {
-                                //     // Auto-resolution timed out...
-                                //   },
-                                //   phoneNumber: phoneController.text,
-                                //   verificationCompleted: (phoneAuthCredential) async {
-                                //     print("otp 문자옴");
-                                //   },
-                                //   verificationFailed: (verificationFailed) async {
-                                //     print(verificationFailed.code);
-
-                                //     print("코드발송실패");
-                                //     setState(() {
-                                //       showLoading = false;
-                                //     });
-                                //   },
-                                //   codeSent: (verificationId, resendingToken) async {
-                                //     print("코드보냄");
-                                //     Fluttertoast.showToast(
-                                //         msg: "${phoneController.text}로 인증코드를 발송하였습니다..",
-                                //         toastLength: Toast.LENGTH_SHORT,
-                                //         timeInSecForIosWeb: 1,
-                                //         backgroundColor: Colors.green,
-                                //         fontSize: 12.0
-                                //     );
-                                //     setState(() {
-                                //       requestedAuth=true;
-                                //       FocusScope.of(context).requestFocus(otpFocusNode);
-                                //       showLoading = false;
-                                //       this.verificationId = verificationId;
-                                //     });
-                                //   },
-                                // );
+                                //TODO : 인증번호 전송
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.white, // 배경색을 빨간색으로 설정
@@ -857,36 +807,90 @@ class _SignState extends State<Sign> {
                 SizedBox(height: size.height * 0.03),
                 ElevatedButton(
                   //누르면 뒤에 그림자가 생기는 버튼
-                  onPressed: () {
+                  onPressed: () async {
                     //TODO : 인증번호 확인도 하긴 해야함
                     if (_formKey.currentState!.validate()) {
                       _formKey.currentState!.save(); //입력 데이터 저장
 
-                      if (_password == _confirmPassword) {
-                        //authOk
-                        registerUser(
-                          _email,
-                          _password,
-                          _nickName,
-                          phoneController.text,
-                          _selectedSex ?? '선택하지 않음',
-                          _selectedPrefer ?? '선호종목 없음',
-                          _selectedYear ?? '선택하지 않음',
-                          _selectedRegions ?? '선택하지 않음',
+                      if (_password != _confirmPassword) {
+                        showDialog(
+                          context: context,
+                          builder:
+                              (_) => AlertDialog(
+                                title: Text("비밀번호 불일치"),
+                                content: Text("비밀번호가 일치하지 않습니다."),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: Text("확인"),
+                                  ),
+                                ],
+                              ),
                         );
-                        print(
-                          'Email: $_email\n' +
-                              'NickName: $_nickName\n' +
-                              'Password: $_password\n' +
-                              'ConfirmPassword: $_confirmPassword\n' +
-                              '성별: $_selectedSex\n' +
-                              '선호종목: $_selectedPrefer\n' +
-                              '출생년도: $_selectedYear\n' +
-                              '지역: $_selectedRegions',
-                        );
-                        Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(builder: (context) => Login()),
-                          (route) => false,
+                        return; // 비밀번호 불일치 시 더 이상 진행하지 않음
+                      }
+
+                      try {
+                        bool exists = await checkEmail(_email);
+                        if (exists) {
+                          showDialog(
+                            context: context,
+                            builder:
+                                (_) => AlertDialog(
+                                  title: Text("중복된 이메일"),
+                                  content: Text("이미 등록된 이메일입니다."),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: Text("확인"),
+                                    ),
+                                  ],
+                                ),
+                          );
+                        } else {
+                          // 이메일이 중복되지 않으면 회원가입 진행
+                          registerUser(
+                            _email,
+                            _password,
+                            _nickName,
+                            phoneController.text,
+                            _selectedSex ?? '선택하지 않음',
+                            _selectedPrefer ?? '선호종목 없음',
+                            _selectedYear ?? '선택하지 않음',
+                            _selectedRegions ?? '선택하지 않음',
+                          );
+                          print(
+                            'Email: $_email\n' +
+                                'NickName: $_nickName\n' +
+                                'Password: $_password\n' +
+                                'ConfirmPassword: $_confirmPassword\n' +
+                                '성별: $_selectedSex\n' +
+                                '선호종목: $_selectedPrefer\n' +
+                                '출생년도: $_selectedYear\n' +
+                                '지역: $_selectedRegions',
+                          );
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(builder: (context) => Login()),
+                            (route) => false,
+                          );
+                        }
+                      } catch (e) {
+                        // 예외 처리: 네트워크 오류나 서버 오류 시 처리
+                        showDialog(
+                          context: context,
+                          builder:
+                              (_) => AlertDialog(
+                                title: Text("오류 발생"),
+                                content: Text(
+                                  "이메일 중복 확인 중 오류가 발생했습니다. 다시 시도해주세요.",
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: Text("확인"),
+                                  ),
+                                ],
+                              ),
                         );
                       }
                     }

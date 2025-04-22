@@ -41,15 +41,13 @@ class _ChatPageState extends State<ChatPage> {
             ),
           ],
         ),
-      ),
+      )
     );
   }
 
   // 채팅방 생성 다이얼로그
   void _showCreateChatDialog(BuildContext context) {
     TextEditingController _controller = TextEditingController();
-    List<Map<String, dynamic>> localSearchResults = [];
-    Map<String, bool> localSelectedUsers = {};
 
     showDialog(
       context: context,
@@ -57,7 +55,7 @@ class _ChatPageState extends State<ChatPage> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: Text("대화 상대 선택"),
+              title: Text("대화상대 선택"),
               content: SizedBox(
                 width: double.maxFinite,
                 child: Column(
@@ -79,8 +77,8 @@ class _ChatPageState extends State<ChatPage> {
                               localSearchResults = results;
                               localSelectedUsers.clear();
                               for (var user in localSearchResults) {
-                                localSelectedUsers[user['id'].toString()] =
-                                    false;
+                                var userId = user['id'].toString();
+                                localSelectedUsers[userId] = false;
                               }
                             });
                           },
@@ -89,20 +87,21 @@ class _ChatPageState extends State<ChatPage> {
                     ),
                     const SizedBox(height: 12),
                     SizedBox(
-                      height: 250, // ✅ 직접 높이 지정 (이게 중요!)
+                      height: 250, // 
                       child: ListView.builder(
                         itemCount: localSearchResults.length,
                         itemBuilder: (context, index) {
                           final user = localSearchResults[index];
                           final userId = user['id'].toString();
                           return ListTile(
-                            leading: user['profile'] != null
-                                ? CircleAvatar(
-                              backgroundImage: NetworkImage(
-                                user['profile'],
-                              ),
-                            )
-                                : CircleAvatar(child: Icon(Icons.person)),
+                            leading:
+                                user['profile'] != null
+                                    ? CircleAvatar(
+                                      backgroundImage: NetworkImage(
+                                        user['profile'],
+                                      ),
+                                    )
+                                    : CircleAvatar(child: Icon(Icons.person)),
                             title: Text(user['name']),
                             trailing: Checkbox(
                               value: localSelectedUsers[userId] ?? false,
@@ -110,6 +109,7 @@ class _ChatPageState extends State<ChatPage> {
                                 setState(() {
                                   localSelectedUsers[userId] = value ?? false;
                                 });
+                                print(localSelectedUsers[userId]);
                               },
                             ),
                           );
@@ -151,7 +151,8 @@ Future<List<Map<String, dynamic>>> searchUser(String nickname) async {
   Map<String, bool> selectedUsers = {};
   try {
     final response = await dio.get(
-      "http://192.168.0.72:0714/api/users/search",
+      "http://${ApiConstants.baseUrl}/users/search",
+
       queryParameters: {'name': nickname},
     );
     if (response.statusCode == 200 && response.data is List) {

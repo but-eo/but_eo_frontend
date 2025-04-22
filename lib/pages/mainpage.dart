@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:project/appStyle/app_colors.dart';
 import 'package:project/chat/chatpage.dart';
 import 'package:project/contants/api_contants.dart';
+import 'package:project/pages/Board.dart';
 import 'package:project/pages/homepage.dart';
 import 'package:project/pages/login.dart';
 import 'package:project/pages/logout.dart';
 import 'package:project/pages/matchpage.dart';
 import 'package:project/pages/mypage.dart';
-import 'package:project/pages/Board.dart';
 import 'package:project/pages/team/teamSearchPage.dart';
 import 'package:project/widgets/bottom_navigation.dart';
 import 'package:dio/dio.dart';
@@ -83,8 +83,8 @@ class _MainState extends State<Main> {
     Matchpage(),
     ChatPage(),
     Board(),
-    MyPageScreen(),
     TeamSearchPage(),
+    MyPageScreen(),
   ];
 
   //사용자 정보 불러오기 -> 토큰을 통해
@@ -100,13 +100,13 @@ class _MainState extends State<Main> {
 
     try {
       final response = await dio.get(
-        "${ApiConstants.baseUrl}/users/my-info",
+        "${ApiConstants.baseUrl}/users/me",
         options: Options(headers: {"Authorization": "Bearer $token"}),
       );
       if (response.statusCode == 200) {
         print("사용자 정보 가져오기 성공: ${response.data}");
         userName = response.data['name'];
-        profileImageUrl = response.data['profileImage'];
+        profileImageUrl = response.data['profile'];
         print(userName);
         isLoading = false;
       }
