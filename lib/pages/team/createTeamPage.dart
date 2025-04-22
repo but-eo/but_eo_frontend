@@ -49,12 +49,12 @@ class TeamService {
       );
 
       if (response.statusCode == 200) {
-        print("✅ 팀 생성 성공");
+        print("팀 생성 성공");
       } else {
-        print("❌ 실패: ${response.statusCode} / ${response.data}");
+        print("실패: ${response.statusCode} / ${response.data}");
       }
     } catch (e) {
-      print("⚠️ 에러 발생: $e");
+      print("에러 발생: $e");
     }
   }
 }

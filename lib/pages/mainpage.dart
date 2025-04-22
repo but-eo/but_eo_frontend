@@ -2,12 +2,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:project/appStyle/app_colors.dart';
 import 'package:project/chat/chatpage.dart';
+import 'package:project/contants/api_contants.dart';
 import 'package:project/pages/homepage.dart';
 import 'package:project/pages/login.dart';
 import 'package:project/pages/logout.dart';
 import 'package:project/pages/matchpage.dart';
 import 'package:project/pages/mypage.dart';
 import 'package:project/pages/Board.dart';
+import 'package:project/pages/team/teamSearchPage.dart';
 import 'package:project/widgets/bottom_navigation.dart';
 import 'package:dio/dio.dart';
 import 'package:project/widgets/image_slider_widgets.dart';
@@ -60,7 +62,7 @@ class _MainState extends State<Main> {
     final dio = Dio();
     try {
       final res = await dio.get(
-        "http://192.168.0.111:714/api/users/me",
+        "${ApiConstants.baseUrl}/users/me",
         options: Options(headers: {"Authorization": "Bearer $token"}),
       );
 
@@ -82,6 +84,7 @@ class _MainState extends State<Main> {
     ChatPage(),
     Board(),
     MyPageScreen(),
+    TeamSearchPage(),
   ];
 
   //사용자 정보 불러오기 -> 토큰을 통해
@@ -97,7 +100,7 @@ class _MainState extends State<Main> {
 
     try {
       final response = await dio.get(
-        "http://192.168.0.111:0714/api/users/my-info",
+        "${ApiConstants.baseUrl}/users/my-info",
         options: Options(headers: {"Authorization": "Bearer $token"}),
       );
       if (response.statusCode == 200) {

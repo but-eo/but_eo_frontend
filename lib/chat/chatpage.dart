@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:project/appStyle/app_colors.dart';
+import 'package:project/contants/api_contants.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -150,7 +151,7 @@ Future<List<Map<String, dynamic>>> searchUser(String nickname) async {
   Map<String, bool> selectedUsers = {};
   try {
     final response = await dio.get(
-      "http://192.168.0.111:0714/api/users/search",
+      "http://192.168.0.72:0714/api/users/search",
       queryParameters: {'name': nickname},
     );
     if (response.statusCode == 200 && response.data is List) {
@@ -167,7 +168,7 @@ Future<void> searchAll() async {
   final dio = Dio();
   try {
     final response = await dio.get(
-      "http://192.168.0.111:0714/api/users/searchAll",
+      "${ApiConstants.baseUrl}/users/searchAll",
     );
     print('Response data : ${response.data}');
     if (response.statusCode == 200) {

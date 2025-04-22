@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:project/contants/api_contants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class EditProfilePage extends StatefulWidget {
@@ -38,7 +39,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
     final dio = Dio();
     final res = await dio.get(
-      "http://192.168.0.73:0714/api/users/my-info",
+      "${ApiConstants.baseUrl}/users/my-info",
       options: Options(headers: {"Authorization": "Bearer $token"}),
     );
 
@@ -101,7 +102,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
       final dio = Dio();
       final response = await dio.patch(
-        "http://192.168.0.73:0714/api/users/update",
+        "${ApiConstants.baseUrl}/users/update",
         data: formData,
         options: Options(headers: {
           "Authorization": "Bearer $token",

@@ -7,6 +7,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:project/appStyle/app_colors.dart';
 import 'package:project/appStyle/app_style.dart';
+import 'package:project/contants/api_contants.dart';
 import 'package:project/pages/login.dart';
 import 'package:project/widgets/login_button.dart';
 import 'package:project/formatter/phoneformatter.dart';
@@ -71,7 +72,7 @@ class _SignState extends State<Sign> {
 
         // 192.168.0.111
         //"http://192.168.0.111:0714/api/users/register",
-        "http://192.168.0.72:0714/api/users/register",
+        "${ApiConstants.baseUrl}/users/register",
 
         // "https://05e11d7c-f01d-4fb4-aabd-7849216efc8c.mock.pstmn.io/auth/register", //spring boot로 전송할 주소
         data: {
@@ -203,19 +204,13 @@ class _SignState extends State<Sign> {
                 ),
                 Align(
                   alignment: Alignment.topCenter, //상단 중앙 정렬
-                  child: Image.asset(logoImage, height: size.height * 0.1),
+                  child: Image.asset(logoImage, height: size.height * 0.15),
                 ),
-                SizedBox(height:  size.height * 0.023),
                 Text(
                   "Sign Up",
-                  style: Theme.of(context).textTheme.titleLarge, //appStyle
-                ),
-                SizedBox(height: size.height * 0.018),
-                Text(
-                  "Create a new Account",
                   style: Theme.of(
                     context,
-                  ).textTheme.titleSmall!.copyWith(fontSize: 15), //appStyle
+                  ).textTheme.titleSmall!.copyWith(fontSize: 20), //appStyle
                 ),
 
                 SizedBox(height: size.height * 0.02, width: size.width * 0.9),

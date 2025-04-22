@@ -16,7 +16,7 @@ const Color kWhiteColor = Colors.white;
 
 //app Images
 
-const String logoImage = "assets/images/Logo.png";
+const String logoImage = "assets/images/butteoLogo.png";
 
 //App Theme Data
 

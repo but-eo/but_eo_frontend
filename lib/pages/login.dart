@@ -492,9 +492,11 @@ import 'package:flutter_svg/svg.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 import 'package:project/appStyle/app_colors.dart';
 import 'package:project/appStyle/app_style.dart';
+import 'package:project/contants/api_contants.dart';
 import 'package:project/main.dart';
 import 'package:project/pages/sign.dart';
 import 'package:project/pages/mainpage.dart';
+import 'package:project/utils/token_storage.dart';
 import 'package:project/widgets/login_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -523,7 +525,7 @@ class _LoginState extends State<Login> {
     final dio = Dio();
     try {
       final response = await dio.post(
-        "http://192.168.0.111:714/api/users/login",
+        "${ApiConstants.baseUrl}/users/login",
         data: {
           'email': email,
           'password': password,
@@ -533,8 +535,9 @@ class _LoginState extends State<Login> {
 
       if (response.statusCode == 200) {
         final token = response.data['accessToken'];
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('accessToken', token);
+        await TokenStorage.saveTokens(token);
+        // final prefs = await SharedPreferences.getInstance();
+        // await prefs.setString('accessToken', token);
         print('🔑 [Login - BUTEO] 저장된 accessToken: $token');
 
         setState(() => loginAuth = true);
@@ -610,7 +613,7 @@ class _LoginState extends State<Login> {
       String gender,
       String birthyear,
       ) async {
-    final url = Uri.parse("http://192.168.0.111:0714/api/users/kakao/login");
+    final url = Uri.parse("${ApiConstants.baseUrl}/users/kakao/login");
     final response = await http.post(
       url,
       headers: {"Content-Type": "application/json"},
@@ -625,6 +628,7 @@ class _LoginState extends State<Login> {
     );
     if (response.statusCode == 200) {
       print("서버 전송 성공: ${response.body}");
+
     } else {
       print("서버 전송 실패: ${response.statusCode}");
     }
@@ -756,10 +760,9 @@ class _LoginState extends State<Login> {
             padding: EdgeInsets.symmetric(horizontal: size.width * 0.1, vertical: size.height * 0.035),
             child: Column(
               children: [
-                Image.asset(logoImage, height: size.height * 0.1),
+                Image.asset(logoImage, height: size.height * 0.15),
+                Text("Login", style: Theme.of(context).textTheme.titleSmall?.copyWith(fontSize: 20)),
                 SizedBox(height: size.height * 0.02),
-                Text("Welcome", style: Theme.of(context).textTheme.titleLarge),
-                Text("Sign Up in to Continue", style: Theme.of(context).textTheme.titleSmall?.copyWith(fontSize: 15)),
                 Form(
                   key: _formKey,
                   child: Column(

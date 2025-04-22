@@ -1,7 +1,7 @@
 import 'package:project/utils/token_storage.dart';
 
 class ApiConstants {
-  static const String baseUrl = 'http://localhost:0714/api';
+  static const String baseUrl = 'http://192.168.0.150:714/api';
 
   static Future<Map<String, String>> getAuthHeaders() async {
     final token = await TokenStorage.getAccessToken();

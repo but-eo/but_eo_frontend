@@ -39,6 +39,10 @@ class CustomBottomNavBar extends StatelessWidget {
           icon: Icon(Icons.person),
           label: "마이페이지",
         ),
+        BottomNavigationBarItem(
+            icon: Icon(Icons.account_balance_outlined),
+            label: "팀 찾기",
+        )
       ],
     );
   }

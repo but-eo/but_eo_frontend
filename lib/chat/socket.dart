@@ -3,7 +3,7 @@ import 'dart:io';
  
 class FlutterWebSocket {
   List messageList = [];
-  String SERVER = "ws://192.168.0.72:3000";
+  String SERVER = "ws://192.168.0.150:3000";
 
   // 웹 소켓 서버 연결
   Future<WebSocket> getSocket()  async {

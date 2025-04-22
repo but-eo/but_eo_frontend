@@ -5,7 +5,7 @@ late StompClient stompClient; // `late`로 선언
 void connectWebSocket() {
   stompClient = StompClient( // 여기서 초기화
     config: StompConfig(
-      url: 'ws://192.168.45.179:714/ws',
+      url: 'ws://192.168.0.150:714/ws',
       onConnect: (StompFrame frame) {
         print('WebSocket 연결 성공!');
 

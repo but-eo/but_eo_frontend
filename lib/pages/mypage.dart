@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project/contants/api_contants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
 import 'package:project/pages/EditProfilePage.dart'; // 수정 페이지 import
@@ -15,7 +16,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
   String? _profileImageUrl;
 
   // ✅ baseUrl: 시뮬레이터에서 서버 접근할 때 사용
-  final String baseUrl = "http://192.168.0.111:714";
+  final String baseUrl = "http://192.168.0.72:714";
 
   // @override
   // void initState() {
@@ -47,7 +48,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
     final dio = Dio();
     try {
       final res = await dio.get(
-        "http://192.168.0.111:714/api/users/me",
+        "${ApiConstants.baseUrl}/users/me",
         options: Options(headers: {"Authorization": "Bearer $token"}),
       );
 
