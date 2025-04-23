@@ -1,0 +1,60 @@
+import 'dart:io';
+import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:project/contants/api_contants.dart';
+
+class TeamService {
+  static Future<void> createTeam({
+    required String teamName,
+    required String event,
+    required String region,
+    required int memberAge,
+    String? teamCase,
+    required String teamDescription,
+    File? teamImage,
+  }) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('accessToken');
+
+      if (token == null) {
+        throw Exception("토큰이 없습니다.");
+      }
+
+      final dio = Dio();
+      final Map<String, dynamic> data = {
+        'team_name': teamName,
+        'event': event,
+        'region': region,
+        'member_age': memberAge,
+        'team_description': teamDescription,
+      };
+
+      if (teamCase != null) data['team_case'] = teamCase;
+      if (teamImage != null) {
+        data['team_img'] = await MultipartFile.fromFile(teamImage.path);
+      }
+
+      final formData = FormData.fromMap(data);
+
+      final response = await dio.post(
+        '${ApiConstants.baseUrl}/teams/create',
+        data: formData,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'multipart/form-data',
+          },
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        print("팀 생성 성공");
+      } else {
+        print("실패: ${response.statusCode} / ${response.data}");
+      }
+    } catch (e) {
+      print("에러 발생: $e");
+    }
+  }
+}

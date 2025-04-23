@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:project/contants/api_contants.dart';
+import 'package:project/utils/token_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
 import 'package:project/pages/EditProfilePage.dart'; // 수정 페이지 import
@@ -13,15 +15,8 @@ class MyPageScreen extends StatefulWidget {
 class _MyPageScreenState extends State<MyPageScreen> {
   String? nickname = "로딩 중...";
   String? _profileImageUrl;
+  final String baseUrl = "http://${ApiConstants.serverUrl}:714";
 
-  // ✅ baseUrl: 시뮬레이터에서 서버 접근할 때 사용
-  final String baseUrl = "http://172.29.0.102:714";
-
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   fetchUserInfo();
-  // }
   @override
   void initState() {
     super.initState();
@@ -30,14 +25,15 @@ class _MyPageScreenState extends State<MyPageScreen> {
   }
 
   Future<void> printAccessToken(String label) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('accessToken');
+    //final prefs = await SharedPreferences.getInstance();
+    final token = await TokenStorage.getAccessToken();
+    print("토큰에 뭐가 들었을까요 :  $token");
     print("🔑 [$label] accessToken: $token");
   }
 
   Future<void> printUserInfo(String label) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('accessToken');
+    //final prefs = await SharedPreferences.getInstance();
+    final token = await TokenStorage.getAccessToken();
 
     if (token == null) {
       print("❌ [$label] 토큰 없음");
@@ -47,7 +43,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
     final dio = Dio();
     try {
       final res = await dio.get(
-        "http://172.29.0.102:714/api/users/me",
+        "${ApiConstants.baseUrl}/users/me",
         options: Options(headers: {"Authorization": "Bearer $token"}),
       );
 
@@ -64,8 +60,8 @@ class _MyPageScreenState extends State<MyPageScreen> {
 
 
   Future<void> fetchUserInfo() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('accessToken');
+    //final prefs = await SharedPreferences.getInstance();
+    final token = await TokenStorage.getAccessToken();
 
     if (token == null) {
       print("❌ 토큰 없음");

@@ -1,20 +1,16 @@
-// import 'package:firebase_auth/firebase_auth.dart';
-// import 'package:firebase_core/firebase_core.dart';
 import 'dart:convert';
-
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
-import 'package:flutter_naver_login/flutter_naver_login.dart';
-
 import 'package:project/appStyle/app_colors.dart';
 import 'package:project/appStyle/app_style.dart';
-import 'package:project/main.dart';
+import 'package:project/contants/api_contants.dart';
 import 'package:project/pages/sign.dart';
 import 'package:project/pages/mainpage.dart';
+import 'package:project/utils/token_storage.dart';
 import 'package:project/widgets/login_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -31,36 +27,50 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   final _formKey = GlobalKey<FormState>();
 
-  String? email = "";
-  String? password = "";
-
   bool loginAuth = false;
-  bool always_login = false;
-  bool id_remember = false;
-
-  // 일반 로그인
+  //
   Future<void> loginUser(String email, String password) async {
     final dio = Dio();
     try {
       final response = await dio.post(
-        "http://172.29.0.102:0714/api/users/login",
-        data: {'email': email, 'password': password, 'loginType': 'BUTEO'},
+        //192.168.45.179,  192.168.0.127  192.168.0.68
+        //
+        "${ApiConstants.baseUrl}/users/login",
+        data: {'email': email, 'password': password},
       );
       print('Response data : ${response.data}');
       if (response.statusCode == 200) {
-        final token = response.data['accessToken'];
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('accessToken', token);
-        print('🔑 [Login - BUTEO] 저장된 accessToken: $token');
+        String token =
+        response.data['accessToken']; //백엔드에서 받을 토큰 data['token']에서 token은
+        //스프링에서 토큰을 저장한 변수명과 일치해야함
+        print('로그인 성공 $token');
+        await TokenStorage.saveTokens(token);
+        //토큰 저장
+        //final prefs = await SharedPreferences.getInstance(); //디바이스 내부 저장소에 저장
+        //await prefs.setString('accessToken', token);
 
-        setState(() => loginAuth = true);
-        navigateToMainPage();
+        setState(() {
+          loginAuth = true;
+        });
       }
     } catch (e) {
-      print('❌ 일반 로그인 실패: $e');
-      setState(() => loginAuth = false);
+      if (e is DioException) {
+        print('로그인 실패: ${e.response?.statusCode} - ${e.response?.data}');
+      } else {
+        print('로그인 실패 (예상치 못한 오류): $e');
+      }
+      setState(() {
+        loginAuth = false;
+      });
     }
   }
+
+  String? email = "";
+  String? password = "";
+
+  //체크박스 변수
+  bool always_login = false;
+  bool id_remember = false;
 
   @override
   Widget build(BuildContext context) {
@@ -173,7 +183,7 @@ class _LoginState extends State<Login> {
                           Navigator.of(context).pushNamedAndRemoveUntil(
                             //특정화면으로 이동하면서 이전 모든 화면을 스택에서 제거 (새 화면을 띄우고 뒤로가기 버튼을 눌러도 이전 화면으로 돌아갈 수 없음)
                             Sign.id, //이동할 경로의 이름
-                            (route) => false, //스택의 모든 화면 제거
+                                (route) => false, //스택의 모든 화면 제거
                           );
                         },
                         child: Text("회원가입"),
@@ -219,19 +229,18 @@ class _LoginState extends State<Login> {
                   ElevatedButton(
                     //누르면 뒤에 그림자가 생기는 버튼
                     onPressed: () async {
-                      // if (_formKey.currentState!.validate()) {
-                      //   _formKey.currentState!.save(); // onSaved 호출
-                      //   print(email); // 저장된 이메일 출력
-                      //   print(password);
+                      if (_formKey.currentState!.validate()) {
+                        _formKey.currentState!.save(); // onSaved 호출
+                        print(email); // 저장된 이메일 출력
+                        print(password);
 
-                      //   // await loginUser(email!, password!);
-                      //   // print(loginAuth);
-                      //   // if (loginAuth) {
-                      //   //   navigateToMainPage();
-                      //   // }
-                      //   navigateToMainPage();
-                      // }
-                      navigateToMainPage();
+                        // await loginUser(email!, password!);
+                        // print(loginAuth);
+                        // if (loginAuth) {
+                        //   navigateToMainPage();
+                        // }
+                        navigateToMainPage();
+                      }
                     },
                     child: Text(
                       "로그인",
@@ -262,9 +271,7 @@ class _LoginState extends State<Login> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       GestureDetector(
-                        onTap: () {
-                          loginWithNaver();
-                        },
+                        onTap: () {},
                         child: loginButton(
                           context,
                           'assets/icons/naver_icon.png',
@@ -311,14 +318,14 @@ class _LoginState extends State<Login> {
   }
 
   Future<void> sendDataToServer(
-    String refreshToken,
-    String email,
-    String nickname,
-    String profileimage,
-    String gender,
-    String birthyear,
-  ) async {
-    final url = Uri.parse("http://172.29.0.102:0714/api/users/kakao/login");
+      String refreshToken,
+      String email,
+      String nickname,
+      String profileimage,
+      String gender,
+      String birthyear,
+      ) async {
+    final url = Uri.parse("${ApiConstants.baseUrl}/users/kakao/login");
     final response = await http.post(
       url,
       headers: {"Content-Type": "application/json"},
@@ -333,17 +340,14 @@ class _LoginState extends State<Login> {
     );
     if (response.statusCode == 200) {
       print("서버 전송 성공: ${response.body}");
+      final Map<String, dynamic> data = jsonDecode(response.body);
 
-      // ✅ 응답에서 accessToken 꺼내기
-      final responseData = jsonDecode(response.body);
-      final serverAccessToken = responseData['accessToken'];
-
-      if (serverAccessToken != null) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('accessToken', serverAccessToken); // ✅ 저장
-        print("서버 accessToken 저장 완료: $serverAccessToken");
+      final jwt = data['accessToken'];
+      if(jwt != null) {
+        print("저장 jwt : $jwt");
+        await TokenStorage.saveTokens(jwt);
       } else {
-        print("서버에서 accessToken이 누락됨");
+        print("access token 없음");
       }
     } else {
       print("서버 전송 실패: ${response.statusCode}");
@@ -399,62 +403,4 @@ class _LoginState extends State<Login> {
       print('로그인 실패: $error');
     }
   }
-
-  Future<void> loginWithNaver() async {
-    final url = Uri.parse("https://nid.naver.com/nidlogin.logout");
-    final response = await http.get(url); // http 패키지 사용
-
-    try {
-      print("네이버 로그인 시도중");
-      var accessToken;
-      var tokenType;
-      final result = await FlutterNaverLogin.logIn();
-
-      print("로그인 상태 : ${result.status}");
-      NaverAccessToken res = await FlutterNaverLogin.currentAccessToken;
-      final tempAccessToken = res.accessToken;
-      final tempTokenType = res.tokenType;
-
-      print('accessToken : $tempAccessToken');
-      print('tokenType : $tempTokenType');
-
-      if (tempAccessToken != null && tempAccessToken.isNotEmpty) {
-        setState(() {
-          accessToken = tempAccessToken;
-          tokenType = tempTokenType;
-        });
-        navigateToMainPage();
-      } else {
-        print("네이버 로그인 실패 사유: ${result.errorMessage}");
-      }
-    } catch (e) {
-      print("에러 : ${e}");
-    }
-  }
-  // //네이버 회원 정보 가져오기
-  // Future<void> fetchNaverUserDetail(String accessToken) async {
-  //   const String url = "https://openapi.naver.com/v1/nid/me";
-
-  //   final response = await http.get(
-  //     Uri.parse(url),
-  //     headers: {'Authorization': 'Bearer $accessToken'},
-  //   );
-
-  //   if (response.statusCode == 200) {
-  //     var data = json.decode(response.body);
-  //     var userInfo = data['response'];
-
-  //     String id = userInfo['id'];
-  //     String name = userInfo['name'];
-  //     String email = userInfo['email'];
-
-  //     print("Naver ID: $id");
-  //     print("Name: $name");
-  //     print("Email: $email");
-
-  //     // TODO: 이 정보를 서버로 보내거나 앱 내 사용자 상태 저장 등에 활용
-  //   } else {
-  //     print("Failed to fetch user info. status: ${response.statusCode}");
-  //   }
-  // }
 }

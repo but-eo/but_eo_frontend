@@ -63,9 +63,18 @@
 
          In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin. -->
     <queries>
+        <!-- 기존 PROCESS_TEXT 쿼리 -->
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
+
+        <!-- ✅ 카카오 로그인용 브라우저 쿼리 -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="kakao43571ff25dd7d58c93282d1029654bd9" />
+        </intent>
     </queries>
+
 </manifest>
