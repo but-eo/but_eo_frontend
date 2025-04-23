@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:project/contants/api_contants.dart';
+import 'package:project/utils/token_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
 import 'package:project/pages/EditProfilePage.dart'; // 수정 페이지 import
@@ -16,12 +17,6 @@ class _MyPageScreenState extends State<MyPageScreen> {
   String? _profileImageUrl;
   final String baseUrl = "http://${ApiConstants.serverUrl}:714";
 
-
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   fetchUserInfo();
-  // }
   @override
   void initState() {
     super.initState();
@@ -30,14 +25,15 @@ class _MyPageScreenState extends State<MyPageScreen> {
   }
 
   Future<void> printAccessToken(String label) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('accessToken');
+    //final prefs = await SharedPreferences.getInstance();
+    final token = await TokenStorage.getAccessToken();
+    print("토큰에 뭐가 들었을까요 :  $token");
     print("🔑 [$label] accessToken: $token");
   }
 
   Future<void> printUserInfo(String label) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('accessToken');
+    //final prefs = await SharedPreferences.getInstance();
+    final token = await TokenStorage.getAccessToken();
 
     if (token == null) {
       print("❌ [$label] 토큰 없음");
@@ -64,8 +60,8 @@ class _MyPageScreenState extends State<MyPageScreen> {
 
 
   Future<void> fetchUserInfo() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('accessToken');
+    //final prefs = await SharedPreferences.getInstance();
+    final token = await TokenStorage.getAccessToken();
 
     if (token == null) {
       print("❌ 토큰 없음");

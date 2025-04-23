@@ -1,7 +1,4 @@
-// import 'package:firebase_auth/firebase_auth.dart';
-// import 'package:firebase_core/firebase_core.dart';
 import 'dart:convert';
-
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -10,9 +7,10 @@ import 'package:flutter_svg/svg.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 import 'package:project/appStyle/app_colors.dart';
 import 'package:project/appStyle/app_style.dart';
-import 'package:project/main.dart';
+import 'package:project/contants/api_contants.dart';
 import 'package:project/pages/sign.dart';
 import 'package:project/pages/mainpage.dart';
+import 'package:project/utils/token_storage.dart';
 import 'package:project/widgets/login_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -37,7 +35,7 @@ class _LoginState extends State<Login> {
       final response = await dio.post(
         //192.168.45.179,  192.168.0.127  192.168.0.68
         //
-        "http://192.168.0.150:0714/api/users/login",
+        "${ApiConstants.baseUrl}/users/login",
         data: {'email': email, 'password': password},
       );
       print('Response data : ${response.data}');
@@ -46,10 +44,10 @@ class _LoginState extends State<Login> {
         response.data['accessToken']; //백엔드에서 받을 토큰 data['token']에서 token은
         //스프링에서 토큰을 저장한 변수명과 일치해야함
         print('로그인 성공 $token');
-
+        await TokenStorage.saveTokens(token);
         //토큰 저장
-        final prefs = await SharedPreferences.getInstance(); //디바이스 내부 저장소에 저장
-        await prefs.setString('accessToken', token);
+        //final prefs = await SharedPreferences.getInstance(); //디바이스 내부 저장소에 저장
+        //await prefs.setString('accessToken', token);
 
         setState(() {
           loginAuth = true;
@@ -327,7 +325,7 @@ class _LoginState extends State<Login> {
       String gender,
       String birthyear,
       ) async {
-    final url = Uri.parse("http://192.168.0.150:0714/api/users/kakao/login");
+    final url = Uri.parse("${ApiConstants.baseUrl}/users/kakao/login");
     final response = await http.post(
       url,
       headers: {"Content-Type": "application/json"},
@@ -342,6 +340,15 @@ class _LoginState extends State<Login> {
     );
     if (response.statusCode == 200) {
       print("서버 전송 성공: ${response.body}");
+      final Map<String, dynamic> data = jsonDecode(response.body);
+
+      final jwt = data['accessToken'];
+      if(jwt != null) {
+        print("저장 jwt : $jwt");
+        await TokenStorage.saveTokens(jwt);
+      } else {
+        print("access token 없음");
+      }
     } else {
       print("서버 전송 실패: ${response.statusCode}");
     }
