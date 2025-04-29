@@ -2,12 +2,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:project/appStyle/app_colors.dart';
 import 'package:project/chat/chatpage.dart';
+import 'package:project/contants/api_contants.dart';
+import 'package:project/pages/Board.dart';
 import 'package:project/pages/homepage.dart';
 import 'package:project/pages/login.dart';
 import 'package:project/pages/logout.dart';
 import 'package:project/pages/matchpage.dart';
 import 'package:project/pages/mypage.dart';
-import 'package:project/pages/recordpage.dart';
+import 'package:project/pages/team/teamSearchPage.dart';
 import 'package:project/widgets/bottom_navigation.dart';
 import 'package:dio/dio.dart';
 import 'package:project/widgets/image_slider_widgets.dart';
@@ -60,7 +62,7 @@ class _MainState extends State<Main> {
     final dio = Dio();
     try {
       final res = await dio.get(
-        "http://10.0.2.2:714/api/users/me",
+        "${ApiConstants.baseUrl}/users/me",
         options: Options(headers: {"Authorization": "Bearer $token"}),
       );
 
@@ -80,7 +82,8 @@ class _MainState extends State<Main> {
     Homepage(),
     Matchpage(),
     ChatPage(),
-    Recordpage(),
+    Board(),
+    TeamSearchPage(),
     MyPageScreen(),
   ];
 
@@ -97,14 +100,14 @@ class _MainState extends State<Main> {
 
     try {
       final response = await dio.get(
-        "http://192.168.0.111:0714/api/users/my-info",
+        "${ApiConstants.baseUrl}/users/me",
         options: Options(headers: {"Authorization": "Bearer $token"}),
       );
       if (response.statusCode == 200) {
         print("사용자 정보 가져오기 성공: ${response.data}");
-         userName = response.data['name'];
-         profileImageUrl = response.data['profileImage'];
-         print(userName);
+        userName = response.data['name'];
+        profileImageUrl = response.data['profile'];
+        print(userName);
         isLoading = false;
       }
     } catch (e) {
@@ -115,8 +118,12 @@ class _MainState extends State<Main> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: Scaffold(
-        appBar: AppBar(
+        appBar:
+        _selectedIndex == 2
+            ? null
+            : AppBar(
           title: Text(
             "BUTTEO",
             style: TextStyle(
@@ -146,19 +153,19 @@ class _MainState extends State<Main> {
                       value: 1,
                       child: ListTile(
                         leading:
-                            (profileImageUrl?.isNotEmpty ?? false)
-                                ? CircleAvatar(
-                                  backgroundImage: NetworkImage(
-                                    profileImageUrl!,
-                                  ),
-                                )
-                                : CircleAvatar(
-                                  backgroundColor: Colors.grey,
-                                  child: Icon(
-                                    Icons.person,
-                                    color: Colors.black,
-                                  ),
-                                ), // 기본 아이콘
+                        (profileImageUrl?.isNotEmpty ?? false)
+                            ? CircleAvatar(
+                          backgroundImage: NetworkImage(
+                            profileImageUrl!,
+                          ),
+                        )
+                            : CircleAvatar(
+                          backgroundColor: Colors.grey,
+                          child: Icon(
+                            Icons.person,
+                            color: Colors.black,
+                          ),
+                        ), // 기본 아이콘
                         title: Text(userName ?? "이름 없음"),
                       ),
                     ),
@@ -184,11 +191,11 @@ class _MainState extends State<Main> {
                     const PopupMenuDivider(),
                     PopupMenuItem<int>(
                       onTap: () {
-                        logoutKakao();
+                        logout();
                         Navigator.of(context).pushNamedAndRemoveUntil(
                           //특정화면으로 이동하면서 이전 모든 화면을 스택에서 제거 (새 화면을 띄우고 뒤로가기 버튼을 눌러도 이전 화면으로 돌아갈 수 없음)
                           Login.id, //이동할 경로의 이름
-                          (route) => false, //스택의 모든 화면 제거
+                              (route) => false, //스택의 모든 화면 제거
                         );
                       },
                       value: 6, // 메뉴 항목의 값

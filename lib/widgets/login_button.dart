@@ -4,7 +4,7 @@ Widget loginButton(context, image, title, tColor, bColor, oColor) {
   return Container(
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(color: oColor),
           color: bColor,
           boxShadow: [

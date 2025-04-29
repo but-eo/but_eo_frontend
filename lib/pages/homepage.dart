@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:project/data/mock_posts.dart';
+import 'package:project/pages/board/board_detail_page.dart';
+import 'package:project/pages/board/board_page.dart';
 import 'package:project/widgets/image_slider_widgets.dart';
 
 class Homepage extends StatelessWidget {
@@ -10,6 +13,8 @@ class Homepage extends StatelessWidget {
       "assets/images/banner1.png",
       "assets/images/banner2.png",
     ];
+
+    final latestPosts = mockPosts.take(5).toList(); //최근 5개 글 조회
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -30,6 +35,7 @@ class Homepage extends StatelessWidget {
                     _categoryButton("볼링"),
                     _categoryButton("테니스"),
                     _categoryButton("배드민턴"),
+                    _categoryButton("야구"),
                   ],
                 ),
               ),
@@ -67,14 +73,27 @@ class Homepage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("최신글", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  SizedBox(height: 8),
-                  _postItem("FC MNT 회원 모집 FW, MF (토요일 오전 6시)"),
-                  _postItem("[광주] 일요일 오후 | 목요일 저녁 [주 2회]"),
-                  _postItem("광명역세권FC 멤버 모집합니다"),
-                  _postItem("강동 주말경기 하는 K.FC에서 선수 모집합니다"),
-                  _postItem("[광주남구] 멤버 모집합니다~! ***10대~30대"),
-                  _postItem("광주광역시 광산구 축구팀 Gw dream FC 팀"),
+                  GestureDetector(
+                    onTap: () => {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const BoardPage()),
+                      ),
+                    },
+                    child: const Text("최신글",
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ListView.builder(
+                    physics: const NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+                    itemCount: mockPosts.length,
+                    itemBuilder: (context, index) {
+                      final  post = mockPosts[index];
+                      return _postItem(post, context);
+                    },
+                  )
                 ],
               ),
             )
@@ -118,20 +137,46 @@ class Homepage extends StatelessWidget {
     );
   }
 
-  Widget _postItem(String title) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Container(
-        padding: EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(child: Text(title, style: TextStyle(fontSize: 16))),
-            Icon(Icons.comment, size: 18, color: Colors.grey),
-          ],
+  Widget _postItem(Map<String, dynamic> post, BuildContext context) {
+    return GestureDetector(
+      onTap: (){
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (_) => BoardDetailPage(
+                    title: post["title"],
+                    content: post["content"],
+                    author: post["writer"],
+                    date: post["date"],
+                    views: post["views"],
+                )
+            ),
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(child: Text(post["title"], style: TextStyle(fontSize: 16))),
+              Row(
+                  children:[
+                    Icon(
+                        Icons.comment,
+                        size: 18,
+                        color: Colors.grey),
+                    const SizedBox(width: 4,),
+                    Text("${post["comments"]}",
+                        style: TextStyle(color: Colors.grey))
+                  ]
+              ),
+            ],
+          ),
         ),
       ),
     );

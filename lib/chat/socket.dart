@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
+
+import 'package:project/contants/api_contants.dart';
  
 class FlutterWebSocket {
   List messageList = [];
-  String SERVER = "ws://192.168.0.111:3000";
- 
+  String SERVER = "ws://${ApiConstants.serverUrl}:3000";
+
   // 웹 소켓 서버 연결
   Future<WebSocket> getSocket()  async {
     WebSocket socket = await WebSocket.connect(SERVER);
