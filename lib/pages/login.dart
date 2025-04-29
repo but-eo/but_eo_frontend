@@ -234,12 +234,12 @@ class _LoginState extends State<Login> {
                         print(email); // 저장된 이메일 출력
                         print(password);
 
-                        // await loginUser(email!, password!);
-                        // print(loginAuth);
-                        // if (loginAuth) {
-                        //   navigateToMainPage();
-                        // }
-                        navigateToMainPage();
+                        await loginUser(email!, password!);
+                        print(loginAuth);
+                        if (loginAuth) {
+                          navigateToMainPage();
+                        }
+                        // navigateToMainPage();
                       }
                     },
                     child: Text(
@@ -324,6 +324,7 @@ class _LoginState extends State<Login> {
       String profileimage,
       String gender,
       String birthyear,
+      String tel,
       ) async {
     final url = Uri.parse("${ApiConstants.baseUrl}/users/kakao/login");
     final response = await http.post(
@@ -336,6 +337,7 @@ class _LoginState extends State<Login> {
         "gender": gender,
         "birthYear": birthyear,
         "profileImage": profileimage,
+        "tel" : tel,
       }),
     );
     if (response.statusCode == 200) {
@@ -383,6 +385,7 @@ class _LoginState extends State<Login> {
       String profileImage = user.kakaoAccount?.profile?.profileImageUrl ?? "";
       String gender = user.kakaoAccount?.gender?.name ?? "";
       String birthYear = user.kakaoAccount?.birthyear ?? "";
+      String tel = user.kakaoAccount?.phoneNumber ?? "";
 
       print("accessToken : " + accessToken);
       print("refreshToken : " + refreshToken);
@@ -395,6 +398,7 @@ class _LoginState extends State<Login> {
         profileImage,
         gender,
         birthYear,
+        tel
       );
 
       // 메인 페이지 이동

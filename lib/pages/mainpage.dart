@@ -191,7 +191,7 @@ class _MainState extends State<Main> {
                     const PopupMenuDivider(),
                     PopupMenuItem<int>(
                       onTap: () {
-                        logoutKakao();
+                        logout();
                         Navigator.of(context).pushNamedAndRemoveUntil(
                           //특정화면으로 이동하면서 이전 모든 화면을 스택에서 제거 (새 화면을 띄우고 뒤로가기 버튼을 눌러도 이전 화면으로 돌아갈 수 없음)
                           Login.id, //이동할 경로의 이름
