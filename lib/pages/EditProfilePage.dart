@@ -179,6 +179,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()),
           items: items.map((e) => DropdownMenuItem<String>(value: e, child: Text(e))).toList(),
           onChanged: onChanged,
+          // ghi
         ),
       );
 }
