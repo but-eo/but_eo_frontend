@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:project/appStyle/app_colors.dart';
+import 'package:project/chat/chatdetailpage.dart';
 import 'package:project/contants/api_contants.dart';
 
 class ChatPage extends StatefulWidget {
@@ -41,7 +42,7 @@ class _ChatPageState extends State<ChatPage> {
             ),
           ],
         ),
-      )
+      ),
     );
   }
 
@@ -77,7 +78,7 @@ class _ChatPageState extends State<ChatPage> {
                               localSearchResults = results;
                               localSelectedUsers.clear();
                               for (var user in localSearchResults) {
-                                var userId = user['id'].toString();
+                                var userId = user['userHashId'].toString();
                                 localSelectedUsers[userId] = false;
                               }
                             });
@@ -87,12 +88,12 @@ class _ChatPageState extends State<ChatPage> {
                     ),
                     const SizedBox(height: 12),
                     SizedBox(
-                      height: 250, // 
+                      height: 250, //
                       child: ListView.builder(
                         itemCount: localSearchResults.length,
                         itemBuilder: (context, index) {
                           final user = localSearchResults[index];
-                          final userId = user['id'].toString();
+                          final userId = user['userHashId'].toString();
                           return ListTile(
                             leading:
                                 user['profile'] != null
@@ -121,19 +122,47 @@ class _ChatPageState extends State<ChatPage> {
               ),
               actions: [
                 TextButton(
-                  onPressed: () {
+                  onPressed: () async {
                     final selected =
                         localSearchResults.where((user) {
-                          return localSelectedUsers[user['id'].toString()] ==
+                          return localSelectedUsers[user['userHashId']
+                                  .toString()] ==
                               true;
                         }).toList();
-                    // 여기에서 선택된 유저를 처리 가능
-                    Navigator.pop(context);
+
+                    print(
+                      '선택된 유저들: ${selected.map((e) => e['name']).toList()}',
+                    );
+                    print(
+                      '선택된 유저 ID들: ${selected.map((e) => e['userHashId']).toList()}',
+                    );
+
+                    if (selected.isNotEmpty) {
+                      final room = await createChatRoom(
+                        selected.map((e) => e['userHashId']).toList(),
+                      );
+                      if (room != null) {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) => ChatDetailpage(chatRoom: room),
+                          ),
+                        );
+                      }
+                    }
                   },
                   child: Text("초대"),
                 ),
                 TextButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () {
+                    setState(() {
+                      localSearchResults.clear();
+                      localSelectedUsers.clear();
+                    });
+                    Navigator.pop(context);
+                  },
                   child: Text("취소"),
                 ),
               ],
@@ -151,7 +180,7 @@ Future<List<Map<String, dynamic>>> searchUser(String nickname) async {
   Map<String, bool> selectedUsers = {};
   try {
     final response = await dio.get(
-      "http://${ApiConstants.baseUrl}/users/search",
+      "${ApiConstants.baseUrl}/users/search",
 
       queryParameters: {'name': nickname},
     );
@@ -168,9 +197,7 @@ Future<List<Map<String, dynamic>>> searchUser(String nickname) async {
 Future<void> searchAll() async {
   final dio = Dio();
   try {
-    final response = await dio.get(
-      "${ApiConstants.baseUrl}/users/searchAll",
-    );
+    final response = await dio.get("${ApiConstants.baseUrl}/users/searchAll");
     print('Response data : ${response.data}');
     if (response.statusCode == 200) {
       print('전체 친구 목록');
@@ -178,4 +205,21 @@ Future<void> searchAll() async {
   } catch (e) {
     print('검색 실패 : ${e}');
   }
+}
+
+Future<Map<String, dynamic>?> createChatRoom(List<dynamic> userIds) async {
+  final dio = Dio();
+  try {
+    print('채팅방 생성 요청: $userIds');
+    final response = await dio.post(
+      "${ApiConstants.baseUrl}/chatrooms",
+      data: {"userHashId": userIds, "chatRoomName": "채팅방"},
+    );
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return response.data;
+    }
+  } catch (e) {
+    print('채팅방 생성 실패: $e');
+  }
+  return null;
 }
