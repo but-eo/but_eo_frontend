@@ -1,19 +1,17 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_file.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 import 'package:project/appStyle/app_style.dart';
 import 'package:project/pages/Sign.dart';
 import 'package:project/pages/mainpage.dart';
 import 'package:project/pages/login.dart';
 import 'package:project/pages/myteam.dart';
-import 'package:project/websocket/websocket_client.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // await dotenv.load(fileName: "key.env");
 
   await Firebase.initializeApp();
-  connectWebSocket(); //웹소켓 연결
 
   KakaoSdk.init(
     nativeAppKey: '43571ff25dd7d58c93282d1029654bd9',
