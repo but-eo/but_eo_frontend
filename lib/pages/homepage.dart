@@ -75,10 +75,10 @@ class Homepage extends StatelessWidget {
                 children: [
                   GestureDetector(
                     onTap: () => {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const BoardPage()),
-                      ),
+                      // Navigator.push(
+                      //     context,
+                      //     // MaterialPageRoute(builder: (_) => const BoardPage(),
+                      // ),
                     },
                     child: const Text("최신글",
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)
@@ -140,18 +140,18 @@ class Homepage extends StatelessWidget {
   Widget _postItem(Map<String, dynamic> post, BuildContext context) {
     return GestureDetector(
       onTap: (){
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (_) => BoardDetailPage(
-                    title: post["title"],
-                    content: post["content"],
-                    author: post["writer"],
-                    date: post["date"],
-                    views: post["views"],
-                )
-            ),
-        );
+        // Navigator.push(
+        //     context,
+        //     MaterialPageRoute(
+        //         builder: (_) => BoardDetailPage(
+        //             title: post["title"],
+        //             content: post["content"],
+        //             author: post["writer"],
+        //             date: post["date"],
+        //             views: post["views"],
+        //         )
+        //     ),
+        // );
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
