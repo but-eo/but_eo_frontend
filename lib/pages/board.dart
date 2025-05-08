@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:project/widgets/image_slider_widgets.dart';
+import 'package:project/pages/board/board_page.dart';
 
 class Board extends StatefulWidget {
   const Board({super.key});
@@ -15,14 +15,14 @@ class _BoardState extends State<Board> {
 
   // 스포츠별 게시판 리스트
   final Map<String, List<String>> boardCategories = {
-    '축구': ['자유게시판', '모집게시판', '후기게시판', '경기장게시판'],
-    '풋살': ['자유게시판', '모집게시판', '후기게시판', '경기장게시판'],
-    '농구': ['자유게시판', '모집게시판', '후기게시판', '경기장게시판'],
-    '탁구': ['자유게시판', '모집게시판', '후기게시판', '경기장게시판'],
-    '볼링': ['자유게시판', '모집게시판', '후기게시판', '경기장게시판'],
-    '테니스': ['자유게시판', '모집게시판', '후기게시판', '경기장게시판'],
-    '배드민턴': ['자유게시판', '모집게시판', '후기게시판', '경기장게시판'],
-    '야구': ['자유게시판', '모집게시판', '후기게시판', '경기장게시판'],
+    '축구': ['자유게시판', '팀찾기게시판', '팀원찾기게시판', '후기게시판', '경기장게시판'],
+    '풋살': ['자유게시판', '팀찾기게시판', '팀원찾기게시판', '후기게시판', '경기장게시판'],
+    '농구': ['자유게시판', '팀찾기게시판', '팀원찾기게시판', '후기게시판', '경기장게시판'],
+    '탁구': ['자유게시판', '팀찾기게시판', '팀원찾기게시판', '후기게시판', '경기장게시판'],
+    '볼링': ['자유게시판', '팀찾기게시판', '팀원찾기게시판', '후기게시판', '경기장게시판'],
+    '테니스': ['자유게시판', '팀찾기게시판', '팀원찾기게시판', '후기게시판', '경기장게시판'],
+    '배드민턴': ['자유게시판', '팀찾기게시판', '팀원찾기게시판', '후기게시판', '경기장게시판'],
+    '야구': ['자유게시판', '팀찾기게시판', '팀원찾기게시판', '후기게시판', '경기장게시판'],
   };
 
   @override
@@ -100,7 +100,17 @@ class _BoardState extends State<Board> {
             borderRadius: BorderRadius.circular(5),
           ),
         ),
-        onPressed: () {},
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => BoardPage(
+                sport: selectedSport,
+                category: title,
+              ),
+            ),
+          );
+        },
         child: Text(
           title,
           style: TextStyle(
