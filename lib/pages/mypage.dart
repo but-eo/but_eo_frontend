@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 import 'package:project/contants/api_contants.dart';
 import 'package:project/utils/token_storage.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:dio/dio.dart';
-import 'package:project/pages/EditProfilePage.dart'; // 수정 페이지 import
+import 'package:project/pages/EditProfilePage.dart';
 
 class MyPageScreen extends StatefulWidget {
   const MyPageScreen({super.key});
 
   @override
-  State<MyPageScreen> createState() => _MyPageScreenState();
+  State createState() => _MyPageScreenState();
 }
 
 class _MyPageScreenState extends State<MyPageScreen> {
@@ -20,63 +19,22 @@ class _MyPageScreenState extends State<MyPageScreen> {
   @override
   void initState() {
     super.initState();
-    printAccessToken("MyPage");
     fetchUserInfo();
   }
 
-  Future<void> printAccessToken(String label) async {
-    //final prefs = await SharedPreferences.getInstance();
+  Future fetchUserInfo() async {
     final token = await TokenStorage.getAccessToken();
-    print("토큰에 뭐가 들었을까요 :  $token");
-    print("🔑 [$label] accessToken: $token");
-  }
-
-  Future<void> printUserInfo(String label) async {
-    //final prefs = await SharedPreferences.getInstance();
-    final token = await TokenStorage.getAccessToken();
-
-    if (token == null) {
-      print("❌ [$label] 토큰 없음");
-      return;
-    }
-
-    final dio = Dio();
-    try {
-      final res = await dio.get(
-        "${ApiConstants.baseUrl}/users/me",
-        options: Options(headers: {"Authorization": "Bearer $token"}),
-      );
-
-      if (res.statusCode == 200) {
-        print("👤 [$label] 로그인된 사용자 정보: ${res.data}");
-      } else {
-        print("❌ [$label] 유저 정보 불러오기 실패: ${res.statusCode}");
-      }
-    } catch (e) {
-      print("❗ [$label] 사용자 정보 요청 에러: $e");
-    }
-  }
-
-
-
-  Future<void> fetchUserInfo() async {
-    //final prefs = await SharedPreferences.getInstance();
-    final token = await TokenStorage.getAccessToken();
-
     if (token == null) {
       print("❌ 토큰 없음");
       return;
     }
-
     final dio = Dio();
     try {
       final res = await dio.get(
         "$baseUrl/api/users/me",
         options: Options(headers: {"Authorization": "Bearer $token"}),
       );
-
       if (res.statusCode == 200) {
-        print("🟢 유저 정보: ${res.data}");
         setState(() {
           nickname = res.data['name'] ?? "닉네임 없음";
           _profileImageUrl = res.data['profile'];
@@ -92,69 +50,77 @@ class _MyPageScreenState extends State<MyPageScreen> {
   @override
   Widget build(BuildContext context) {
     return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
       children: [
-        const SizedBox(height: 20),
         Center(
-          child: CircleAvatar(
-            radius: 50,
-            backgroundColor: Colors.purpleAccent.withOpacity(0.2),
-            backgroundImage: _profileImageUrl != null && _profileImageUrl!.isNotEmpty
-                ? NetworkImage(
-              _profileImageUrl!.startsWith("http")
-                  ? _profileImageUrl!
-                  : "$baseUrl${_profileImageUrl!}",
-            )
-                : null,
-            child: _profileImageUrl == null || _profileImageUrl!.isEmpty
-                ? const Icon(Icons.person, size: 50, color: Colors.white)
-                : null,
-          ),
-        ),
-        const SizedBox(height: 10),
-        Center(
-          child: Text(
-            nickname ?? '',
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+          child: ClipOval(
+            child: Container(
+              width: 120,
+              height: 120,
+              color: Colors.grey.shade300,
+              child: _profileImageUrl != null && _profileImageUrl!.isNotEmpty
+                  ? Image.network(
+                _profileImageUrl!.startsWith("http")
+                    ? _profileImageUrl!
+                    : "$baseUrl${_profileImageUrl!}",
+                fit: BoxFit.cover,
+              )
+                  : const Icon(Icons.person, size: 60, color: Colors.white),
             ),
           ),
         ),
-        const SizedBox(height: 20),
-        const Divider(height: 1),
-
-        _buildListTile(
-          context,
-          '회원정보 수정',
-          onTap: () async {
-            final result = await Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const EditProfilePage()),
-            );
-            if (result == true) {
-              fetchUserInfo(); // ✅ 수정되었을 때만 다시 불러오기
-            }
-          },
-
+        const SizedBox(height: 8),
+        Center(
+          child: Text(
+            nickname ?? '',
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
+          ),
         ),
-        _buildListTile(context, '마이 팀'),
-        _buildListTile(context, '내가 작성한 글 보기'),
-        _buildListTile(context, '내가 남긴 댓글 보기'),
-        _buildListTile(context, '고객센터'),
-        _buildListTile(context, '내 정보 수정하기'),
+        const SizedBox(height: 30),
+        Card(
+          color: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          elevation: 1,
+          child: Column(
+            children: [
+              _buildListTile(Icons.edit, '회원정보 수정', context, onTap: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EditProfilePage(
+                      initialProfileImageUrl: _profileImageUrl,
+                    ),
+                  ),
+                );
+                if (result == true) {
+                  fetchUserInfo();
+                }
+              }),
+              _buildListTile(Icons.group_outlined, '마이 팀', context),
+              _buildListTile(Icons.grid_on, '내가 작성한 글 보기', context),
+              _buildListTile(Icons.mode_comment_outlined, '내가 남긴 댓글 보기', context),
+              _buildListTile(Icons.support_agent, '고객센터', context),
+              _buildListTile(Icons.settings_outlined, '앱 설정', context, hasDivider: false),
+            ],
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildListTile(BuildContext context, String title, {VoidCallback? onTap}) {
+  Widget _buildListTile(IconData icon, String title, BuildContext context,
+      {VoidCallback? onTap, bool hasDivider = true}) {
     return Column(
       children: [
         ListTile(
-          title: Text(title),
-          trailing: const Icon(Icons.chevron_right),
+          leading: Icon(icon, color: Colors.black54),
+          title: Text(title, style: const TextStyle(fontSize: 16, color: Colors.black87)),
+          trailing: const Icon(Icons.chevron_right, color: Colors.black54),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
           onTap: onTap,
         ),
-        const Divider(height: 1),
+        if (hasDivider)
+          const Divider(indent: 20, endIndent: 20, height: 1, color: Colors.grey),
       ],
     );
   }
