@@ -36,7 +36,6 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
       );
       stompClient!.activate();
       loadMessages();
-      connectStomp();
     });
   }
 
@@ -111,18 +110,7 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
     }
   }
 
-  void connectStomp() {
-    stompClient = StompClient(
-      config: StompConfig.sockJS(
-        url: '${ApiConstants.webSocketUrl}/ws',
-        onConnect: onStompConnected,
-        onWebSocketError: (error) => print('연결 오류: $error'),
-        onDisconnect: (_) => print('연결 해제됨'),
-        reconnectDelay: Duration(seconds: 5), // 자동 재연결
-      ),
-    );
-    stompClient!.activate();
-  }
+  
 
   @override
   void dispose() {
