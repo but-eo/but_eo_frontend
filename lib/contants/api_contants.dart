@@ -1,8 +1,14 @@
 import 'package:project/utils/token_storage.dart';
 
 class ApiConstants {
-  static const String baseUrl = 'http://192.168.0.170:714/api';
-  static const String serverUrl = '192.168.0.170';
+
+
+  static const String baseUrl = 'http://172.29.0.31:714/api';
+  static const String serverUrl ='172.29.0.31';
+  static const String webSocketUrl = 'http://172.29.0.31';
+  static const String webSocketConnectUrl = 'http://172.29.0.31:714';
+
+
   // 맥북 ip 명령어 ipconfig getifaddr en0
   //192.168.0.150
 
