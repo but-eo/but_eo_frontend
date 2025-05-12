@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:project/widgets/bottom_navigation.dart';
+import 'package:project/appStyle/app_colors.dart';
 
 class MyTeamPage extends StatefulWidget {
   const MyTeamPage({super.key});
@@ -8,14 +10,7 @@ class MyTeamPage extends StatefulWidget {
 }
 
 class _MyTeamPageState extends State<MyTeamPage> {
-  int _selectedIndex = 4;
   int _tabIndex = 0;
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
 
   void _onTabSelected(int index) {
     setState(() {
@@ -26,12 +21,9 @@ class _MyTeamPageState extends State<MyTeamPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: const Text("My Team Page",
-            style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold)
-        ),
+        title: const Text("My Team", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 1,
@@ -55,24 +47,12 @@ class _MyTeamPageState extends State<MyTeamPage> {
           ),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed, // 아이템이 많아도 잘리지 않도록 설정
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: '홈'),
-          BottomNavigationBarItem(icon: Icon(Icons.sports_soccer), label: '매칭찾기'),
-          BottomNavigationBarItem(icon: Icon(Icons.chat), label: '채팅방'),
-          BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: '전적보기'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: '마이페이지'),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.blueAccent,
-        onTap: _onItemTapped,
-      ),
     );
   }
 
   Widget _tabBar() {
-    return Padding(
+    return Container(
+      color: Colors.white,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -86,12 +66,23 @@ class _MyTeamPageState extends State<MyTeamPage> {
   }
 
   Widget _tabButton(String title, int index) {
-    return TextButton(
-      onPressed: () => _onTabSelected(index),
-      style: TextButton.styleFrom(
-        foregroundColor: _tabIndex == index ? Colors.red : Colors.black,
+    final isSelected = _tabIndex == index;
+    return GestureDetector(
+      onTap: () => _onTabSelected(index),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.red.shade100 : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          title,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: isSelected ? Colors.red : Colors.black87,
+          ),
+        ),
       ),
-      child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
     );
   }
 
@@ -111,9 +102,11 @@ class _MyTeamPageState extends State<MyTeamPage> {
   }
 
   Widget _myReviews() {
-    final reviews = [
-      {"team": "우라이 FC", "date": "2025-03-11", "rating": 4, "content": "우라이 FC와의 경기 너무 좋았습니다."},
-      {"team": "삼전 FC", "date": "2025-02-13", "rating": 3, "content": "매너가 조금 부족했어요."},
+    final List<Map<String, dynamic>> reviews = [
+      {"team": "우라이 FC", "date": "2025-03-11", "rating": 4, "content": "팀워크와 실력이 최고였습니다."},
+      {"team": "삼전 FC", "date": "2025-02-13", "rating": 3, "content": "다소 거친 플레이가 있었습니다."},
+      {"team": "경희대 OB", "date": "2025-01-05", "rating": 5, "content": "정말 매너 좋은 팀! 꼭 다시 붙고 싶어요."},
+      {"team": "서울조기축구단", "date": "2024-12-20", "rating": 2, "content": "연락이 잘 안 됐고 늦게 도착했어요."},
     ];
 
     return ListView.builder(
@@ -138,10 +131,11 @@ class _MyTeamPageState extends State<MyTeamPage> {
                 ),
                 const SizedBox(height: 8),
                 Row(
-                  children: List.generate(5, (i) => Icon(
-                    Icons.star,
-                    color: i < (review["rating"] as int) ? Colors.amber : Colors.grey[300],
-                  )),
+                  children: List.generate(
+                    5,
+                        (i) => Icon(Icons.star,
+                        color: i < (review["rating"] as int) ? Colors.amber : Colors.grey[300]),
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(review["content"] as String),
@@ -154,11 +148,13 @@ class _MyTeamPageState extends State<MyTeamPage> {
   }
 
   Widget _teamInfo() {
-    final teams = [
+    final List<Map<String, dynamic>> teams = [
       {"name": "블랙타이거", "sport": "축구", "image": Icons.sports_soccer},
       {"name": "화이트타이거 FC", "sport": "풋살", "image": Icons.sports_football},
-      {"name": "살쾡이 탁구단", "sport": "탁구", "image": Icons.sports_tennis_sharp},
+      {"name": "살쾡이 탁구단", "sport": "탁구", "image": Icons.sports_tennis},
       {"name": "냥냥슛 FC", "sport": "농구", "image": Icons.sports_basketball},
+      {"name": "창동 유나이티드", "sport": "족구", "image": Icons.sports_volleyball},
+      {"name": "런닝맨즈", "sport": "러닝", "image": Icons.directions_run},
     ];
 
     return GridView.builder(
