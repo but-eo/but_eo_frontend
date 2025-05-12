@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:project/contants/api_contants.dart';
+import 'package:project/pages/myteam.dart';
 import 'package:project/utils/token_storage.dart';
 import 'package:project/pages/EditProfilePage.dart';
+import 'package:project/pages/CustomerCenterPage.dart';
+
 
 class MyPageScreen extends StatefulWidget {
   const MyPageScreen({super.key});
@@ -96,10 +99,20 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   fetchUserInfo();
                 }
               }),
-              _buildListTile(Icons.group_outlined, '마이 팀', context),
+              _buildListTile(Icons.group_outlined, '마이 팀', context, onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const MyTeamPage()),
+                );
+              }),
               _buildListTile(Icons.grid_on, '내가 작성한 글 보기', context),
               _buildListTile(Icons.mode_comment_outlined, '내가 남긴 댓글 보기', context),
-              _buildListTile(Icons.support_agent, '고객센터', context),
+              _buildListTile(Icons.support_agent, '고객센터', context, onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const CustomerCenterPage()),
+                );
+              }),
               _buildListTile(Icons.settings_outlined, '앱 설정', context, hasDivider: false),
             ],
           ),
