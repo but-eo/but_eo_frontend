@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:project/data/teamEnum.dart';
+import 'package:project/service/teamService.dart';
 
 class TeamDetailPage extends StatelessWidget {
   final Map<String, dynamic> team;
@@ -39,9 +40,16 @@ class TeamDetailPage extends StatelessWidget {
             Center(
               child: CircleAvatar(
                 radius: 50,
-                backgroundImage: const AssetImage('assets/logo_placeholder.png'),
+                backgroundColor: Colors.grey,
+                backgroundImage: team['teamImg'] != null && team['teamImg'].toString().isNotEmpty
+                    ? NetworkImage(TeamService.getFullTeamImageUrl(team['teamImg']))
+                    : null,
+                child: team['teamImg'] == null || team['teamImg'].toString().isEmpty
+                    ? const Icon(Icons.group, size: 40, color: Colors.white)
+                    : null,
               ),
             ),
+
             const SizedBox(height: 16),
             Center(
               child: Text(
