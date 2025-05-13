@@ -59,7 +59,23 @@ class TeamService {
     }
   }
 
-  /// 팀 목록 조회
+  static String getFullTeamImageUrl(String? path) {
+    if (path == null || path.isEmpty) return "";
+
+    // 이미 완전한 URL이면 그대로 사용
+    if (path.startsWith("http")) return path;
+
+    // 앞에 '/' 붙어 있으면 제거
+    if (path.startsWith("/")) path = path.substring(1);
+
+    // 이미지 전용 서버 URL로 조립 (api 안 붙음)
+    return "http://${ApiConstants.serverUrl}:714/$path";
+  }
+
+
+
+
+  /// 팀 목록 조회å
   static Future<List<dynamic>> fetchTeams({
     String? region,
     String? event,

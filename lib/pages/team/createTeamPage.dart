@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:project/http/teamService.dart';
+import 'package:project/service/teamService.dart';
 import 'package:project/data/teamEnum.dart';
 
 class CreateTeamPage extends StatefulWidget {
