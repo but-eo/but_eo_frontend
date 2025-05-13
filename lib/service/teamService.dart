@@ -18,9 +18,7 @@ class TeamService {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('accessToken');
 
-      if (token == null) {
-        throw Exception("토큰이 없습니다.");
-      }
+      if (token == null) throw Exception("토큰이 없습니다.");
 
       final dio = Dio();
       final Map<String, dynamic> data = {
@@ -52,30 +50,35 @@ class TeamService {
       if (response.statusCode == 200) {
         print("팀 생성 성공");
       } else {
-        print("실패: ${response.statusCode} / ${response.data}");
+        print("팀 생성 실패: \${response.statusCode} / \${response.data}");
       }
     } catch (e) {
       print("에러 발생: $e");
     }
   }
 
-  static String getFullTeamImageUrl(String? path) {
-    if (path == null || path.isEmpty) return "";
+  /// 팀 삭제
+  static Future<void> deleteTeam(String teamId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+    if (token == null) throw Exception("토큰이 없습니다.");
 
-    // 이미 완전한 URL이면 그대로 사용
-    if (path.startsWith("http")) return path;
+    final dio = Dio();
+    final res = await dio.delete(
+      '${ApiConstants.baseUrl}/teams/$teamId',
+      options: Options(headers: {
+        'Authorization': 'Bearer $token',
+      }),
+    );
 
-    // 앞에 '/' 붙어 있으면 제거
-    if (path.startsWith("/")) path = path.substring(1);
-
-    // 이미지 전용 서버 URL로 조립 (api 안 붙음)
-    return "http://${ApiConstants.serverUrl}:714/$path";
+    if (res.statusCode == 200) {
+      print("팀 삭제 완료");
+    } else {
+      print("삭제 실패: \${res.statusCode} / \${res.data}");
+    }
   }
 
-
-
-
-  /// 팀 목록 조회å
+  /// 팀 목록 조회
   static Future<List<dynamic>> fetchTeams({
     String? region,
     String? event,
@@ -93,12 +96,19 @@ class TeamService {
       if (response.statusCode == 200) {
         return response.data as List<dynamic>;
       } else {
-        print("불러오기 실패: ${response.statusCode}");
+        print("불러오기 실패: \${response.statusCode}");
         return [];
       }
     } catch (e) {
       print("에러 발생: $e");
       return [];
     }
+  }
+
+  /// 팀 이미지 URL 조립
+  static String getFullTeamImageUrl(String? path) {
+    if (path == null || path.isEmpty) return "";
+    if (path.startsWith("http")) return path;
+    return "http://${ApiConstants.serverUrl}:714$path";
   }
 }

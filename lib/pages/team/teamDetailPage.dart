@@ -1,10 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:project/data/teamEnum.dart';
 import 'package:project/service/teamService.dart';
+import 'package:project/utils/token_storage.dart';
 
-class TeamDetailPage extends StatelessWidget {
+class TeamDetailPage extends StatefulWidget {
   final Map<String, dynamic> team;
   const TeamDetailPage({super.key, required this.team});
+
+  @override
+  State<TeamDetailPage> createState() => _TeamDetailPageState();
+}
+
+class _TeamDetailPageState extends State<TeamDetailPage> {
+  String? myUserId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMyUserId();
+  }
+
+  Future<void> _loadMyUserId() async {
+    final id = await TokenStorage.getUserId();
+    setState(() {
+      myUserId = id;
+    });
+  }
 
   String getEnumLabel<T>(String? enumName, Map<T, String> enumMap) {
     try {
@@ -13,22 +34,26 @@ class TeamDetailPage extends StatelessWidget {
       );
       return enumMap[enumValue] ?? "알 수 없음";
     } catch (_) {
-      return "알 수 없음";
+      return enumMap.values.contains(enumName) ? enumName! : "알 수 없음";
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final team = widget.team;
     final String teamName = team['teamName'] ?? '팀 이름 없음';
     final String region = getEnumLabel(team['region'], regionEnumMap);
     final String teamCase = getEnumLabel(team['teamCase'], teamCaseEnumMap);
-    final String age = team['memberAge'] != null ? "${team['memberAge']}대" : "연령 미상";
+    final String age = team['memberAge'] != null ? "\${team['memberAge']}대" : "연령 미상";
     final String event = getEnumLabel(team['event'], eventEnumMap);
-    final String description = team['teamDescription'] ?? "팀 소개가 없습니다.";
+    final String description = (team['teamDescription'] as String?)?.trim().isNotEmpty == true ? team['teamDescription'] : "팀 소개가 없습니다.";
     final int wins = team['winCount'] ?? 0;
     final int draws = team['drawCount'] ?? 0;
     final int losses = team['loseCount'] ?? 0;
     final int totalMembers = team['totalMembers'] ?? 0;
+    final List<dynamic> memberNames = team['memberNames'] ?? [];
+    final String createdBy = team['createdBy']?.toString() ?? '';
+    final bool isMine = myUserId != null && myUserId == createdBy;
 
     return Scaffold(
       appBar: AppBar(title: Text(teamName)),
@@ -49,7 +74,6 @@ class TeamDetailPage extends StatelessWidget {
                     : null,
               ),
             ),
-
             const SizedBox(height: 16),
             Center(
               child: Text(
@@ -59,8 +83,7 @@ class TeamDetailPage extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Center(
-              child: Text(
-                "$wins승 $draws무 $losses패",
+              child: Text("${wins}승 ${draws}무 ${losses}패",
                 style: const TextStyle(fontSize: 16, color: Colors.grey),
               ),
             ),
@@ -68,24 +91,62 @@ class TeamDetailPage extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("지역: $region"),
-                Text("유형: $teamCase"),
+                Text("지역: ${region}"),
+                Text("유형: ${teamCase}"),
               ],
             ),
             const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("평균연령: $age"),
-                Text("경기종목: $event"),
+                Text("평균연령: ${age}"),
+                Text("경기종목: ${event}"),
               ],
             ),
             const SizedBox(height: 8),
-            Text("인원 수: $totalMembers명"),
+            Text("인원 수: ${totalMembers}명"),
             const Divider(height: 32),
             const Text("팀 소개", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Text(description),
+            const Divider(height: 32),
+            const Text("팀원 목록", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            ...memberNames.where((e) => (e as String).isNotEmpty).map((name) => Text("- ${name}")),
+            const SizedBox(height: 24),
+            if (isMine)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      // TODO: 수정 페이지 이동
+                    },
+                    child: const Text("수정"),
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      final confirm = await showDialog(
+                        context: context,
+                        builder: (_) => AlertDialog(
+                          title: const Text("삭제 확인"),
+                          content: const Text("정말로 이 팀을 삭제할까요?"),
+                          actions: [
+                            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("취소")),
+                            TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("삭제")),
+                          ],
+                        ),
+                      );
+
+                      if (confirm == true) {
+                        await TeamService.deleteTeam(team['teamId'].toString());
+                        Navigator.pop(context);
+                      }
+                    },
+                    child: const Text("삭제", style: TextStyle(color: Colors.red)),
+                  ),
+                ],
+              ),
           ],
         ),
       ),
