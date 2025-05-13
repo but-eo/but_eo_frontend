@@ -4,8 +4,10 @@ import 'package:project/contants/api_contants.dart';
 import 'package:project/pages/myteam.dart';
 import 'package:project/utils/token_storage.dart';
 import 'package:project/pages/EditProfilePage.dart';
-import 'package:project/pages/CustomerCenterPage.dart';
+import 'package:project/pages/asked_questions.dart';
 
+import 'Customer_Service.dart';
+import 'NoticePage.dart';
 
 class MyPageScreen extends StatefulWidget {
   const MyPageScreen({super.key});
@@ -52,77 +54,101 @@ class _MyPageScreenState extends State<MyPageScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-      children: [
-        Center(
-          child: ClipOval(
-            child: Container(
-              width: 120,
-              height: 120,
-              color: Colors.grey.shade300,
-              child: _profileImageUrl != null && _profileImageUrl!.isNotEmpty
-                  ? Image.network(
-                _profileImageUrl!.startsWith("http")
-                    ? _profileImageUrl!
-                    : "$baseUrl${_profileImageUrl!}",
-                fit: BoxFit.cover,
-              )
-                  : const Icon(Icons.person, size: 60, color: Colors.white),
+    return Scaffold(
+      backgroundColor: Colors.white, // 배경색을 흰색으로 설정
+      body: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+        children: [
+          Center(
+            child: ClipOval(
+              child: Container(
+                width: 120,
+                height: 120,
+                color: Colors.grey.shade300,
+                child: _profileImageUrl != null && _profileImageUrl!.isNotEmpty
+                    ? Image.network(
+                  _profileImageUrl!.startsWith("http")
+                      ? _profileImageUrl!
+                      : "$baseUrl${_profileImageUrl!}",
+                  fit: BoxFit.cover,
+                )
+                    : const Icon(Icons.person, size: 60, color: Colors.white),
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: 8),
-        Center(
-          child: Text(
-            nickname ?? '',
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
+          const SizedBox(height: 8),
+          Center(
+            child: Text(
+              nickname ?? '',
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
           ),
-        ),
-        const SizedBox(height: 30),
-        Card(
-          color: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          elevation: 1,
-          child: Column(
-            children: [
-              _buildListTile(Icons.edit, '회원정보 수정', context, onTap: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => EditProfilePage(
-                      initialProfileImageUrl: _profileImageUrl,
+          const SizedBox(height: 30),
+          Card(
+            color: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            elevation: 1,
+            child: Column(
+              children: [
+                _buildListTile(Icons.edit, '회원정보 수정', context, onTap: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditProfilePage(
+                        initialProfileImageUrl: _profileImageUrl,
+                      ),
                     ),
-                  ),
-                );
-                if (result == true) {
-                  fetchUserInfo();
-                }
-              }),
-              _buildListTile(Icons.group_outlined, '마이 팀', context, onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const MyTeamPage()),
-                );
-              }),
-              _buildListTile(Icons.grid_on, '내가 작성한 글 보기', context),
-              _buildListTile(Icons.mode_comment_outlined, '내가 남긴 댓글 보기', context),
-              _buildListTile(Icons.support_agent, '고객센터', context, onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const CustomerCenterPage()),
-                );
-              }),
-              _buildListTile(Icons.settings_outlined, '앱 설정', context, hasDivider: false),
-            ],
+                  );
+                  if (result == true) {
+                    fetchUserInfo();
+                  }
+                }),
+                _buildListTile(Icons.group_outlined, '마이 팀', context, onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const MyTeamPage()),
+                  );
+                }),
+                _buildListTile(Icons.grid_on, '내가 작성한 글 보기', context),
+                _buildListTile(Icons.mode_comment_outlined, '내가 남긴 댓글 보기', context),
+                _buildListTile(Icons.question_answer_outlined, '자주 묻는 질문', context, onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const asked_questions()),
+                  );
+                }),
+                _buildListTile(Icons.my_library_books_rounded, '공지사항', context, onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const NoticePage()),
+                  );
+                }),
+                _buildListTile(Icons.support_agent, '고객센터', context, onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const CustomerServicePage()),
+                  );
+                }),
+                _buildListTile(Icons.settings_outlined, '앱 설정', context, hasDivider: false),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  Widget _buildListTile(IconData icon, String title, BuildContext context,
-      {VoidCallback? onTap, bool hasDivider = true}) {
+  Widget _buildListTile(
+      IconData icon,
+      String title,
+      BuildContext context, {
+        VoidCallback? onTap,
+        bool hasDivider = true,
+      }) {
     return Column(
       children: [
         ListTile(

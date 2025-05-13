@@ -2,29 +2,18 @@ import 'package:flutter/material.dart';
 import 'InquiryDetailPage.dart';
 import 'InquiryFormPage.dart';
 
-class CustomerCenterPage extends StatelessWidget {
-  const CustomerCenterPage({super.key});
+class asked_questions extends StatelessWidget {
+  const asked_questions({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: const Text('고객센터', style: TextStyle(color: Colors.black)),
+        title: const Text('자주 묻는 질문', style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
         elevation: 0.5,
         iconTheme: const IconThemeData(color: Colors.black),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit_note),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const InquiryFormPage()),
-              );
-            },
-          )
-        ],
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
