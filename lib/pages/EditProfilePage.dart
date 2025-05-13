@@ -3,13 +3,14 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:project/contants/api_contants.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:project/utils/token_storage.dart';
 
 class EditProfilePage extends StatefulWidget {
-  const EditProfilePage({super.key});
+  final String? initialProfileImageUrl;
+  const EditProfilePage({super.key, this.initialProfileImageUrl});
 
   @override
-  State<EditProfilePage> createState() => _EditProfilePageState();
+  State createState() => _EditProfilePageState();
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
@@ -20,7 +21,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
   String? selectedSport;
   String? selectedBirthYear;
   String? selectedRegion;
+
   XFile? profileImage;
+  String? _profileImageUrl;
 
   final sports = ['축구', '풋살', '테니스', '배드민턴', '탁구', '볼링'];
   final years = List.generate(50, (index) => (DateTime.now().year - index).toString());
@@ -29,121 +32,110 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   void initState() {
     super.initState();
+    _profileImageUrl = widget.initialProfileImageUrl;
     fetchUserInfo();
   }
 
-  Future<void> fetchUserInfo() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('accessToken');
+  Future fetchUserInfo() async {
+    final token = await TokenStorage.getAccessToken();
     if (token == null) return;
-
     final dio = Dio();
     final res = await dio.get(
       "${ApiConstants.baseUrl}/users/my-info",
       options: Options(headers: {"Authorization": "Bearer $token"}),
     );
-
     if (res.statusCode == 200) {
       final data = res.data;
       setState(() {
-        nicknameController.text = data['nickname'] ?? '';
-        selectedSport = data['preferSports'];
-        selectedBirthYear = data['birthYear'];
-        selectedRegion = data['region'];
+        nicknameController.text = data['nickname']?.toString() ?? '';
+        selectedSport = data['preferSports']?.toString();
+        selectedBirthYear = data['birthYear']?.toString();
+        selectedRegion = data['region']?.toString();
+        // 서버에서 최신 프로필 이미지가 내려오면 갱신
+        if (data['profile'] != null && data['profile'].toString().isNotEmpty) {
+          _profileImageUrl = data['profile'];
+        }
       });
     }
   }
 
-  Future<void> pickProfileImage() async {
-    final picker = ImagePicker();
-
-    final picked = await picker.pickImage(
-      source: ImageSource.camera,
+  Future pickProfileImage() async {
+    final picked = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
       imageQuality: 85,
-      preferredCameraDevice: CameraDevice.front,
     );
-
     if (picked != null) {
-      setState(() {
-        profileImage = picked;
-      });
+      setState(() => profileImage = picked);
     }
   }
 
-  Future<void> updateUserInfo() async {
-    print("✅ 수정 버튼 눌림");
-
+  Future updateUserInfo() async {
     if (passwordController.text != confirmPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("비밀번호가 일치하지 않습니다.")),
       );
       return;
     }
-    print("hi");
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('accessToken');
+    final token = await TokenStorage.getAccessToken();
     if (token == null) return;
-    print("*");
-    try {
-      print("*");
-      final formData = FormData.fromMap({
-        "name": nicknameController.text,
-        "password": passwordController.text,
-        "birthYear": selectedBirthYear,
-        "preferSports": selectedSport,
-        "region": selectedRegion,
-        if (profileImage != null)
-          "profile": await MultipartFile.fromFile(
-            profileImage!.path,
-            filename: profileImage!.name,
-          ),
-      });
-      print("*");
 
-      final dio = Dio();
-      final response = await dio.patch(
-        "${ApiConstants.baseUrl}/users/update",
-        data: formData,
-        options: Options(headers: {
-          "Authorization": "Bearer $token",
-          "Content-Type": "multipart/form-data",
-        }),
+    final formData = FormData.fromMap({
+      "name": nicknameController.text,
+      "password": passwordController.text,
+      "birthYear": selectedBirthYear,
+      "preferSports": selectedSport,
+      "region": selectedRegion,
+      if (profileImage != null)
+        "profile": await MultipartFile.fromFile(profileImage!.path, filename: profileImage!.name),
+    });
+
+    final dio = Dio();
+    final response = await dio.patch(
+      "${ApiConstants.baseUrl}/users/update",
+      data: formData,
+      options: Options(headers: {"Authorization": "Bearer $token"}),
+    );
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("회원정보가 수정되었습니다.")),
       );
-
-      print("응답 코드: ${response.statusCode}");
-      print("🟢 서버 응답 내용: ${response.data}");
-
-      if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("회원정보가 수정되었습니다.")),
-        );
-        Navigator.pop(context,true);
-      } else {
-        print("❌ 서버 응답 에러: ${response.data}");
-      }
-    } catch (e) {
-      print("❗ 수정 실패: $e");
+      Navigator.pop(context, true);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final String baseUrl = "http://${ApiConstants.serverUrl}:714";
     return Scaffold(
-      appBar: AppBar(title: const Text("내 정보 수정")),
+      backgroundColor: Colors.grey.shade100,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        title: const Text("내 정보 수정", style: TextStyle(color: Colors.black)),
+        iconTheme: const IconThemeData(color: Colors.black),
+        elevation: 0,
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
             GestureDetector(
               onTap: pickProfileImage,
-              child: CircleAvatar(
-                radius: 50,
-                backgroundImage: profileImage != null
-                    ? FileImage(File(profileImage!.path))
-                    : null,
-                child: profileImage == null
-                    ? const Icon(Icons.person, size: 50, color: Colors.white)
-                    : null,
+              child: ClipOval(
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  color: Colors.grey.shade200,
+                  child: profileImage != null
+                      ? Image.file(File(profileImage!.path), fit: BoxFit.cover)
+                      : (_profileImageUrl != null && _profileImageUrl!.isNotEmpty
+                      ? Image.network(
+                    _profileImageUrl!.startsWith("http")
+                        ? _profileImageUrl!
+                        : "$baseUrl${_profileImageUrl!}",
+                    fit: BoxFit.cover,
+                  )
+                      : const Icon(Icons.camera_alt, size: 50, color: Colors.grey)),
+                ),
               ),
             ),
             const SizedBox(height: 20),
@@ -157,7 +149,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             ElevatedButton(
               onPressed: updateUserInfo,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
+                backgroundColor: Colors.pinkAccent.shade100,
                 foregroundColor: Colors.white,
                 minimumSize: const Size.fromHeight(50),
               ),
@@ -169,32 +161,25 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, {bool obscure = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: TextField(
-        controller: controller,
-        obscureText: obscure,
-        decoration: InputDecoration(
-          labelText: label,
-          border: const OutlineInputBorder(),
+  Widget _buildTextField(String label, TextEditingController controller, {bool obscure = false}) =>
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: TextField(
+          controller: controller,
+          obscureText: obscure,
+          decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()),
         ),
-      ),
-    );
-  }
+      );
 
-  Widget _buildDropdown(String label, String? value, List<String> items, Function(String?) onChanged) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: DropdownButtonFormField<String>(
-        value: value,
-        decoration: InputDecoration(
-          labelText: label,
-          border: const OutlineInputBorder(),
+  Widget _buildDropdown(String label, String? value, List<String> items, Function(String?) onChanged) =>
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: DropdownButtonFormField<String>(
+          value: value,
+          decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()),
+          items: items.map((e) => DropdownMenuItem<String>(value: e, child: Text(e))).toList(),
+          onChanged: onChanged,
+          // ghi
         ),
-        items: items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
-        onChanged: onChanged,
-      ),
-    );
-  }
+      );
 }
