@@ -105,7 +105,7 @@ class _BoardState extends State<Board> {
             context,
             MaterialPageRoute(
               builder: (context) => BoardPage(
-                sport: selectedSport,
+                event: selectedSport,
                 category: title,
               ),
             ),
@@ -123,3 +123,4 @@ class _BoardState extends State<Board> {
     );
   }
 }
+
