@@ -7,7 +7,7 @@ import 'package:project/pages/Board.dart';
 import 'package:project/pages/homepage.dart';
 import 'package:project/pages/login.dart';
 import 'package:project/pages/logout.dart';
-import 'package:project/pages/matchpage.dart';
+import 'package:project/pages/match/matchpage.dart';
 import 'package:project/pages/mypage.dart';
 import 'package:project/pages/team/teamSearchPage.dart';
 import 'package:project/widgets/bottom_navigation.dart';

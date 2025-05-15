@@ -29,7 +29,7 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
     fetchUserInfo().then((_) {
       stompClient = StompClient(
         config: StompConfig.sockJS(
-          url: '${ApiConstants.webSocketUrl}/ws', // 서버의 WebSocket URL
+          url: '${ApiConstants.webSocketConnectUrl}/ws', // 서버의 WebSocket URL
           onConnect: onStompConnected,
           onWebSocketError: (dynamic error) => print('WebSocket Error: $error'),
         ),
@@ -85,7 +85,8 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
     final dio = Dio();
     try {
       final response = await dio.get(
-        "${ApiConstants.baseUrl}/chatrooms/${widget.chatRoom['id']}/messages",
+        // "${ApiConstants.baseUrl}/chatrooms/${widget.chatRoom['id']}/messages",
+        "${ApiConstants.baseUrl}/chat/messages",
       );
       if (response.statusCode == 200) {
         setState(() {
@@ -97,11 +98,17 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
     }
   }
 
-  Future<void> sendMessage(String senderHashId, String text, DateTime sendTime) async {
+  Future<void> sendMessage(
+    String chatroomId,
+    String senderHashId,
+    String text,
+  ) async {
     if (stompClient != null && stompClient!.connected) {
       stompClient!.send(
-        destination: '${ApiConstants.baseUrl}/api/chatroom/${widget.chatRoom['id']}/send',
-        body: '{"sender" : "$senderHashId", "message": "$text", "sendTime" : "$sendTime"}',
+        destination:
+            '${ApiConstants.baseUrl}/api/chatroom/${widget.chatRoom['id']}/send',
+        body:
+            '{"chatroomId" : "$chatroomId" , "sender" : "$senderHashId", "message": "$text"}',
         headers: {'content-type': 'application/json'},
       );
       messageController.clear();
@@ -109,8 +116,6 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
       print('STOMP 연결되지 않음');
     }
   }
-
-  
 
   @override
   void dispose() {
@@ -124,6 +129,7 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
     return Scaffold(
       appBar: AppBar(
         title: Text("채팅방", style: TextStyle(fontSize: 16)),
+        
         actions: [
           IconButton(onPressed: () {}, icon: const Icon(Icons.search)),
           Builder(
@@ -223,7 +229,7 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
                   icon: Icon(Icons.send),
                   onPressed: () {
                     if (messageController.text.isNotEmpty) {
-                      sendMessage(userHashId, messageController.text, DateTime.now());
+                      sendMessage("asdsad", userHashId, messageController.text);
                     }
                   },
                 ),
