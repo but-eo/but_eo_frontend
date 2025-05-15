@@ -3,11 +3,13 @@ import 'package:project/utils/token_storage.dart';
 class ApiConstants {
 
 
+
   static const String baseUrl = 'http://172.29.0.63:714/api';
   static const String serverUrl ='172.29.0.63';
   static const String webSocketUrl = 'http://172.29.0.63';
   static const String webSocketConnectUrl = 'http://172.29.0.63:714';
   static const String googleApiKey = 'AIzaSyAsOKamrB2H8YIMFLEWMHHQb68HHRwhGfo';
+
 
   // 맥북 ip 명령어 ipconfig getifaddr en0
   //192.168.0.150

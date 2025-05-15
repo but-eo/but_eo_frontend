@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:project/http/teamService.dart';
+import 'package:project/service/teamService.dart';
 import 'package:project/data/teamEnum.dart';
 
 class CreateTeamPage extends StatefulWidget {
@@ -21,13 +21,13 @@ class _CreateTeamPageState extends State<CreateTeamPage> {
   TeamCase teamCase = TeamCase.club;
   AgeGroup ageGroup = AgeGroup.twenties;
   String description = "";
-  File? _imageFile;
+  File? _teamImage;
 
   Future<void> _pickImage() async {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (picked != null) {
       setState(() {
-        _imageFile = File(picked.path);
+        _teamImage = File(picked.path);
       });
     }
   }
@@ -62,7 +62,7 @@ class _CreateTeamPageState extends State<CreateTeamPage> {
             memberAge: age,
             teamCase: teamCase.name.toUpperCase(),
             teamDescription: description,
-            teamImage: _imageFile,
+            teamImage: _teamImage,
           );
 
           success = true;
@@ -115,8 +115,8 @@ class _CreateTeamPageState extends State<CreateTeamPage> {
                     children: [
                       CircleAvatar(
                         radius: 60,
-                        backgroundImage: _imageFile != null
-                            ? FileImage(_imageFile!)
+                        backgroundImage: _teamImage != null
+                            ? FileImage(_teamImage!)
                             : const AssetImage('assets/logo_placeholder.png')
                         as ImageProvider,
                       ),
