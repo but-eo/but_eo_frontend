@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:project/utils/token_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:project/contants/api_contants.dart';
 
@@ -15,9 +16,7 @@ class TeamService {
     File? teamImage,
   }) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('accessToken');
-
+      final token = await TokenStorage.getAccessToken();
       if (token == null) throw Exception("토큰이 없습니다.");
 
       final dio = Dio();
@@ -59,8 +58,7 @@ class TeamService {
 
   /// 팀 삭제
   static Future<void> deleteTeam(String teamId) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('accessToken');
+    final token = await TokenStorage.getAccessToken();
     if (token == null) throw Exception("토큰이 없습니다.");
 
     final dio = Dio();
@@ -74,7 +72,7 @@ class TeamService {
     if (res.statusCode == 200) {
       print("팀 삭제 완료");
     } else {
-      print("삭제 실패: \${res.statusCode} / \${res.data}");
+      print("삭제 실패: ${res.statusCode} / ${res.data}");
     }
   }
 
@@ -85,7 +83,7 @@ class TeamService {
   }) async {
     try {
       final dio = Dio();
-      final response = await dio.get(
+      final res = await dio.get(
         '${ApiConstants.baseUrl}/teams',
         queryParameters: {
           if (region != null && region != "전체") 'region': region,
@@ -93,10 +91,10 @@ class TeamService {
         },
       );
 
-      if (response.statusCode == 200) {
-        return response.data as List<dynamic>;
+      if (res.statusCode == 200) {
+        return res.data as List<dynamic>;
       } else {
-        print("불러오기 실패: \${response.statusCode}");
+        print("불러오기 실패: ${res.statusCode}");
         return [];
       }
     } catch (e) {
@@ -111,4 +109,31 @@ class TeamService {
     if (path.startsWith("http")) return path;
     return "http://${ApiConstants.serverUrl}:714$path";
   }
+
+  /// 팀 리더 여부 조회
+  static Future<bool> isTeamLeader(String teamId) async {
+    try {
+      final token = await TokenStorage.getAccessToken();
+      if (token == null) throw Exception("토큰이 없습니다.");
+
+      final dio = Dio();
+      final res = await dio.get(
+        '${ApiConstants.baseUrl}/teams/$teamId/role',
+        options: Options(headers: {
+          'Authorization': 'Bearer $token',
+        }),
+      );
+
+      if (res.statusCode == 200) {
+        return res.data['isLeader'] == true;
+      } else {
+        print("리더 여부 조회 실패: ${res.statusCode}");
+        return false;
+      }
+    } catch(e) {
+      print("에러발생 : $e");
+      return false;
+    }
+  }
+
 }
