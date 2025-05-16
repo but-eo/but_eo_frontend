@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:project/appStyle/app_colors.dart';
 import 'package:project/chat/chatdetailpage.dart';
 import 'package:project/contants/api_contants.dart';
+import 'package:project/utils/token_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -12,9 +14,39 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
+  @override
+  void initState() {
+    super.initState();
+    loadChatRooms(); // 초기 로딩
+  }
+
   List<Map<String, dynamic>> chatRooms = []; // 채팅방 리스트
   List<Map<String, dynamic>> localSearchResults = [];
   Map<String, bool> localSelectedUsers = {};
+
+  Future<void> loadChatRooms() async {
+    final dio = Dio();
+    String? token = await TokenStorage.getAccessToken();
+    print(token);
+    if (token == null || token.isEmpty) {
+      print("토큰이 유효하지 않습니다.");
+      return;
+    }
+    try {
+      final response = await dio.get(
+        "${ApiConstants.baseUrl}/searchChatRooms",
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      ); // <-- 여기는 실제 API 경로에 맞게 수정
+      if (response.statusCode == 200 && response.data is List) {
+        setState(() {
+          chatRooms = List<Map<String, dynamic>>.from(response.data);
+          print("채팅방 목록  : $chatRooms");
+        });
+      }
+    } catch (e) {
+      print("채팅방 로딩 실패 : $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,12 +67,56 @@ class _ChatPageState extends State<ChatPage> {
             IconButton(
               onPressed: () {
                 _showCreateChatDialog(context);
+
                 searchAll();
               },
               icon: const Icon(Icons.add_comment),
               //person_add_alt_1_rounded
             ),
           ],
+        ),
+        body: ListView.builder(
+          itemCount: chatRooms.length,
+          itemBuilder: (context, index) {
+            final room = chatRooms[index];
+            return ListTile(
+              leading: CircleAvatar(
+                backgroundImage:
+                    room['chatImg'] != null && room['chatImg'] != ''
+                        ? NetworkImage(
+                          "${ApiConstants.baseUrl}/chatRoom/${room['chatImg']}",
+                        )
+                        : const AssetImage('assets/images/butteoLogo.png')
+                            as ImageProvider,
+              ),
+              title: Text(room['chatRoomName'] ?? '채팅방'),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 10.0,),
+                  Text(
+                    room['lastMessage'] ?? '안녕하세요',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: Colors.grey[700]),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _formatTime(room['lastMessageTime']),
+                    style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                  ),
+                ],
+              ),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ChatDetailpage(chatRoom: room),
+                  ),
+                );
+              },
+            );
+          },
         ),
       ),
     );
@@ -142,6 +218,9 @@ class _ChatPageState extends State<ChatPage> {
                         selected.map((e) => e['userHashId']).toList(),
                       );
                       if (room != null) {
+                        setState(() {
+                          chatRooms.add(room); // ✅ 리스트에 추가!
+                        });
                         Navigator.pop(context);
                         Navigator.push(
                           context,
@@ -150,6 +229,7 @@ class _ChatPageState extends State<ChatPage> {
                                 (context) => ChatDetailpage(chatRoom: room),
                           ),
                         );
+                        loadChatRooms();
                       }
                     }
                   },
@@ -174,14 +254,16 @@ class _ChatPageState extends State<ChatPage> {
   }
 }
 
+//자기 자신 제외한 유저 검색
 Future<List<Map<String, dynamic>>> searchUser(String nickname) async {
   final dio = Dio();
   List<Map<String, dynamic>> searchResults = [];
   Map<String, bool> selectedUsers = {};
+  String? token = await TokenStorage.getAccessToken();
   try {
     final response = await dio.get(
       "${ApiConstants.baseUrl}/users/search",
-
+      options: Options(headers: {'Authorization': 'Bearer $token'}),
       queryParameters: {'name': nickname},
     );
     if (response.statusCode == 200 && response.data is List) {
@@ -209,11 +291,13 @@ Future<void> searchAll() async {
 
 Future<Map<String, dynamic>?> createChatRoom(List<dynamic> userIds) async {
   final dio = Dio();
+  String? token = await TokenStorage.getAccessToken();
   try {
     print('채팅방 생성 요청: $userIds');
     final response = await dio.post(
       "${ApiConstants.baseUrl}/chatrooms",
       data: {"userHashId": userIds, "chatRoomName": "채팅방"},
+      options: Options(headers: {'Authorization': 'Bearer $token'}),
     );
     if (response.statusCode == 200 || response.statusCode == 201) {
       return response.data;
@@ -222,4 +306,19 @@ Future<Map<String, dynamic>?> createChatRoom(List<dynamic> userIds) async {
     print('채팅방 생성 실패: $e');
   }
   return null;
+}
+
+String _formatTime(String? timestamp) {
+  if (timestamp == null || timestamp.isEmpty) return '';
+  final dateTime = DateTime.parse(timestamp);
+  final now = DateTime.now();
+
+  // 오늘이면 시간만, 아니면 날짜
+  if (dateTime.day == now.day &&
+      dateTime.month == now.month &&
+      dateTime.year == now.year) {
+    return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+  } else {
+    return '${dateTime.month}/${dateTime.day}';
+  }
 }
