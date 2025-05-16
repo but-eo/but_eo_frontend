@@ -392,13 +392,13 @@ class _LoginState extends State<Login> {
       print("email : " + email);
       // 서버로 사용자 데이터 전송
       await sendDataToServer(
-        refreshToken,
-        email,
-        nickname,
-        profileImage,
-        gender,
-        birthYear,
-        tel
+          refreshToken,
+          email,
+          nickname,
+          profileImage,
+          gender,
+          birthYear,
+          tel
       );
 
       // 메인 페이지 이동
