@@ -110,7 +110,7 @@ class TeamService {
     return "http://${ApiConstants.serverUrl}:714$path";
   }
 
-  /// 팀 리더 여부 조회
+  /// 팀 리더 여부 조회 (응답 본문 문자열: "LEADER")
   static Future<bool> isTeamLeader(String teamId) async {
     try {
       final token = await TokenStorage.getAccessToken();
@@ -125,15 +125,17 @@ class TeamService {
       );
 
       if (res.statusCode == 200) {
-        return res.data['isLeader'] == true;
+        return res.data.toString().trim() == "LEADER";
       } else {
         print("리더 여부 조회 실패: ${res.statusCode}");
         return false;
       }
-    } catch(e) {
+    } catch (e) {
       print("에러발생 : $e");
       return false;
     }
   }
+
+
 
 }

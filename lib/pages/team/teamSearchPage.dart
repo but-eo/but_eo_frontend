@@ -190,22 +190,22 @@ class TeamSearchPageState extends State<TeamSearchPage> {
 
                   ),
 
-
-
-
                   title: Text(team['teamName'] ?? '이름 없음'),
                   subtitle: Text(
                     "${getEnumLabel(team['event'], eventEnumMap)} · "
                         "${getEnumLabel(team['region'], regionEnumMap)} · "
                         "${team['memberAge'] ?? '나이 미상'}대",
                   ),
-                  onTap: () {
-                    Navigator.push(
+                  onTap: () async{
+                    final result = await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder : (_) => TeamDetailPage(team: team),
                         ),
                     );
+                    if(result == true) {
+                      fetchTeams();
+                    }
                   },
                 );
               },
