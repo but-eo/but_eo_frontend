@@ -97,9 +97,14 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
       );
       if (response.statusCode == 200) {
         print("사용자 정보 가져오기 성공: ${response.data}");
-        userHashId = response.data['userHashId'];
-        userName = response.data['name'];
-        profileImageUrl = response.data['profile'];
+        // userHashId = response.data['userHashId'];
+        // userName = response.data['name'];
+        // profileImageUrl = response.data['profile'];
+        setState(() {
+          userHashId = response.data['userHashId'];
+          userName = response.data['name'];
+          profileImageUrl = response.data['profile'];
+        });
       }
     } catch (e) {
       print("사용자 정보 가져오기 실패: $e");
@@ -199,7 +204,7 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
               itemBuilder: (context, index) {
                 final message = messages[index];
                 final isMine = message['sender'] == userHashId; // 내 메시지인지 판별
-                // print('userHashId: $userHashId, message sender: ${message['sender']}');
+                print('userHashId: $userHashId, message sender: ${message['sender']}');
                 return Align(
                   alignment:
                       isMine ? Alignment.centerRight : Alignment.centerLeft,
@@ -223,7 +228,7 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
                               : CrossAxisAlignment.start,
                       children: [
                         Text(
-                          message['sender'] ?? "알 수 없음",
+                          message['nickName'] ?? "알 수 없음",
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey[600],
