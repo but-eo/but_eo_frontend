@@ -6,7 +6,7 @@ import 'package:project/utils/token_storage.dart';
 import 'package:project/pages/EditProfilePage.dart';
 import 'package:project/pages/asked_questions.dart';
 
-import 'Customer_Service.dart';
+import 'CustomerServiceMainPage.dart';
 import 'NoticePage.dart';
 
 class MyPageScreen extends StatefulWidget {
@@ -118,7 +118,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                 _buildListTile(Icons.question_answer_outlined, '자주 묻는 질문', context, onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const asked_questions()),
+                    MaterialPageRoute(builder: (context) => const AskedQuestions()),
                   );
                 }),
                 _buildListTile(Icons.my_library_books_rounded, '공지사항', context, onTap: () {
@@ -130,7 +130,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                 _buildListTile(Icons.support_agent, '고객센터', context, onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const CustomerServicePage()),
+                    MaterialPageRoute(builder: (_) => const CustomerServiceMainPage()),
                   );
                 }),
                 _buildListTile(Icons.settings_outlined, '앱 설정', context, hasDivider: false),
