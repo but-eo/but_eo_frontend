@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:project/contants/api_contants.dart';
+import 'package:project/utils/token_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
 import 'dart:convert';
@@ -26,12 +27,15 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
   void initState() {
     super.initState();
     //stompConfig 설정
-    fetchUserInfo().then((_) {
+    fetchUserInfo().then((_) async {
+      String? token = await TokenStorage.getAccessToken();
       stompClient = StompClient(
         config: StompConfig.sockJS(
           url: '${ApiConstants.webSocketConnectUrl}/ws', // 서버의 WebSocket URL
           onConnect: onStompConnected,
           onWebSocketError: (dynamic error) => print('WebSocket Error: $error'),
+          webSocketConnectHeaders: {'Authorization': 'Bearer $token'},
+          stompConnectHeaders: {'Authorization': 'Bearer $token'},
         ),
       );
       stompClient!.activate();
@@ -42,16 +46,38 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
   //웹소켓 연결후 메세지 구독
   void onStompConnected(StompFrame frame) {
     stompClient!.subscribe(
-      destination: '/api/chatroom/${widget.chatRoom['id']}',
+      destination: '/all/chatroom/${widget.chatRoom['roomId']}',
       callback: (frame) {
+        // if (frame.body != null) {
+        //   final msg = jsonDecode(frame.body!);
+        //   setState(() {
+        //     messages.add(msg); // 새 메시지만 추가
+        //   });
+        // }
         if (frame.body != null) {
-          final msg = jsonDecode(frame.body!);
+          final newMsg = jsonDecode(frame.body!);
           setState(() {
-            messages.add(msg); // 새 메시지만 추가
+            messages.add(newMsg); // 실시간 새 메시지만 추가
           });
         }
       },
     );
+
+    print("채팅방 아이디 : ${widget.chatRoom['roomId']}");
+
+    //TODO: 알람
+    // stompClient!.subscribe(
+    //   destination: '/user/alram/${widget.chatRoom['roomId']}',
+    //   callback: (frame) {
+    //     if (frame.body != null) {
+    //       final msg = jsonDecode(frame.body!);
+    //       setState(() {
+    //         messages.add(msg); // 새 메시지만 추가
+    //       });
+    //     }
+    //   },
+
+    // );
   }
 
   Future<void> fetchUserInfo() async {
@@ -80,13 +106,12 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
     }
   }
 
-  //과거 메세지 불러오기
+  // 과거 메세지 불러오기
   Future<void> loadMessages() async {
     final dio = Dio();
     try {
       final response = await dio.get(
-        // "${ApiConstants.baseUrl}/chatrooms/${widget.chatRoom['id']}/messages",
-        "${ApiConstants.baseUrl}/chat/messages",
+        "${ApiConstants.webSocketConnectUrl}/load/messages/${widget.chatRoom['roomId']}",
       );
       if (response.statusCode == 200) {
         setState(() {
@@ -105,13 +130,13 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
   ) async {
     if (stompClient != null && stompClient!.connected) {
       stompClient!.send(
-        destination:
-            '${ApiConstants.baseUrl}/api/chatroom/${widget.chatRoom['id']}/send',
+        destination: '/app/chat/message',
         body:
             '{"chatroomId" : "$chatroomId" , "sender" : "$senderHashId", "message": "$text"}',
         headers: {'content-type': 'application/json'},
       );
       messageController.clear();
+      print("메세지 전송 채팅방 : $chatroomId, 보낸 사람 : $senderHashId, 메세지 내용 : $text");
     } else {
       print('STOMP 연결되지 않음');
     }
@@ -129,7 +154,7 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
     return Scaffold(
       appBar: AppBar(
         title: Text("채팅방", style: TextStyle(fontSize: 16)),
-        
+
         actions: [
           IconButton(onPressed: () {}, icon: const Icon(Icons.search)),
           Builder(
@@ -169,11 +194,12 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
         children: [
           Expanded(
             child: ListView.builder(
+              reverse: true,
               itemCount: messages.length,
               itemBuilder: (context, index) {
                 final message = messages[index];
-                final isMine = message['senderId'] == userHashId; // 내 메시지인지 판별
-
+                final isMine = message['sender'] == userHashId; // 내 메시지인지 판별
+                // print('userHashId: $userHashId, message sender: ${message['sender']}');
                 return Align(
                   alignment:
                       isMine ? Alignment.centerRight : Alignment.centerLeft,
@@ -197,7 +223,7 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
                               : CrossAxisAlignment.start,
                       children: [
                         Text(
-                          message['senderName'] ?? "알 수 없음",
+                          message['sender'] ?? "알 수 없음",
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey[600],
@@ -205,7 +231,7 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          message['content'] ?? '',
+                          message['message'] ?? '',
                           style: const TextStyle(fontSize: 14),
                         ),
                       ],
@@ -229,7 +255,14 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
                   icon: Icon(Icons.send),
                   onPressed: () {
                     if (messageController.text.isNotEmpty) {
-                      sendMessage("asdsad", userHashId, messageController.text);
+                      print(
+                        "메세지 전송 : ${widget.chatRoom['roomId'].toString()} , ${messageController.text}",
+                      );
+                      sendMessage(
+                        widget.chatRoom['roomId'].toString(),
+                        userHashId,
+                        messageController.text,
+                      );
                     }
                   },
                 ),
