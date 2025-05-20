@@ -19,13 +19,15 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
     _checkTeamLeader();
   }
 
+// 현재 사용자가 팀 리더인가
   Future<void> _checkTeamLeader() async {
     final teamId = widget.team['teamId'].toString();
-    final result = await TeamService.isTeamLeader(teamId);
+    final result = await TeamService.isTeamLeader(teamId); // teamId 전달
     setState(() {
       isLeader = result;
     });
   }
+
 
   String getEnumLabel<T>(String? enumName, Map<T, String> enumMap) {
     try {
@@ -69,27 +71,34 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
           ),
           IconButton(
             icon: const Icon(Icons.delete),
-            onPressed: () async {
-              final confirm = await showDialog(
-                context: context,
-                builder: (_) => AlertDialog(
-                  title: const Text("삭제 확인"),
-                  content: const Text("정말로 이 팀을 삭제할까요?"),
-                  actions: [
-                    TextButton(
-                        onPressed: () => Navigator.pop(context, false),
-                        child: const Text("취소")),
-                    TextButton(
-                        onPressed: () => Navigator.pop(context, true),
-                        child: const Text("삭제")),
-                  ],
-                ),
-              );
-              if (confirm == true) {
-                await TeamService.deleteTeam(widget.team['teamId'].toString());
-                Navigator.pop(context);
+              onPressed: () async {
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text("삭제 확인"),
+                    content: const Text("정말로 이 팀을 삭제할까요?"),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: const Text("취소"),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        child: const Text("삭제"),
+                      ),
+                    ],
+                  ),
+                );
+
+                if (confirm == true) {
+                  await TeamService.deleteTeam(widget.team['teamId'].toString());
+
+                  if (mounted) {
+                    Navigator.pop(context, true);
+                  }
+                }
               }
-            },
+
           ),
         ]
             : null,
