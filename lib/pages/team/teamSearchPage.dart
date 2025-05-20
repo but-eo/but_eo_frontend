@@ -1,7 +1,6 @@
-import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:project/contants/api_contants.dart';
-import 'package:project/http/teamService.dart';
+import 'package:project/service/teamService.dart';
 import 'package:project/pages/team/createTeamPage.dart';
 import 'package:project/data/teamEnum.dart';
 import 'package:project/pages/team/teamDetailPage.dart';
@@ -179,14 +178,20 @@ class TeamSearchPageState extends State<TeamSearchPage> {
               itemBuilder: (context, index) {
                 final team = teams[index];
 
-                print("팀명: ${team['teamName']}, 이미지 URL: https://your-server-url.com${team['teamImg']}");
-
                 return ListTile(
                   leading: CircleAvatar(
                     backgroundImage: team['teamImg'] != null && team['teamImg'] != ''
-                        ? NetworkImage("${ApiConstants.baseUrl}/images/team/${team['teamImg']}")
-                        : const AssetImage('assets/images/butteoLogo.png') as ImageProvider,
+                        ? NetworkImage(TeamService.getFullTeamImageUrl(team['teamImg']))
+                        : null,
+                    backgroundColor: Colors.grey,
+                    child: team['teamImg'] == null || team['teamImg'] == ''
+                        ? const Icon(Icons.group, color: Colors.white)
+                        : null,
+
                   ),
+
+
+
 
                   title: Text(team['teamName'] ?? '이름 없음'),
                   subtitle: Text(
