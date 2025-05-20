@@ -29,6 +29,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final years = List.generate(50, (index) => (DateTime.now().year - index).toString());
   final regions = ['서울', '경기', '부산', '대구', '광주', '제주'];
 
+  final String baseUrl = "http://${ApiConstants.serverUrl}:714";
+  final String defaultProfilePath = "/uploads/profiles/default_profile.png";
+
   @override
   void initState() {
     super.initState();
@@ -51,10 +54,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
         selectedSport = data['preferSports']?.toString();
         selectedBirthYear = data['birthYear']?.toString();
         selectedRegion = data['region']?.toString();
-        // 서버에서 최신 프로필 이미지가 내려오면 갱신
-        if (data['profile'] != null && data['profile'].toString().isNotEmpty) {
-          _profileImageUrl = data['profile'];
-        }
+
+        final profile = data['profile'];
+        _profileImageUrl = (profile != null && profile is String && profile.isNotEmpty)
+            ? (profile.startsWith("http") ? profile : "$baseUrl$profile")
+            : "$baseUrl$defaultProfilePath";
       });
     }
   }
@@ -105,7 +109,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    final String baseUrl = "http://${ApiConstants.serverUrl}:714";
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
@@ -129,9 +132,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       ? Image.file(File(profileImage!.path), fit: BoxFit.cover)
                       : (_profileImageUrl != null && _profileImageUrl!.isNotEmpty
                       ? Image.network(
-                    _profileImageUrl!.startsWith("http")
-                        ? _profileImageUrl!
-                        : "$baseUrl${_profileImageUrl!}",
+                    _profileImageUrl!,
                     fit: BoxFit.cover,
                   )
                       : const Icon(Icons.camera_alt, size: 50, color: Colors.grey)),
@@ -179,7 +180,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
           decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()),
           items: items.map((e) => DropdownMenuItem<String>(value: e, child: Text(e))).toList(),
           onChanged: onChanged,
-          // ghi
         ),
       );
 }
