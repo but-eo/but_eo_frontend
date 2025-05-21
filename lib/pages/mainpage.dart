@@ -12,7 +12,6 @@ import 'package:project/pages/mypage.dart';
 import 'package:project/pages/team/teamSearchPage.dart';
 import 'package:project/widgets/bottom_navigation.dart';
 import 'package:dio/dio.dart';
-import 'package:project/widgets/image_slider_widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Main extends StatefulWidget {
@@ -26,16 +25,18 @@ class Main extends StatefulWidget {
 
 class _MainState extends State<Main> {
   String userName = "사용자";
-  String profileImageUrl = ""; //프로필 이미지
+  String profileImageUrl = "";
   bool isLoading = true;
+  int _selectedIndex = 0;
 
-  // @override
-  // void initState() {
-  //   // 위젯 로딩이 실행될 때
-  //   // TODO: implement initState
-  //   super.initState();
-  //   // fetchUserInfo();
-  // }
+  final List<Widget> _pages = [
+    Homepage(),
+    Matchpage(),
+    ChatPage(),
+    Board(),
+    TeamSearchPage(),
+    MyPageScreen(),
+  ];
 
   @override
   void initState() {
@@ -50,44 +51,6 @@ class _MainState extends State<Main> {
     print("🔑 [$label] accessToken: $token");
   }
 
-  Future<void> printUserInfo(String label) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('accessToken');
-
-    if (token == null) {
-      print("❌ [$label] 토큰 없음");
-      return;
-    }
-
-    final dio = Dio();
-    try {
-      final res = await dio.get(
-        "${ApiConstants.baseUrl}/users/me",
-        options: Options(headers: {"Authorization": "Bearer $token"}),
-      );
-
-      if (res.statusCode == 200) {
-        print("👤 [$label] 로그인된 사용자 정보: ${res.data}");
-      } else {
-        print("❌ [$label] 유저 정보 불러오기 실패: ${res.statusCode}");
-      }
-    } catch (e) {
-      print("❗ [$label] 사용자 정보 요청 에러: $e");
-    }
-  }
-
-  int _selectedIndex = 0;
-
-  final List<Widget> _pages = [
-    Homepage(),
-    Matchpage(),
-    ChatPage(),
-    Board(),
-    TeamSearchPage(),
-    MyPageScreen(),
-  ];
-
-  //사용자 정보 불러오기 -> 토큰을 통해
   Future<void> fetchUserInfo() async {
     final dio = Dio();
     final prefs = await SharedPreferences.getInstance();
@@ -104,11 +67,19 @@ class _MainState extends State<Main> {
         options: Options(headers: {"Authorization": "Bearer $token"}),
       );
       if (response.statusCode == 200) {
-        print("사용자 정보 가져오기 성공: ${response.data}");
-        userName = response.data['name'];
-        profileImageUrl = response.data['profile'];
-        print(userName);
-        isLoading = false;
+        print("👤 사용자 정보 응답: ${response.data}");
+        final profile = response.data['profile'];
+        final timestamp = DateTime.now().millisecondsSinceEpoch;
+
+        setState(() {
+          userName = response.data['name'] ?? "이름 없음";
+          profileImageUrl = (profile != null && profile.toString().isNotEmpty)
+              ? (profile.toString().startsWith("http")
+              ? profile.toString()
+              : "${ApiConstants.imageBaseUrl}$profile") + "?v=$timestamp"
+              : "${ApiConstants.imageBaseUrl}/uploads/profiles/default_profile.png?v=$timestamp";
+          isLoading = false;
+        });
       }
     } catch (e) {
       print("사용자 정보 가져오기 실패: $e");
@@ -120,8 +91,7 @@ class _MainState extends State<Main> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        appBar:
-        _selectedIndex == 2
+        appBar: _selectedIndex == 2
             ? null
             : AppBar(
           title: Text(
@@ -134,77 +104,64 @@ class _MainState extends State<Main> {
           ),
           actions: [
             IconButton(onPressed: () {}, icon: const Icon(Icons.search)),
+            IconButton(onPressed: () {}, icon: const Icon(Icons.notifications_none)),
             IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.notifications_none),
-            ),
-            IconButton(
-              onPressed: () {
+              onPressed: () async {
+                await fetchUserInfo(); // ✅ 메뉴 열기 전에 사용자 정보 최신화
+
                 showMenu(
                   context: context,
-                  position: RelativeRect.fromLTRB(
-                    20,
-                    20,
-                    0,
-                    0,
-                  ), // 메뉴의 위치 설정 (left, top, right, bottom)
+                  position: RelativeRect.fromLTRB(20, 20, 0, 0),
                   items: <PopupMenuEntry<dynamic>>[
                     PopupMenuItem<int>(
                       value: 1,
                       child: ListTile(
-                        leading:
-                        (profileImageUrl?.isNotEmpty ?? false)
+                        leading: profileImageUrl.isNotEmpty
                             ? CircleAvatar(
-                          backgroundImage: NetworkImage(
-                            profileImageUrl!,
-                          ),
+                          backgroundImage: NetworkImage(profileImageUrl),
+                          key: ValueKey(profileImageUrl), // 강제 리렌더링
                         )
                             : CircleAvatar(
                           backgroundColor: Colors.grey,
-                          child: Icon(
-                            Icons.person,
-                            color: Colors.black,
-                          ),
-                        ), // 기본 아이콘
-                        title: Text(userName ?? "이름 없음"),
+                          child: Icon(Icons.person, color: Colors.black),
+                        ),
+                        title: Text(userName),
                       ),
                     ),
                     PopupMenuItem<int>(
-                      value: 2, // 메뉴 항목의 값
+                      value: 2,
                       child: Text('내 정보'),
                     ),
                     PopupMenuItem<int>(
-                      value: 3, // 메뉴 항목의 값
+                      value: 3,
                       child: Text('My Team'),
                       onTap: () {
                         Navigator.of(context).pushNamed('/myteam');
                       },
                     ),
                     PopupMenuItem<int>(
-                      value: 4, // 메뉴 항목의 값
+                      value: 4,
                       child: Text('경기 일정'),
                     ),
                     PopupMenuItem<int>(
-                      value: 5, // 메뉴 항목의 값
+                      value: 5,
                       child: Text('설정'),
                     ),
                     const PopupMenuDivider(),
                     PopupMenuItem<int>(
+                      value: 6,
                       onTap: () {
                         logout();
                         Navigator.of(context).pushNamedAndRemoveUntil(
-                          //특정화면으로 이동하면서 이전 모든 화면을 스택에서 제거 (새 화면을 띄우고 뒤로가기 버튼을 눌러도 이전 화면으로 돌아갈 수 없음)
-                          Login.id, //이동할 경로의 이름
-                              (route) => false, //스택의 모든 화면 제거
+                          Login.id,
+                              (route) => false,
                         );
                       },
-                      value: 6, // 메뉴 항목의 값
                       child: Text('로그아웃'),
                     ),
                   ],
                 ).then((value) {
                   if (value != null) {
-                    // 팝업 메뉴에서 선택된 값에 따른 작업 처리
                     print("선택된 값: $value");
                   }
                 });
@@ -213,9 +170,7 @@ class _MainState extends State<Main> {
             ),
           ],
         ),
-
         body: _pages[_selectedIndex],
-        // bottomNavigationBar를 추가한 부분
         bottomNavigationBar: CustomBottomNavBar(
           selectedIndex: _selectedIndex,
           onTap: (index) {

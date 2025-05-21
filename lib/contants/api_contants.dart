@@ -3,10 +3,11 @@ import 'package:project/utils/token_storage.dart';
 class ApiConstants {
 
 
-  static const String baseUrl = 'http://172.29.0.77:714/api';
-  static const String serverUrl ='172.29.0.77';
-  static const String webSocketUrl = 'http://172.29.0.77';
-  static const String webSocketConnectUrl = 'http://172.29.0.77:714';
+  static const String baseUrl = 'http://172.29.0.73:714/api';
+  static const String serverUrl ='172.29.0.73';
+  static const String webSocketUrl = 'http://172.29.0.73';
+  static const String webSocketConnectUrl = 'http://172.29.0.73:714';
+  static const String imageBaseUrl = 'http://172.29.0.73:714';
   static const String googleApiKey = 'AIzaSyAsOKamrB2H8YIMFLEWMHHQb68HHRwhGfo';
 
 

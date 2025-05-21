@@ -34,28 +34,29 @@ class _MyPageScreenState extends State<MyPageScreen> {
       print("❌ 토큰 없음");
       return;
     }
+
     final dio = Dio();
     try {
       final res = await dio.get(
         "$baseUrl/api/users/me",
         options: Options(headers: {"Authorization": "Bearer $token"}),
       );
-      if (res.statusCode == 200) {
-        final profile = res.data['profile'];
-        setState(() {
-          nickname = res.data['name'] ?? "닉네임 없음";
 
-          // profile이 null이거나 빈 문자열이면 기본 경로로 설정
-          if (profile == null || (profile is String && profile.trim().isEmpty)) {
-            _profileImageUrl = "$baseUrl$defaultProfilePath";
-          } else {
-            _profileImageUrl = profile.startsWith("http")
-                ? profile
-                : "$baseUrl$profile";
-          }
+      if (res.statusCode == 200) {
+        final data = res.data;
+        print("👤 사용자 정보 응답: $data");
+
+        final profile = data['profile'];
+        final timestamp = DateTime.now().millisecondsSinceEpoch;
+
+        setState(() {
+          nickname = data['name'] ?? "닉네임 없음";
+          _profileImageUrl = (profile == null || (profile is String && profile.trim().isEmpty))
+              ? "$baseUrl$defaultProfilePath?v=$timestamp"
+              : (profile.startsWith("http") ? profile : "$baseUrl$profile") + "?v=$timestamp";
         });
       } else {
-        print("❌ 사용자 정보 불러오기 실패: ${res.statusCode}");
+        print("❌ 사용자 정보 가져오기 실패: ${res.statusCode}");
       }
     } catch (e) {
       print("❗ 사용자 정보 요청 중 오류: $e");
@@ -78,9 +79,9 @@ class _MyPageScreenState extends State<MyPageScreen> {
                 child: _profileImageUrl != null
                     ? Image.network(
                   _profileImageUrl!,
+                  key: ValueKey(_profileImageUrl), // ✅ 이미지 변경 시 강제 리빌드
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
-                    // 네트워크 오류가 날 경우 기본 이미지로 대체
                     return Image.network(
                       "$baseUrl$defaultProfilePath",
                       fit: BoxFit.cover,
@@ -122,7 +123,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                     ),
                   );
                   if (result == true) {
-                    fetchUserInfo();
+                    fetchUserInfo(); // ✅ 수정 후 재호출
                   }
                 }),
                 _buildListTile(Icons.group_outlined, '마이 팀', context, onTap: () {
