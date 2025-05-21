@@ -48,14 +48,9 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
     stompClient!.subscribe(
       destination: '/all/chatroom/${widget.chatRoom['roomId']}',
       callback: (frame) {
-        // if (frame.body != null) {
-        //   final msg = jsonDecode(frame.body!);
-        //   setState(() {
-        //     messages.add(msg); // 새 메시지만 추가
-        //   });
-        // }
         if (frame.body != null) {
           final newMsg = jsonDecode(frame.body!);
+          print(newMsg);
           setState(() {
             messages.add(newMsg); // 실시간 새 메시지만 추가
           });
@@ -97,9 +92,6 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
       );
       if (response.statusCode == 200) {
         print("사용자 정보 가져오기 성공: ${response.data}");
-        // userHashId = response.data['userHashId'];
-        // userName = response.data['name'];
-        // profileImageUrl = response.data['profile'];
         setState(() {
           userHashId = response.data['userHashId'];
           userName = response.data['name'];
@@ -134,6 +126,16 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
     String text,
   ) async {
     if (stompClient != null && stompClient!.connected) {
+      final localMsg = {
+        "chatroomId": chatroomId,
+        "sender": senderHashId,
+        "message": text,
+        "nickName": userName,
+      };
+
+      setState(() {
+        messages.insert(0,localMsg,); // insert at the beginning since ListView is reversed
+      });
       stompClient!.send(
         destination: '/app/chat/message',
         body:
@@ -141,7 +143,6 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
         headers: {'content-type': 'application/json'},
       );
       messageController.clear();
-      print("메세지 전송 채팅방 : $chatroomId, 보낸 사람 : $senderHashId, 메세지 내용 : $text");
     } else {
       print('STOMP 연결되지 않음');
     }
@@ -189,7 +190,7 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
               leading: const Icon(Icons.exit_to_app),
               title: const Text('채팅방 나가기'),
               onTap: () {
-                //TODO: 채팅방 나가기
+                //TODO: 채팅방 나가기 요청 보내기)
               },
             ),
           ],
@@ -204,10 +205,14 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
               itemBuilder: (context, index) {
                 final message = messages[index];
                 final isMine = message['sender'] == userHashId; // 내 메시지인지 판별
-                print('userHashId: $userHashId, message sender: ${message['sender']}');
+                print(
+                  'userHashId: $userHashId, message sender: ${message['sender']}',
+                );
                 return Align(
                   alignment:
-                      isMine ? Alignment.centerRight : Alignment.centerLeft,
+                      isMine
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft, //내가 보낸 메세지면 오른쪽 배치, 아니면 왼쪽 배치
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                       vertical: 8,
