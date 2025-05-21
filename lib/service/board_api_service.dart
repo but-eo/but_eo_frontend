@@ -3,10 +3,11 @@ import 'package:http/http.dart' as http;
 import 'package:project/model/board_model.dart';
 import 'package:project/model/board_detail_model.dart';
 import 'package:project/model/board_comment_model.dart';
+import 'package:project/contants/api_contants.dart';
 
 Future<List<Board>> fetchBoards(String event, String category, {int page = 0, int size = 10}) async { // 게시판 리스트 조회
   final uri = Uri.parse(
-    'http://192.168.0.70:714/api/boards?event=$event&category=$category&page=$page&size=$size',
+    '${ApiConstants.baseUrl}/boards?event=$event&category=$category&page=$page&size=$size',
   );
 
   final response = await http.get(uri);
@@ -22,7 +23,7 @@ Future<List<Board>> fetchBoards(String event, String category, {int page = 0, in
 }
 
 Future<BoardDetail> fetchBoardDetail(String boardId) async { // 게시판 클릭시 상세 게시판 조회
-  final uri = Uri.parse('http://192.168.0.70:714/api/boards/$boardId');
+  final uri = Uri.parse('${ApiConstants.baseUrl}/boards/$boardId');
   final response = await http.get(uri);
 
 
@@ -36,7 +37,7 @@ Future<BoardDetail> fetchBoardDetail(String boardId) async { // 게시판 클릭
 }
 
 Future<List<Comment>> fetchComments(String boardId) async {
-  final uri = Uri.parse('http://192.168.0.70:714/api/comments/board/$boardId');
+  final uri = Uri.parse('${ApiConstants.baseUrl}/comments/board/$boardId');
 
   final response = await http.get(uri);
 

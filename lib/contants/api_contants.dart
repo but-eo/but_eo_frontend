@@ -3,10 +3,10 @@ import 'package:project/utils/token_storage.dart';
 class ApiConstants {
 
 
-  static const String baseUrl = 'http://192.168.0.170:714/api';
-  static const String serverUrl ='192.168.0.170';
-  static const String webSocketUrl = 'http://192.168.0.170';
-  static const String webSocketConnectUrl = 'http://192.168.0.170:714';
+  static const String baseUrl = 'http://192.168.0.70:714/api';
+  static const String serverUrl ='192.168.0.70';
+  static const String webSocketUrl = 'http://192.168.0.70';
+  static const String webSocketConnectUrl = 'http://192.168.0.70:714';
 
 
   // 맥북 ip 명령어 ipconfig getifaddr en0
