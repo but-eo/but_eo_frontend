@@ -79,6 +79,7 @@ class _ChatPageState extends State<ChatPage> {
           itemCount: chatRooms.length,
           itemBuilder: (context, index) {
             final room = chatRooms[index];
+            final size = MediaQuery.of(context).size;
             return ListTile(
               leading: CircleAvatar(
                 backgroundImage:
@@ -93,21 +94,26 @@ class _ChatPageState extends State<ChatPage> {
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(height: 10.0,),
-                  Text(
-                    room['lastMessage'] ?? '안녕하세요',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: Colors.grey[700]),
+                  Row(
+                    children: [
+                      SizedBox(height: 10.0),
+                      Text(
+                        room['lastMessage'] ?? '안녕하세요',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: Colors.grey[700]),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(width: size.width * 0.5),
                   Text(
-                    _formatTime(room['lastMessageTime']),
+                    (room['lastMessageTime']),
                     style: TextStyle(color: Colors.grey[500], fontSize: 12),
                   ),
                 ],
               ),
               onTap: () {
+                print(room['lastMessageTime']);
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -307,19 +313,4 @@ Future<Map<String, dynamic>?> createChatRoom(List<dynamic> userIds) async {
     print('채팅방 생성 실패: $e');
   }
   return null;
-}
-
-String _formatTime(String? timestamp) {
-  if (timestamp == null || timestamp.isEmpty) return '';
-  final dateTime = DateTime.parse(timestamp);
-  final now = DateTime.now();
-
-  // 오늘이면 시간만, 아니면 날짜
-  if (dateTime.day == now.day &&
-      dateTime.month == now.month &&
-      dateTime.year == now.year) {
-    return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
-  } else {
-    return '${dateTime.month}/${dateTime.day}';
-  }
 }
