@@ -38,6 +38,9 @@ class _SignState extends State<Sign> {
   final _regions = ['서울', '경기', '강원', '충청', '전라', '경상', '제주'];
   String? _selectedRegions;
 
+  final _divisions = ['USER', 'BUSINESS'];
+  String? _selectedDivision;
+
   //체크박스
   bool allCheck = false;
   bool termCheck = false;
@@ -60,26 +63,15 @@ class _SignState extends State<Sign> {
     String tel,
     String sex,
     String prefer,
+    String division,
     String year,
     String region,
   ) async {
     final dio = Dio();
     try {
       final response = await dio.post(
-
-        //192.168.45.179, 10.30.3.43, 192.168.0.127
-
-        // 192.168.0.73
-// <<<<<<< kakaologintoken
-//         "http://192.168.0.73:0714/api/users/register",
-       // "http://192.168.0.72:0714/api/users/register",
-
-        // 192.168.0.111
-        //"http://192.168.0.111:0714/api/users/register",
         "${ApiConstants.baseUrl}/users/register",
 
-
-        // "https://05e11d7c-f01d-4fb4-aabd-7849216efc8c.mock.pstmn.io/auth/register", //spring boot로 전송할 주소
         data: {
           'email': email,
           'password': password,
@@ -87,6 +79,7 @@ class _SignState extends State<Sign> {
           'tel': tel,
           'gender': sex,
           'preferSports': prefer,
+          'division' : division,
           'birthYear': year,
           'region': region,
         },
@@ -154,6 +147,7 @@ class _SignState extends State<Sign> {
     _selectedPrefer = _preferences[0];
     _selectedYear = _years[0];
     _selectedRegions = _regions[0];
+    _selectedDivision = _divisions[0];
   }
 
   @override
@@ -563,7 +557,7 @@ class _SignState extends State<Sign> {
                         text: TextSpan(
                           children: [
                             TextSpan(
-                              text: '선호종목',
+                              text: '계정 유형',
                               style: TextStyle(
                                 color: kBlackColor,
                                 fontSize: 12,
@@ -573,6 +567,52 @@ class _SignState extends State<Sign> {
                           ],
                         ),
                       ),
+                      //Division
+                      SizedBox(height: size.height * 0.01),
+                      Container(
+                        width: 200,
+
+                        child: DropdownButton<String>(
+                          padding: EdgeInsets.symmetric(horizontal: 10),
+                          borderRadius: BorderRadius.circular(10),
+                          isExpanded: true,
+                          value: _selectedDivision,
+                          dropdownColor: Colors.grey,
+                          style: TextStyle(color: Colors.black87),
+                          items:
+                              _divisions
+                                  .map(
+                                    (e) => DropdownMenuItem(
+                                      value: e,
+                                      child: Text(e),
+                                    ),
+                                  )
+                                  .toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedDivision = value!;
+                              print(_selectedDivision);
+                            });
+                          },
+                        ),
+                      ),
+                      SizedBox(height: size.height * 0.03),
+                      RichText(
+                        text: TextSpan(
+                          children: [
+                            TextSpan(
+                              text: '선호 종목',
+                              style: TextStyle(
+                                color: kBlackColor,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+
                       SizedBox(height: size.height * 0.01),
                       Container(
                         width: 200,
@@ -856,6 +896,7 @@ class _SignState extends State<Sign> {
                             phoneController.text,
                             _selectedSex ?? '선택하지 않음',
                             _selectedPrefer ?? '선호종목 없음',
+                            _selectedDivision ?? '유저',
                             _selectedYear ?? '선택하지 않음',
                             _selectedRegions ?? '선택하지 않음',
                           );
@@ -866,6 +907,7 @@ class _SignState extends State<Sign> {
                                 'ConfirmPassword: $_confirmPassword\n' +
                                 '성별: $_selectedSex\n' +
                                 '선호종목: $_selectedPrefer\n' +
+                                '계정유형: $_selectedDivision\n' +
                                 '출생년도: $_selectedYear\n' +
                                 '지역: $_selectedRegions',
                           );

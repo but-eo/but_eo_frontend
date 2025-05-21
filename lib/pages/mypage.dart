@@ -6,7 +6,7 @@ import 'package:project/utils/token_storage.dart';
 import 'package:project/pages/EditProfilePage.dart';
 import 'package:project/pages/asked_questions.dart';
 
-import 'Customer_Service.dart';
+import 'CustomerServiceMainPage.dart';
 import 'NoticePage.dart';
 
 class MyPageScreen extends StatefulWidget {
@@ -20,6 +20,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
   String? nickname = "로딩 중...";
   String? _profileImageUrl;
   final String baseUrl = "http://${ApiConstants.serverUrl}:714";
+  final String defaultProfilePath = "/uploads/profiles/default_profile.png";
 
   @override
   void initState() {
@@ -40,9 +41,18 @@ class _MyPageScreenState extends State<MyPageScreen> {
         options: Options(headers: {"Authorization": "Bearer $token"}),
       );
       if (res.statusCode == 200) {
+        final profile = res.data['profile'];
         setState(() {
           nickname = res.data['name'] ?? "닉네임 없음";
-          _profileImageUrl = res.data['profile'];
+
+          // profile이 null이거나 빈 문자열이면 기본 경로로 설정
+          if (profile == null || (profile is String && profile.trim().isEmpty)) {
+            _profileImageUrl = "$baseUrl$defaultProfilePath";
+          } else {
+            _profileImageUrl = profile.startsWith("http")
+                ? profile
+                : "$baseUrl$profile";
+          }
         });
       } else {
         print("❌ 사용자 정보 불러오기 실패: ${res.statusCode}");
@@ -55,7 +65,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // 배경색을 흰색으로 설정
+      backgroundColor: Colors.white,
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
         children: [
@@ -65,14 +75,22 @@ class _MyPageScreenState extends State<MyPageScreen> {
                 width: 120,
                 height: 120,
                 color: Colors.grey.shade300,
-                child: _profileImageUrl != null && _profileImageUrl!.isNotEmpty
+                child: _profileImageUrl != null
                     ? Image.network(
-                  _profileImageUrl!.startsWith("http")
-                      ? _profileImageUrl!
-                      : "$baseUrl${_profileImageUrl!}",
+                  _profileImageUrl!,
                   fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    // 네트워크 오류가 날 경우 기본 이미지로 대체
+                    return Image.network(
+                      "$baseUrl$defaultProfilePath",
+                      fit: BoxFit.cover,
+                    );
+                  },
                 )
-                    : const Icon(Icons.person, size: 60, color: Colors.white),
+                    : Image.network(
+                  "$baseUrl$defaultProfilePath",
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
           ),
@@ -118,7 +136,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                 _buildListTile(Icons.question_answer_outlined, '자주 묻는 질문', context, onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const asked_questions()),
+                    MaterialPageRoute(builder: (context) => const AskedQuestions()),
                   );
                 }),
                 _buildListTile(Icons.my_library_books_rounded, '공지사항', context, onTap: () {
@@ -130,7 +148,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                 _buildListTile(Icons.support_agent, '고객센터', context, onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const CustomerServicePage()),
+                    MaterialPageRoute(builder: (_) => const CustomerServiceMainPage()),
                   );
                 }),
                 _buildListTile(Icons.settings_outlined, '앱 설정', context, hasDivider: false),
