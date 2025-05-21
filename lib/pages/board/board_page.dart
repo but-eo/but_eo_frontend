@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:project/model/board_model.dart';
+import 'package:project/pages/board/board_detail_page.dart';
 import 'package:project/service/board_api_service.dart';
 
 class BoardPage extends StatelessWidget {
@@ -30,48 +31,45 @@ class BoardPage extends StatelessWidget {
             itemCount: boards.length,
             itemBuilder: (context, index) {
               final board = boards[index];
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
-                child: Card(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  elevation: 2,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          board.title,
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          board.content,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              '작성자: ${board.userName}',
-                              style: TextStyle(fontSize: 12, color: Colors.grey[700]),
-                            ),
-                            Text(
-                              _formatDate(board.createdAt),
-                              style: TextStyle(fontSize: 12, color: Colors.grey[700]),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Text('❤️ ${board.likeCount}  💬 ${board.commentCount}'),
-                          ],
-                        ),
-                      ],
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => BoardDetailPage(boardId: board.boardId),
+                    ),
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
+                  child: Card(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    elevation: 2,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(board.title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 8),
+                          Text(board.content, maxLines: 2, overflow: TextOverflow.ellipsis),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('작성자: ${board.userName}', style: TextStyle(fontSize: 12, color: Colors.grey[700])),
+                              Text(_formatDate(board.createdAt), style: TextStyle(fontSize: 12, color: Colors.grey[700])),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Text('❤️ ${board.likeCount}  💬 ${board.commentCount}'),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
