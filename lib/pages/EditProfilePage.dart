@@ -29,6 +29,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final years = List.generate(50, (index) => (DateTime.now().year - index).toString());
   final regions = ['서울', '경기', '부산', '대구', '광주', '제주'];
 
+  final String defaultProfilePath = "/uploads/profiles/default_profile.png";
+
   @override
   void initState() {
     super.initState();
@@ -39,23 +41,38 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Future fetchUserInfo() async {
     final token = await TokenStorage.getAccessToken();
     if (token == null) return;
+
     final dio = Dio();
-    final res = await dio.get(
-      "${ApiConstants.baseUrl}/users/my-info",
-      options: Options(headers: {"Authorization": "Bearer $token"}),
-    );
-    if (res.statusCode == 200) {
-      final data = res.data;
-      setState(() {
-        nicknameController.text = data['nickname']?.toString() ?? '';
-        selectedSport = data['preferSports']?.toString();
-        selectedBirthYear = data['birthYear']?.toString();
-        selectedRegion = data['region']?.toString();
-        // 서버에서 최신 프로필 이미지가 내려오면 갱신
-        if (data['profile'] != null && data['profile'].toString().isNotEmpty) {
-          _profileImageUrl = data['profile'];
-        }
-      });
+    try {
+      final res = await dio.get(
+        "${ApiConstants.baseUrl}/users/my-info",
+        options: Options(headers: {"Authorization": "Bearer $token"}),
+      );
+
+      if (res.statusCode == 200) {
+        final data = res.data;
+        print("✅ 사용자 정보 응답: $data");
+
+        final profile = data['profile'];
+        final timestamp = DateTime.now().millisecondsSinceEpoch;
+
+        setState(() {
+          nicknameController.text = data['nickname']?.toString() ?? '';
+          selectedSport = data['preferSports']?.toString();
+          selectedBirthYear = data['birthYear']?.toString();
+          selectedRegion = data['region']?.toString();
+
+          _profileImageUrl = (profile != null && profile is String && profile.isNotEmpty)
+              ? (profile.startsWith("http")
+              ? profile
+              : "${ApiConstants.imageBaseUrl}$profile") + "?v=$timestamp"
+              : "${ApiConstants.imageBaseUrl}$defaultProfilePath?v=$timestamp";
+        });
+      } else {
+        print("❌ 사용자 정보 가져오기 실패: ${res.statusCode}");
+      }
+    } catch (e) {
+      print("❗ 사용자 정보 요청 중 오류: $e");
     }
   }
 
@@ -90,22 +107,31 @@ class _EditProfilePageState extends State<EditProfilePage> {
     });
 
     final dio = Dio();
-    final response = await dio.patch(
-      "${ApiConstants.baseUrl}/users/update",
-      data: formData,
-      options: Options(headers: {"Authorization": "Bearer $token"}),
-    );
-    if (response.statusCode == 200) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("회원정보가 수정되었습니다.")),
+    try {
+      final response = await dio.patch(
+        "${ApiConstants.baseUrl}/users/update",
+        data: formData,
+        options: Options(headers: {"Authorization": "Bearer $token"}),
       );
-      Navigator.pop(context, true);
+
+      print("🔄 프로필 업데이트 응답: ${response.data}");
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("회원정보가 수정되었습니다.")),
+        );
+        Navigator.pop(context, true);
+      }
+    } catch (e) {
+      print("❗ 회원정보 수정 실패: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("회원정보 수정 실패")),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final String baseUrl = "http://${ApiConstants.serverUrl}:714";
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
@@ -129,9 +155,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       ? Image.file(File(profileImage!.path), fit: BoxFit.cover)
                       : (_profileImageUrl != null && _profileImageUrl!.isNotEmpty
                       ? Image.network(
-                    _profileImageUrl!.startsWith("http")
-                        ? _profileImageUrl!
-                        : "$baseUrl${_profileImageUrl!}",
+                    _profileImageUrl!,
+                    key: ValueKey(_profileImageUrl),
                     fit: BoxFit.cover,
                   )
                       : const Icon(Icons.camera_alt, size: 50, color: Colors.grey)),
@@ -179,7 +204,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
           decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()),
           items: items.map((e) => DropdownMenuItem<String>(value: e, child: Text(e))).toList(),
           onChanged: onChanged,
-          // ghi
         ),
       );
 }

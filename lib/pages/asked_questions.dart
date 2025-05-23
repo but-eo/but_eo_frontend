@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'InquiryDetailPage.dart';
-import 'InquiryFormPage.dart';
+import 'FAQDetailPage.dart'; // 반드시 lib/pages/FAQDetailPage.dart에 따로 만들어주세요
 
-class asked_questions extends StatelessWidget {
-  const asked_questions({super.key});
+class AskedQuestions extends StatelessWidget {
+  const AskedQuestions({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +38,7 @@ class asked_questions extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => InquiryDetailPage(inquiry: inquiry),
+                    builder: (_) => FAQDetailPage(inquiry: inquiry),
                   ),
                 );
               },
@@ -78,6 +77,7 @@ class asked_questions extends StatelessWidget {
   }
 }
 
+// 자주 묻는 질문 더미 데이터
 final List<Map<String, String>> dummyInquiries = [
   {
     'title': '매칭이 잡히지 않아요',

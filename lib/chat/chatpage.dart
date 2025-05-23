@@ -34,7 +34,7 @@ class _ChatPageState extends State<ChatPage> {
     }
     try {
       final response = await dio.get(
-        "${ApiConstants.baseUrl}/searchChatRooms",
+        "${ApiConstants.webSocketConnectUrl}/searchChatRooms",
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       ); // <-- 여기는 실제 API 경로에 맞게 수정
       if (response.statusCode == 200 && response.data is List) {
@@ -79,12 +79,13 @@ class _ChatPageState extends State<ChatPage> {
           itemCount: chatRooms.length,
           itemBuilder: (context, index) {
             final room = chatRooms[index];
+            final size = MediaQuery.of(context).size;
             return ListTile(
               leading: CircleAvatar(
                 backgroundImage:
                     room['chatImg'] != null && room['chatImg'] != ''
                         ? NetworkImage(
-                          "${ApiConstants.baseUrl}/chatRoom/${room['chatImg']}",
+                          "${ApiConstants.webSocketConnectUrl}/chatRoom/${room['chatImg']}",
                         )
                         : const AssetImage('assets/images/butteoLogo.png')
                             as ImageProvider,
@@ -93,27 +94,33 @@ class _ChatPageState extends State<ChatPage> {
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(height: 10.0,),
-                  Text(
-                    room['lastMessage'] ?? '안녕하세요',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: Colors.grey[700]),
+                  Row(
+                    children: [
+                      SizedBox(height: 10.0),
+                      Text(
+                        room['lastMessage'] ?? '안녕하세요',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: Colors.grey[700]),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(width: size.width * 0.5),
                   Text(
-                    _formatTime(room['lastMessageTime']),
+                    (room['lastMessageTime']),
                     style: TextStyle(color: Colors.grey[500], fontSize: 12),
                   ),
                 ],
               ),
               onTap: () {
+                print(room['lastMessageTime']);
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => ChatDetailpage(chatRoom: room),
                   ),
                 );
+                print("현재 접속 채팅방 :  ${room}");
               },
             );
           },
@@ -262,7 +269,7 @@ Future<List<Map<String, dynamic>>> searchUser(String nickname) async {
   String? token = await TokenStorage.getAccessToken();
   try {
     final response = await dio.get(
-      "${ApiConstants.baseUrl}/users/search",
+      "${ApiConstants.baseUrl}/users/search", //UserController
       options: Options(headers: {'Authorization': 'Bearer $token'}),
       queryParameters: {'name': nickname},
     );
@@ -295,7 +302,7 @@ Future<Map<String, dynamic>?> createChatRoom(List<dynamic> userIds) async {
   try {
     print('채팅방 생성 요청: $userIds');
     final response = await dio.post(
-      "${ApiConstants.baseUrl}/chatrooms",
+      "${ApiConstants.webSocketConnectUrl}/chatrooms",
       data: {"userHashId": userIds, "chatRoomName": "채팅방"},
       options: Options(headers: {'Authorization': 'Bearer $token'}),
     );
@@ -306,19 +313,4 @@ Future<Map<String, dynamic>?> createChatRoom(List<dynamic> userIds) async {
     print('채팅방 생성 실패: $e');
   }
   return null;
-}
-
-String _formatTime(String? timestamp) {
-  if (timestamp == null || timestamp.isEmpty) return '';
-  final dateTime = DateTime.parse(timestamp);
-  final now = DateTime.now();
-
-  // 오늘이면 시간만, 아니면 날짜
-  if (dateTime.day == now.day &&
-      dateTime.month == now.month &&
-      dateTime.year == now.year) {
-    return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
-  } else {
-    return '${dateTime.month}/${dateTime.day}';
-  }
 }

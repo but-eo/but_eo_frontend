@@ -6,7 +6,7 @@ import 'package:project/utils/token_storage.dart';
 import 'package:project/pages/EditProfilePage.dart';
 import 'package:project/pages/asked_questions.dart';
 
-import 'Customer_Service.dart';
+import 'CustomerServiceMainPage.dart';
 import 'NoticePage.dart';
 
 class MyPageScreen extends StatefulWidget {
@@ -20,6 +20,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
   String? nickname = "로딩 중...";
   String? _profileImageUrl;
   final String baseUrl = "http://${ApiConstants.serverUrl}:714";
+  final String defaultProfilePath = "/uploads/profiles/default_profile.png";
 
   @override
   void initState() {
@@ -33,19 +34,29 @@ class _MyPageScreenState extends State<MyPageScreen> {
       print("❌ 토큰 없음");
       return;
     }
+
     final dio = Dio();
     try {
       final res = await dio.get(
         "$baseUrl/api/users/me",
         options: Options(headers: {"Authorization": "Bearer $token"}),
       );
+
       if (res.statusCode == 200) {
+        final data = res.data;
+        print("👤 사용자 정보 응답: $data");
+
+        final profile = data['profile'];
+        final timestamp = DateTime.now().millisecondsSinceEpoch;
+
         setState(() {
-          nickname = res.data['name'] ?? "닉네임 없음";
-          _profileImageUrl = res.data['profile'];
+          nickname = data['name'] ?? "닉네임 없음";
+          _profileImageUrl = (profile == null || (profile is String && profile.trim().isEmpty))
+              ? "$baseUrl$defaultProfilePath?v=$timestamp"
+              : (profile.startsWith("http") ? profile : "$baseUrl$profile") + "?v=$timestamp";
         });
       } else {
-        print("❌ 사용자 정보 불러오기 실패: ${res.statusCode}");
+        print("❌ 사용자 정보 가져오기 실패: ${res.statusCode}");
       }
     } catch (e) {
       print("❗ 사용자 정보 요청 중 오류: $e");
@@ -55,7 +66,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // 배경색을 흰색으로 설정
+      backgroundColor: Colors.white,
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
         children: [
@@ -65,14 +76,22 @@ class _MyPageScreenState extends State<MyPageScreen> {
                 width: 120,
                 height: 120,
                 color: Colors.grey.shade300,
-                child: _profileImageUrl != null && _profileImageUrl!.isNotEmpty
+                child: _profileImageUrl != null
                     ? Image.network(
-                  _profileImageUrl!.startsWith("http")
-                      ? _profileImageUrl!
-                      : "$baseUrl${_profileImageUrl!}",
+                  _profileImageUrl!,
+                  key: ValueKey(_profileImageUrl), // ✅ 이미지 변경 시 강제 리빌드
                   fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Image.network(
+                      "$baseUrl$defaultProfilePath",
+                      fit: BoxFit.cover,
+                    );
+                  },
                 )
-                    : const Icon(Icons.person, size: 60, color: Colors.white),
+                    : Image.network(
+                  "$baseUrl$defaultProfilePath",
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
           ),
@@ -104,7 +123,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                     ),
                   );
                   if (result == true) {
-                    fetchUserInfo();
+                    fetchUserInfo(); // ✅ 수정 후 재호출
                   }
                 }),
                 _buildListTile(Icons.group_outlined, '마이 팀', context, onTap: () {
@@ -118,7 +137,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                 _buildListTile(Icons.question_answer_outlined, '자주 묻는 질문', context, onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const asked_questions()),
+                    MaterialPageRoute(builder: (context) => const AskedQuestions()),
                   );
                 }),
                 _buildListTile(Icons.my_library_books_rounded, '공지사항', context, onTap: () {
@@ -130,7 +149,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                 _buildListTile(Icons.support_agent, '고객센터', context, onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const CustomerServicePage()),
+                    MaterialPageRoute(builder: (_) => const CustomerServiceMainPage()),
                   );
                 }),
                 _buildListTile(Icons.settings_outlined, '앱 설정', context, hasDivider: false),
