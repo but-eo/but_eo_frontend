@@ -1,7 +1,6 @@
-
 import 'package:flutter/material.dart';
+import 'package:project/pages/team/teamFormPage.dart';
 import 'package:project/service/teamService.dart';
-import 'package:project/pages/team/createTeamPage.dart';
 import 'package:project/data/teamEnum.dart';
 import 'package:project/pages/team/teamDetailPage.dart';
 
@@ -13,8 +12,6 @@ class TeamSearchPage extends StatefulWidget {
 }
 
 class TeamSearchPageState extends State<TeamSearchPage> {
-
-  //역 매핑 서버는 영어로 받아서 변환
   final Map<String, String> reverseRegionEnumMap = {
     for (var entry in regionEnumMap.entries) entry.value: entry.key.name.toUpperCase(),
   };
@@ -22,7 +19,6 @@ class TeamSearchPageState extends State<TeamSearchPage> {
     for (var entry in eventEnumMap.entries) entry.value: entry.key.name.toUpperCase(),
   };
 
-  //지역, 종목 상태 저장용
   final List<String> regions = ["전체", ...regionEnumMap.values];
   final List<String> sports = ["전체", ...eventEnumMap.values];
 
@@ -31,7 +27,6 @@ class TeamSearchPageState extends State<TeamSearchPage> {
   List<dynamic> teams = [];
   bool isLoading = false;
 
-  // 팀 목록 받아옴
   @override
   void initState() {
     super.initState();
@@ -39,24 +34,17 @@ class TeamSearchPageState extends State<TeamSearchPage> {
   }
 
   Future<void> fetchTeams() async {
-    setState(() {
-      isLoading = true;
-    });
-
+    setState(() => isLoading = true);
     try {
       final result = await TeamService.fetchTeams(
         region: selectedRegion != "전체" ? reverseRegionEnumMap[selectedRegion] : null,
         event: selectedSport != "전체" ? reverseEventEnumMap[selectedSport] : null,
       );
-      setState(() {
-        teams = result;
-      });
+      setState(() => teams = result);
     } catch (e) {
       print("팀 조회 실패: $e");
     } finally {
-      setState(() {
-        isLoading = false;
-      });
+      setState(() => isLoading = false);
     }
   }
 
@@ -80,7 +68,6 @@ class TeamSearchPageState extends State<TeamSearchPage> {
           const Text("전체 팀", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
           const Divider(),
 
-          // 지역 필터
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -93,9 +80,7 @@ class TeamSearchPageState extends State<TeamSearchPage> {
                     label: Text(region),
                     selected: isSelected,
                     onSelected: (_) {
-                      setState(() {
-                        selectedRegion = region;
-                      });
+                      setState(() => selectedRegion = region);
                       fetchTeams();
                     },
                     selectedColor: Colors.orange,
@@ -107,7 +92,6 @@ class TeamSearchPageState extends State<TeamSearchPage> {
 
           const SizedBox(height: 10),
 
-          // 종목 필터
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -120,9 +104,7 @@ class TeamSearchPageState extends State<TeamSearchPage> {
                     label: Text(sport),
                     selected: isSelected,
                     onSelected: (_) {
-                      setState(() {
-                        selectedSport = sport;
-                      });
+                      setState(() => selectedSport = sport);
                       fetchTeams();
                     },
                     selectedColor: Colors.grey[700],
@@ -135,7 +117,6 @@ class TeamSearchPageState extends State<TeamSearchPage> {
 
           const SizedBox(height: 16),
 
-          //  테이블 헤더
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12.0),
             child: Row(
@@ -146,12 +127,11 @@ class TeamSearchPageState extends State<TeamSearchPage> {
                   onPressed: () async {
                     final result = await Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const CreateTeamPage()),
+                      MaterialPageRoute(
+                        builder: (_) => const TeamFormPage(),
+                      ),
                     );
-
-                    if (result == true) {
-                      fetchTeams();
-                    }
+                    if (result == 'updated') fetchTeams();
                   },
                   style: ElevatedButton.styleFrom(
                     shape: const CircleBorder(),
@@ -167,7 +147,6 @@ class TeamSearchPageState extends State<TeamSearchPage> {
 
           const SizedBox(height: 8),
 
-          // 팀 리스트
           Expanded(
             child: isLoading
                 ? const Center(child: CircularProgressIndicator())
@@ -177,35 +156,30 @@ class TeamSearchPageState extends State<TeamSearchPage> {
               itemCount: teams.length,
               itemBuilder: (context, index) {
                 final team = teams[index];
-
                 return ListTile(
                   leading: CircleAvatar(
                     backgroundImage: team['teamImg'] != null && team['teamImg'] != ''
-                        ? NetworkImage(TeamService.getFullTeamImageUrl(team['teamImg']))
+                        ? NetworkImage(TeamService.getFullTeamImageUrl(team['teamImg']) + "?t=${DateTime.now().millisecondsSinceEpoch}")
                         : null,
                     backgroundColor: Colors.grey,
                     child: team['teamImg'] == null || team['teamImg'] == ''
                         ? const Icon(Icons.group, color: Colors.white)
                         : null,
-
                   ),
-
                   title: Text(team['teamName'] ?? '이름 없음'),
                   subtitle: Text(
                     "${getEnumLabel(team['event'], eventEnumMap)} · "
                         "${getEnumLabel(team['region'], regionEnumMap)} · "
                         "${team['memberAge'] ?? '나이 미상'}대",
                   ),
-                  onTap: () async{
+                  onTap: () async {
                     final result = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder : (_) => TeamDetailPage(team: team),
-                        ),
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => TeamDetailPage(team: team),
+                      ),
                     );
-                    if(result == true) {
-                      fetchTeams();
-                    }
+                    if (result == 'updated') fetchTeams();
                   },
                 );
               },

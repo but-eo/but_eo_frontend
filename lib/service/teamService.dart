@@ -1,12 +1,11 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:project/utils/token_storage.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:project/contants/api_contants.dart';
 
 class TeamService {
   /// 팀 생성
-  static Future<void> createTeam({
+  static Future<String?> createTeam({
     required String teamName,
     required String event,
     required String region,
@@ -41,20 +40,35 @@ class TeamService {
         options: Options(
           headers: {
             'Authorization': 'Bearer $token',
-            'Content-Type': 'multipart/form-data',
           },
         ),
       );
 
       if (response.statusCode == 200) {
         print("팀 생성 성공");
+        return null;
       } else {
-        print("팀 생성 실패: \${response.statusCode} / \${response.data}");
+        final msg = response.data is Map
+            ? response.data["message"] ?? response.data["error"] ?? "팀 생성 실패"
+            : "팀 생성 실패: ${response.statusCode}";
+        print("팀 생성 실패: $msg");
+        return msg;
       }
     } catch (e) {
-      print("에러 발생: $e");
+      if (e is DioError) {
+        final msg = e.response?.data is Map
+            ? e.response?.data["message"] ?? e.response?.data["error"] ?? "서버 오류 발생"
+            : "서버 오류: ${e.response?.statusCode}";
+        print("DioError 발생: $msg");
+        return msg;
+      } else {
+        print("예외 발생: $e");
+        return "예기치 않은 오류 발생";
+      }
     }
   }
+
+
 
   /// 팀 삭제
   static Future<void> deleteTeam(String teamId) async {
@@ -76,6 +90,43 @@ class TeamService {
     }
   }
 
+  //팀 수정
+  static Future<String?> updateTeam({
+    required String teamId,
+    required FormData formData,
+  }) async {
+    formData.fields.forEach((f) => print('${f.key}: ${f.value}'));
+    formData.files.forEach((f) => print('파일: ${f.key} = ${f.value.filename}'));
+    try {
+      final token = await TokenStorage.getAccessToken();
+      if (token == null) throw Exception("토큰이 없습니다.");
+
+      final dio = Dio();
+      final response = await dio.patch(
+        '${ApiConstants.baseUrl}/teams/$teamId',
+        data: formData,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+
+      if (response.statusCode == 200) {
+
+        return null;
+      } else {
+        print("❌ 팀 수정 실패: ${response.statusCode} / ${response.data}");
+        return response.data.toString();
+      }
+    } catch (e) {
+      print("❗에러 발생: $e");
+      return "오류 발생: ${e.toString()}";
+    }
+  }
+
+
+
   /// 팀 목록 조회
   static Future<List<dynamic>> fetchTeams({
     String? region,
@@ -92,6 +143,7 @@ class TeamService {
       );
 
       if (res.statusCode == 200) {
+        //print("📦 전체 팀 데이터: ${res.data}");
         return res.data as List<dynamic>;
       } else {
         print("불러오기 실패: ${res.statusCode}");
@@ -136,6 +188,32 @@ class TeamService {
     }
   }
 
+//팀 상세조회
+  static Future<Map<String, dynamic>> getTeamByName(String teamName) async {
+    try {
+      final token = await TokenStorage.getAccessToken();
+      if (token == null) throw Exception("토큰이 없습니다.");
 
+      final dio = Dio();
+      final res = await dio.get(
+        '${ApiConstants.baseUrl}/teams',
+        queryParameters: {
+          'teamName': teamName,
+        },
+        options: Options(headers: {
+          'Authorization': 'Bearer $token',
+        }),
+      );
+
+      if (res.statusCode == 200 && res.data is List && res.data.isNotEmpty) {
+        return res.data[0]; // 첫 번째 팀 반환
+      } else {
+        throw Exception('팀 데이터가 없습니다');
+      }
+    } catch (e) {
+      print("getTeamByName 에러: $e");
+      rethrow;
+    }
+  }
 
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:project/data/teamEnum.dart';
+import 'package:project/pages/team/teamFormPage.dart';
 import 'package:project/service/teamService.dart';
 
 class TeamDetailPage extends StatefulWidget {
@@ -12,21 +13,54 @@ class TeamDetailPage extends StatefulWidget {
 
 class _TeamDetailPageState extends State<TeamDetailPage> {
   bool isLeader = false;
+  late Map<String, dynamic> team;
 
   @override
   void initState() {
     super.initState();
+    team = Map<String, dynamic>.from(widget.team);
     _checkTeamLeader();
   }
 
-// 현재 사용자가 팀 리더인가
   Future<void> _checkTeamLeader() async {
-    final teamId = widget.team['teamId'].toString();
-    final result = await TeamService.isTeamLeader(teamId); // teamId 전달
+    final teamId = team['teamId'].toString();
+    final result = await TeamService.isTeamLeader(teamId);
     setState(() {
       isLeader = result;
     });
   }
+
+  Future<void> _refreshTeam() async {
+    try {
+      final allTeams = await TeamService.fetchTeams();
+
+      final updated = allTeams.firstWhere(
+            (t) => t['teamId'] == team['teamId'],
+        orElse: () => null,
+      );
+
+      if (updated != null && mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => TeamDetailPage(team: updated),
+          ),
+        );
+      } else {
+        print("⚠️ 팀 정보 갱신 실패: teamId로 찾은 데이터 없음");
+      }
+    } catch (e) {
+      print("❌ 팀 정보 갱신 중 오류: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("팀 정보를 다시 불러오지 못했습니다.")),
+        );
+      }
+    }
+  }
+
+
+
 
 
   String getEnumLabel<T>(String? enumName, Map<T, String> enumMap) {
@@ -42,7 +76,6 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final team = widget.team;
     final String teamName = team['teamName'] ?? '팀 이름 없음';
     final String region = getEnumLabel(team['region'], regionEnumMap);
     final String teamCase = getEnumLabel(team['teamCase'], teamCaseEnumMap);
@@ -55,7 +88,6 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
     final int draws = team['drawCount'] ?? 0;
     final int losses = team['loseCount'] ?? 0;
     final int totalMembers = team['totalMembers'] ?? 0;
-
     final List<String> memberNames = List<String>.from(team['memberNames'] ?? []);
 
     return Scaffold(
@@ -65,40 +97,47 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
             ? [
           IconButton(
             icon: const Icon(Icons.edit),
-            onPressed: () {
-              // TODO: 수정 페이지 이동
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => TeamFormPage(initialData: team),
+                ),
+              );
+
+              if (result == 'update') {
+                await _refreshTeam();
+              }
             },
           ),
           IconButton(
             icon: const Icon(Icons.delete),
-              onPressed: () async {
-                final confirm = await showDialog<bool>(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text("삭제 확인"),
-                    content: const Text("정말로 이 팀을 삭제할까요?"),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(false),
-                        child: const Text("취소"),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(true),
-                        child: const Text("삭제"),
-                      ),
-                    ],
-                  ),
-                );
+            onPressed: () async {
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text("삭제 확인"),
+                  content: const Text("정말로 이 팀을 삭제할까요?"),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: const Text("취소"),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: const Text("삭제"),
+                    ),
+                  ],
+                ),
+              );
 
-                if (confirm == true) {
-                  await TeamService.deleteTeam(widget.team['teamId'].toString());
-
-                  if (mounted) {
-                    Navigator.pop(context, true);
-                  }
+              if (confirm == true) {
+                await TeamService.deleteTeam(team['teamId'].toString());
+                if (mounted) {
+                  Navigator.pop(context, 'updated');
                 }
               }
-
+            },
           ),
         ]
             : null,
@@ -113,7 +152,7 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
                 radius: 50,
                 backgroundColor: Colors.grey,
                 backgroundImage: team['teamImg'] != null && team['teamImg'].toString().isNotEmpty
-                    ? NetworkImage(TeamService.getFullTeamImageUrl(team['teamImg']))
+                    ? NetworkImage("${TeamService.getFullTeamImageUrl(team['teamImg'])}?v=\${DateTime.now().millisecondsSinceEpoch}")
                     : null,
                 child: team['teamImg'] == null || team['teamImg'].toString().isEmpty
                     ? const Icon(Icons.group, size: 40, color: Colors.white)
