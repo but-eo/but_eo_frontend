@@ -56,6 +56,46 @@ class _SignState extends State<Sign> {
   String _nickName = '';
 
   //유저 정보 전송(dio 활용)
+  // Future<void> registerUser(
+  //   String email,
+  //   String password,
+  //   String nickname,
+  //   String tel,
+  //   String sex,
+  //   String prefer,
+  //   String division,
+  //   String year,
+  //   String region,
+  // ) async {
+  //   final dio = Dio();
+  //   try {
+  //     final response = await dio.post(
+  //       "${ApiConstants.baseUrl}/users/register",
+
+  //       data: {
+  //         'email': email,
+  //         'password': password,
+  //         'name': nickname,
+  //         'tel': tel,
+  //         'gender': sex,
+  //         'preferSports': prefer,
+  //         'division': division,
+  //         'birthYear': year,
+  //         'region': region,
+  //       },
+  //     );
+  //     print('Response data : ${response.data}');
+  //     if (response.statusCode == 200) {
+  //       // String token =
+  //       //     response.data['accesstoken']; //백엔드에서 받을 토큰 data['token']에서 token은
+  //       //스프링에서 토큰을 저장한 변수명과 일치해야함
+  //       print('회원가입 성공');
+  //     }
+  //   } catch (e) {
+  //     print('회원가입 실패 : ${e}');
+  //   }
+  // }
+
   Future<void> registerUser(
     String email,
     String password,
@@ -71,7 +111,6 @@ class _SignState extends State<Sign> {
     try {
       final response = await dio.post(
         "${ApiConstants.baseUrl}/users/register",
-
         data: {
           'email': email,
           'password': password,
@@ -79,20 +118,27 @@ class _SignState extends State<Sign> {
           'tel': tel,
           'gender': sex,
           'preferSports': prefer,
-          'division' : division,
+          'division': division,
           'birthYear': year,
           'region': region,
         },
+        options: Options(
+          validateStatus: (status) => status! < 500, // 400번대도 에러 던지지 않고 반환
+        ),
       );
-      print('Response data : ${response.data}');
+
+      print('Status code: ${response.statusCode}');
+      print('Response data: ${response.data}');
+
       if (response.statusCode == 200) {
-        // String token =
-        //     response.data['accesstoken']; //백엔드에서 받을 토큰 data['token']에서 token은
-        //스프링에서 토큰을 저장한 변수명과 일치해야함
         print('회원가입 성공');
+      } else {
+        print('회원가입 실패: ${response.data}');
       }
+    } on DioException catch (e) {
+      print('DioException 발생: ${e.response?.data ?? e.message}');
     } catch (e) {
-      print('회원가입 실패 : ${e}');
+      print('회원가입 실패 (기타 에러): $e');
     }
   }
 
@@ -102,7 +148,7 @@ class _SignState extends State<Sign> {
       final response = await http.post(
         Uri.parse("${ApiConstants.baseUrl}/users/check_email"),
         headers: {'Content-Type': 'application/json'},
-        
+
         body: jsonEncode({'email': email}),
       );
 
@@ -121,6 +167,64 @@ class _SignState extends State<Sign> {
       // 예외 처리: 네트워크 오류나 JSON 파싱 오류 등
       print("Error checking email: $e");
       throw Exception('이메일 중복 확인 실패: $e');
+    }
+  }
+
+  //이메일 인증번호 요청
+  bool requestCode = false;
+  Future<void> requestEmail(String email) async {
+    try {
+      final response = await http.post(
+        Uri.parse("${ApiConstants.baseUrl}/users/send-verification"),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email}),
+      );
+
+      if (response.statusCode == 200) {
+        // 서버 응답이 정상일 때
+        setState(() {
+          requestCode = true;
+        });
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('인증번호가 이메일로 전송되었습니다.')));
+      } else {
+        print("서버 오류: ${response.statusCode}");
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('서버 오류가 발생했습니다. 다시 시도해주세요.')));
+      }
+    } catch (e) {
+      throw Exception('인증번호 요청 실패: $e');
+    }
+  }
+
+  //인증번호 확인
+  bool verifyCheck = false;
+  Future<void> verifyCode(String email, String code) async {
+    try {
+      final response = await http.post(
+        Uri.parse("${ApiConstants.baseUrl}/users/verify-code"),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'code': code}),
+      );
+
+      if (response.statusCode == 200) {
+        // 서버 응답이 정상일 때
+        setState(() {
+          verifyCheck = true;
+        });
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('인증번호가 확인되었습니다.')));
+      } else {
+        print("서버 오류: ${response.statusCode}");
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('인증번호가 일치하지 않습니다.')));
+      }
+    } catch (e) {
+      throw Exception('인증번호 확인 실패: $e');
     }
   }
 
@@ -223,33 +327,122 @@ class _SignState extends State<Sign> {
                         ),
                       ),
                       SizedBox(height: size.height * 0.01),
-                      TextFormField(
-                        keyboardType: TextInputType.emailAddress,
-                        style: TextStyle(color: kLightTextColor),
-                        decoration: InputDecoration(
-                          hintText: "이메일을 입력하세요",
-                          prefixIcon: IconButton(
-                            onPressed: null,
-                            icon: SvgPicture.asset(userIcon),
+                      Row(
+                        children: [
+                          Flexible(
+                            child: TextFormField(
+                              keyboardType: TextInputType.emailAddress,
+                              style: TextStyle(color: kLightTextColor),
+                              decoration: InputDecoration(
+                                hintText: "이메일을 입력하세요",
+                                prefixIcon: IconButton(
+                                  onPressed: null,
+                                  icon: SvgPicture.asset(userIcon),
+                                ),
+                              ),
+                              validator: (value) {
+                                _email = value!;
+                                if (value.isEmpty) {
+                                  return '이메일을 입력하세요.';
+                                } else if (!RegExp(
+                                  //이메일 검증
+                                  r'^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z0-9-.]+$',
+                                ).hasMatch(_email)) {
+                                  return "이메일의 형태가 올바르지 않습니다";
+                                } else {
+                                  return null;
+                                }
+                              },
+                              onChanged: (value) {
+                                //폼 필드 값을 직접 변수에 저장하는 콜백 함수
+                                _email = value!;
+                              },
+                            ),
                           ),
-                        ),
-                        validator: (value) {
-                          _email = value!;
-                          if (value.isEmpty) {
-                            return '이메일을 입력하세요.';
-                          } else if (!RegExp(
-                            //이메일 검증
-                            r'^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z0-9-.]+$',
-                          ).hasMatch(_email)) {
-                            return "이메일의 형태가 올바르지 않습니다";
-                          } else {
-                            return null;
-                          }
-                        },
-                        onSaved: (value) {
-                          //폼 필드 값을 직접 변수에 저장하는 콜백 함수
-                          _email = value!;
-                        },
+                          SizedBox(width: 10),
+                          SizedBox(
+                            // 🚀 ElevatedButton 크기 제한 추가
+                            width: 100, // 적절한 너비 설정
+                            height: 60, // 적절한 높이 설정
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                //TODO : 인증번호 전송 메소드 호출
+                                print("전송할 이메일 : $_email");
+                                bool check = await checkEmail(_email);
+                                if (!check)
+                                  await requestEmail(_email);
+                                else {
+                                  showDialog(
+                                    context: context,
+                                    builder:
+                                        (_) => AlertDialog(
+                                          title: Text("중복된 이메일"),
+                                          content: Text("이미 등록된 이메일입니다."),
+                                          actions: [
+                                            TextButton(
+                                              onPressed:
+                                                  () => Navigator.pop(context),
+                                              child: Text("확인"),
+                                            ),
+                                          ],
+                                        ),
+                                  );
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white, // 배경색을 빨간색으로 설정
+                                foregroundColor: Colors.black, // 텍스트 색을 흰색으로 설정
+                              ).copyWith(
+                                side: WidgetStateProperty.all(
+                                  //테두리
+                                  BorderSide(color: Colors.black, width: 1),
+                                ),
+                              ),
+                              child: Text("전송", style: TextStyle(fontSize: 18)),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: size.height * 0.03),
+                      Row(
+                        children: [
+                          Flexible(
+                            // 🚀 TextFormField의 크기를 유동적으로 변경
+                            child: TextFormField(
+                              controller: confirmController,
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                ),
+                                hintText: "인증번호 6자리를 입력해주세요.",
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          SizedBox(
+                            // 🚀 ElevatedButton 크기 제한 추가
+                            width: 100, // 적절한 너비 설정
+                            height: 50, // 적절한 높이 설정
+                            child: ElevatedButton(
+                              onPressed: () {
+                                // 인증번호 확인 메소드 호출 및 응답
+                                verifyCode(_email, confirmController.text);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white, // 배경색을 빨간색으로 설정
+                                foregroundColor: Colors.black, // 텍스트 색을 흰색으로 설정
+                              ).copyWith(
+                                side: WidgetStateProperty.all(
+                                  //테두리리
+                                  BorderSide(color: Colors.black, width: 1),
+                                ),
+                              ),
+                              child: Text("확인", style: TextStyle(fontSize: 18)),
+                            ),
+                          ),
+                        ],
                       ),
                       SizedBox(height: size.height * 0.016),
                       RichText(
@@ -402,7 +595,7 @@ class _SignState extends State<Sign> {
                         text: TextSpan(
                           children: [
                             TextSpan(
-                              text: '전화번호 인증',
+                              text: '휴대전화번호',
                               style: TextStyle(
                                 color: kBlackColor,
                                 fontSize: 12,
@@ -438,75 +631,75 @@ class _SignState extends State<Sign> {
                               ),
                             ),
                           ),
-                          SizedBox(width: 10),
-                          SizedBox(
-                            // 🚀 ElevatedButton 크기 제한 추가
-                            width: 100, // 적절한 너비 설정
-                            height: 50, // 적절한 높이 설정
-                            child: ElevatedButton(
-                              onPressed: () async {
-                                //TODO : 인증번호 전송
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white, // 배경색을 빨간색으로 설정
-                                foregroundColor: Colors.black, // 텍스트 색을 흰색으로 설정
-                              ).copyWith(
-                                side: WidgetStateProperty.all(
-                                  //테두리
-                                  BorderSide(color: Colors.black, width: 1),
-                                ),
-                              ),
-                              child: Text("전송", style: TextStyle(fontSize: 18)),
-                            ),
-                          ),
+                          // SizedBox(width: 10),
+                          // SizedBox(
+                          //   // 🚀 ElevatedButton 크기 제한 추가
+                          //   width: 100, // 적절한 너비 설정
+                          //   height: 50, // 적절한 높이 설정
+                          //   child: ElevatedButton(
+                          //     onPressed: () async {
+                          //       //TODO : 인증번호 전송
+                          //     },
+                          //     style: ElevatedButton.styleFrom(
+                          //       backgroundColor: Colors.white, // 배경색을 빨간색으로 설정
+                          //       foregroundColor: Colors.black, // 텍스트 색을 흰색으로 설정
+                          //     ).copyWith(
+                          //       side: WidgetStateProperty.all(
+                          //         //테두리
+                          //         BorderSide(color: Colors.black, width: 1),
+                          //       ),
+                          //     ),
+                          //     child: Text("전송", style: TextStyle(fontSize: 18)),
+                          //   ),
+                          // ),
                         ],
                       ),
 
-                      SizedBox(height: size.height * 0.03),
-                      Row(
-                        children: [
-                          Flexible(
-                            // 🚀 TextFormField의 크기를 유동적으로 변경
-                            child: TextFormField(
-                              controller: confirmController,
-                              keyboardType: TextInputType.number,
-                              decoration: InputDecoration(
-                                contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                ),
-                                hintText: "인증번호 6자리를 입력해주세요.",
-                                border: OutlineInputBorder(),
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: 10),
-                          SizedBox(
-                            // 🚀 ElevatedButton 크기 제한 추가
-                            width: 100, // 적절한 너비 설정
-                            height: 50, // 적절한 높이 설정
-                            child: ElevatedButton(
-                              onPressed: () {
-                                // 인증번호 확인 로직
-                                // PhoneAuthCredential phoneAuthCredential =
-                                //   PhoneAuthProvider.credential(
-                                //       verificationId: verificationId, smsCode: confirmController.text);
+                      // SizedBox(height: size.height * 0.03),
+                      // Row(
+                      //   children: [
+                      //     Flexible(
+                      //       // 🚀 TextFormField의 크기를 유동적으로 변경
+                      //       child: TextFormField(
+                      //         controller: confirmController,
+                      //         keyboardType: TextInputType.number,
+                      //         decoration: InputDecoration(
+                      //           contentPadding: EdgeInsets.symmetric(
+                      //             horizontal: 10,
+                      //           ),
+                      //           hintText: "인증번호 6자리를 입력해주세요.",
+                      //           border: OutlineInputBorder(),
+                      //         ),
+                      //       ),
+                      //     ),
+                      //     SizedBox(width: 10),
+                      //     SizedBox(
+                      //       // 🚀 ElevatedButton 크기 제한 추가
+                      //       width: 100, // 적절한 너비 설정
+                      //       height: 50, // 적절한 높이 설정
+                      //       child: ElevatedButton(
+                      //         onPressed: () {
+                      //           // 인증번호 확인 로직
+                      //           // PhoneAuthCredential phoneAuthCredential =
+                      //           //   PhoneAuthProvider.credential(
+                      //           //       verificationId: verificationId, smsCode: confirmController.text);
 
-                                //   signInWithPhoneAuthCredential(phoneAuthCredential);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white, // 배경색을 빨간색으로 설정
-                                foregroundColor: Colors.black, // 텍스트 색을 흰색으로 설정
-                              ).copyWith(
-                                side: WidgetStateProperty.all(
-                                  //테두리리
-                                  BorderSide(color: Colors.black, width: 1),
-                                ),
-                              ),
-                              child: Text("확인", style: TextStyle(fontSize: 18)),
-                            ),
-                          ),
-                        ],
-                      ),
+                      //           //   signInWithPhoneAuthCredential(phoneAuthCredential);
+                      //         },
+                      //         style: ElevatedButton.styleFrom(
+                      //           backgroundColor: Colors.white, // 배경색을 빨간색으로 설정
+                      //           foregroundColor: Colors.black, // 텍스트 색을 흰색으로 설정
+                      //         ).copyWith(
+                      //           side: WidgetStateProperty.all(
+                      //             //테두리리
+                      //             BorderSide(color: Colors.black, width: 1),
+                      //           ),
+                      //         ),
+                      //         child: Text("확인", style: TextStyle(fontSize: 18)),
+                      //       ),
+                      //     ),
+                      //   ],
+                      // ),
 
                       //드롭다운
                       SizedBox(height: size.height * 0.03),
@@ -611,7 +804,6 @@ class _SignState extends State<Sign> {
                           ],
                         ),
                       ),
-
 
                       SizedBox(height: size.height * 0.01),
                       Container(
@@ -849,7 +1041,9 @@ class _SignState extends State<Sign> {
                   //누르면 뒤에 그림자가 생기는 버튼
                   onPressed: () async {
                     //TODO : 인증번호 확인도 하긴 해야함
-                    if (_formKey.currentState!.validate()) {
+                    if (_formKey.currentState!.validate() &&
+                        requestCode == true &&
+                        verifyCheck == true) {
                       _formKey.currentState!.save(); //입력 데이터 저장
 
                       if (_password != _confirmPassword) {
