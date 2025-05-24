@@ -128,22 +128,19 @@ class TeamService {
 
 
   /// 팀 목록 조회
-  static Future<List<dynamic>> fetchTeams({
-    String? region,
-    String? event,
-  }) async {
+  static Future<List<dynamic>> fetchTeams() async {
     try {
+      final token = await TokenStorage.getAccessToken();
+
       final dio = Dio();
       final res = await dio.get(
         '${ApiConstants.baseUrl}/teams',
-        queryParameters: {
-          if (region != null && region != "전체") 'region': region,
-          if (event != null && event != "전체") 'event': event,
-        },
+        options: Options(headers: {
+          'Authorization': 'Bearer $token',
+        }),
       );
 
       if (res.statusCode == 200) {
-        //print("📦 전체 팀 데이터: ${res.data}");
         return res.data as List<dynamic>;
       } else {
         print("불러오기 실패: ${res.statusCode}");
@@ -154,6 +151,8 @@ class TeamService {
       return [];
     }
   }
+
+
 
   /// 팀 이미지 URL 조립
   static String getFullTeamImageUrl(String? path) {

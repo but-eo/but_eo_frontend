@@ -24,7 +24,8 @@ class TeamSearchPageState extends State<TeamSearchPage> {
 
   String selectedRegion = "전체";
   String selectedSport = "전체";
-  List<dynamic> teams = [];
+  List<dynamic> allTeams = []; // 전체 목록
+  List<dynamic> teams = [];    // 필터링된 목록
   bool isLoading = false;
 
   @override
@@ -36,16 +37,26 @@ class TeamSearchPageState extends State<TeamSearchPage> {
   Future<void> fetchTeams() async {
     setState(() => isLoading = true);
     try {
-      final result = await TeamService.fetchTeams(
-        region: selectedRegion != "전체" ? reverseRegionEnumMap[selectedRegion] : null,
-        event: selectedSport != "전체" ? reverseEventEnumMap[selectedSport] : null,
-      );
-      setState(() => teams = result);
+      final result = await TeamService.fetchTeams();
+      allTeams = result;
+      applyFilters(); // 필터 적용
     } catch (e) {
       print("팀 조회 실패: $e");
     } finally {
       setState(() => isLoading = false);
     }
+  }
+
+  void applyFilters() {
+    setState(() {
+      teams = allTeams.where((team) {
+        final regionMatch = selectedRegion == "전체" ||
+            team['region']?.toString().toUpperCase() == reverseRegionEnumMap[selectedRegion];
+        final eventMatch = selectedSport == "전체" ||
+            team['event']?.toString().toUpperCase() == reverseEventEnumMap[selectedSport];
+        return regionMatch && eventMatch;
+      }).toList();
+    });
   }
 
   String getEnumLabel<T>(String? enumName, Map<T, String> enumMap) {
@@ -81,7 +92,7 @@ class TeamSearchPageState extends State<TeamSearchPage> {
                     selected: isSelected,
                     onSelected: (_) {
                       setState(() => selectedRegion = region);
-                      fetchTeams();
+                      applyFilters();
                     },
                     selectedColor: Colors.orange,
                   ),
@@ -105,7 +116,7 @@ class TeamSearchPageState extends State<TeamSearchPage> {
                     selected: isSelected,
                     onSelected: (_) {
                       setState(() => selectedSport = sport);
-                      fetchTeams();
+                      applyFilters();
                     },
                     selectedColor: Colors.grey[700],
                     labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black),
