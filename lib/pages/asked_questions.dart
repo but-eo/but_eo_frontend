@@ -1,39 +1,52 @@
 import 'package:flutter/material.dart';
-import 'FAQDetailPage.dart'; // 반드시 lib/pages/FAQDetailPage.dart에 따로 만들어주세요
+import 'FAQDetailPage.dart'; // FAQDetailPage는 이미 생성되어 있다고 가정합니다.
 
 class AskedQuestions extends StatelessWidget {
   const AskedQuestions({super.key});
 
+  // 색상 변수를 build 메소드 안으로 이동하거나, 아래처럼 클래스 멤버로 두되 final을 제거합니다.
+  // StatelessWidget에서는 build 메소드 안에 지역 변수로 두는 것이 더 일반적입니다.
+  // final Color _scaffoldBgColor = Colors.grey.shade200; // 이렇게 직접 초기화 X
+  // final Color _cardBgColor = Colors.white;
+  // final Color _appBarBgColor = Colors.white;
+  // final Color _primaryTextColor = Colors.black87;
+  // final Color _secondaryTextColor = Colors.grey.shade700;
+
   @override
   Widget build(BuildContext context) {
+    // 색상 정의를 build 메소드 내부로 이동
+    final Color scaffoldBgColor = Colors.grey.shade200;
+    final Color cardBgColor = Colors.white;
+    final Color appBarBgColor = Colors.white;
+    final Color primaryTextColor = Colors.black87;
+    final Color secondaryTextColor = Colors.grey.shade700;
+
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: scaffoldBgColor, // 수정된 변수 사용
       appBar: AppBar(
-        title: const Text('자주 묻는 질문', style: TextStyle(color: Colors.black)),
-        backgroundColor: Colors.white,
+        title: Text('자주 묻는 질문', style: TextStyle(color: primaryTextColor, fontWeight: FontWeight.bold)),
+        backgroundColor: appBarBgColor, // 수정된 변수 사용
         elevation: 0.5,
-        iconTheme: const IconThemeData(color: Colors.black),
+        iconTheme: IconThemeData(color: primaryTextColor),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: dummyInquiries.length,
         itemBuilder: (context, index) {
           final inquiry = dummyInquiries[index];
-          return Container(
+          return Card(
             margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white,
+            elevation: 1.0,
+            color: cardBgColor, // 수정된 변수 사용
+            shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 5,
-                  offset: const Offset(0, 2),
-                ),
-              ],
             ),
             child: InkWell(
+              borderRadius: BorderRadius.circular(12),
               onTap: () {
                 Navigator.push(
                   context,
@@ -42,32 +55,39 @@ class AskedQuestions extends StatelessWidget {
                   ),
                 );
               },
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          inquiry['title']!,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            inquiry['title']!,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                              color: primaryTextColor, // 수정된 변수 사용
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          inquiry['content']!,
-                          style: const TextStyle(color: Colors.black54, fontSize: 13),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
+                          const SizedBox(height: 6),
+                          Text(
+                            inquiry['content']!,
+                            style: TextStyle(color: secondaryTextColor, fontSize: 14), // 수정된 변수 사용
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const Icon(Icons.chevron_right, color: Colors.grey),
-                ],
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8.0, top: 2.0),
+                      child: Icon(Icons.chevron_right, color: Colors.grey.shade400),
+                    ),
+                  ],
+                ),
               ),
             ),
           );
@@ -77,7 +97,7 @@ class AskedQuestions extends StatelessWidget {
   }
 }
 
-// 자주 묻는 질문 더미 데이터
+// 자주 묻는 질문 더미 데이터 (기존 코드 유지)
 final List<Map<String, String>> dummyInquiries = [
   {
     'title': '매칭이 잡히지 않아요',
