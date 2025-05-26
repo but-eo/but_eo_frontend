@@ -1,7 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:project/contants/api_contants.dart';
+import 'package:project/pages/match/fetchMatch.dart';
 import 'package:project/pages/match/matching.dart';
+import 'package:project/pages/match/matching_data.dart';
+import 'package:project/utils/token_storage.dart';
 import 'package:project/widgets/matchingCard.dart';
 import 'package:table_calendar/table_calendar.dart';
 
@@ -25,14 +28,62 @@ class _MatchpageState extends State<Matchpage> {
     "볼링",
   ];
 
+  //날짜 필터링
+
+  List<MatchingData> allMatchCards = [];
+  List<MatchingData> filterMatchCards = [];
+
+  void _onDaySelected(DateTime selectedDay, DateTime focusDay) {
+    setState(() {
+      _selectedDay = selectedDay;
+      _focusedDay = focusDay;
+
+      filterMatchCards =
+          allMatchCards.where((match) {
+            // 날짜만 비교 (시/분/초 제외)
+            return isSameDay(match.matchDay, selectedDay);
+          }).toList();
+    });
+  }
+
+  Future<void> fetchMatchCards() async {
+    try {
+      final data = await fetchMatchCardsFromServer(); // 서버 요청 함수
+      setState(() {
+        allMatchCards = data;
+        // 초기에는 오늘 날짜 기준 필터링
+        filterMatchCards =
+            data
+                .where((match) => isSameDay(match.matchDay, DateTime.now()))
+                .toList();
+      });
+    } catch (e) {
+      print("에러: $e");
+    }
+  }
+
+  Future<void> fetchUserTeam() async {
+    final token = await TokenStorage.getAccessToken();
+    final dio = Dio();
+    try {
+      final response = await dio.get(
+        //팀 정보 불러오기(리더인지 아닌지 구별은 -> 백엔드)
+        "${ApiConstants.baseUrl}/users/me",
+        options: Options(headers: {"Authorization": "Bearer $token"}),
+      );
+      if (response.statusCode == 200) {
+        print("로그인 유저 팀조회 성공: ${response.data}");
+        //TODO
+      }
+    } catch (e) {}
+  }
+
   String selectedRegion = "전체";
   String selectedSport = "전체";
 
   CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
-
-  
 
   @override
   Widget build(BuildContext context) {
@@ -156,11 +207,13 @@ class _MatchpageState extends State<Matchpage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
+                  onPressed: () async {
+                    await Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => Matching()),
                     );
+                    fetchMatchCards();
+                    fetchUserTeam();
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white, // 배경색을 빨간색으로 설정
@@ -190,15 +243,25 @@ class _MatchpageState extends State<Matchpage> {
               ],
             ),
             SizedBox(height: 10.0),
-            Column(
-              children: [
-                Matchingcard(
-                  teamImage: "teamImage",
-                  teamName: "teamName",
-                  rating: 1000,
-                  matchDay: DateTime.now(),
-                ),
-              ],
+            ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: filterMatchCards.length,
+              itemBuilder: (context, index) {
+                final data = filterMatchCards[index];
+                return Align(
+                  alignment: Alignment.center,
+                  child: Padding(
+                    padding: EdgeInsets.only(top: index == 0 ? 0 : 16.0),
+                    child: Matchingcard(
+                      teamImage: data.teamImage,
+                      teamName: data.teamName,
+                      rating: data.rating,
+                      matchDay: data.matchDay,
+                    ),
+                  ),
+                );
+              },
             ),
           ],
         ),
@@ -206,3 +269,4 @@ class _MatchpageState extends State<Matchpage> {
     );
   }
 }
+//TODO: 팀 조회해서 매칭 등록 요청을 읽어서 -> 매칭카드 생성

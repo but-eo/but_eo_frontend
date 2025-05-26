@@ -4,6 +4,7 @@ import 'dart:ffi';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:project/utils/token_storage.dart';
 import '../../src/locations.dart' as locations;
 import 'package:http/http.dart' as http;
 import 'package:project/contants/api_contants.dart';
@@ -41,6 +42,8 @@ class _MatchingState extends State<Matching> {
   LatLng? searchedLatLng;
 
   bool isLoading = false;
+
+  //항상 최신 정보를 유지하고 싶으면 Navigator를 써야함
 
   @override
   void dispose() {
@@ -138,7 +141,7 @@ class _MatchingState extends State<Matching> {
     }
   }
 
-  //매치 생성
+  //매치 생성(서버 요청)
   Future<void> createMatch(
     String teamName,
     String type,
@@ -153,7 +156,7 @@ class _MatchingState extends State<Matching> {
     try {
       final response = await dio.post(
         "${ApiConstants.baseUrl}/api/matchings/create",
-      
+
         data: {
           'teamName': teamName,
           'matchType': type,
@@ -176,17 +179,17 @@ class _MatchingState extends State<Matching> {
   }
 
   void showFailSnackBar() {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text('매치 생성에 실패했습니다. 다시 시도해주세요.'),
-      backgroundColor: Colors.red,
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      margin: EdgeInsets.only(bottom: 30, left: 16, right: 16),
-      duration: Duration(seconds: 3),
-    ),
-  );
-}
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('매치 생성에 실패했습니다. 다시 시도해주세요.'),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        margin: EdgeInsets.only(bottom: 30, left: 16, right: 16),
+        duration: Duration(seconds: 3),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -237,7 +240,7 @@ class _MatchingState extends State<Matching> {
                 ),
                 SizedBox(height: 16),
 
-                // 📅 날짜 선택
+                //날짜 선택
                 Text("날짜 선택", style: TextStyle(fontWeight: FontWeight.bold)),
                 ElevatedButton(
                   onPressed: () async {
@@ -262,7 +265,7 @@ class _MatchingState extends State<Matching> {
                 // 지도(위치 선택)
                 SizedBox(height: 16.0),
 
-                // 🕒 시간 선택
+                //시간 선택
                 Text("시간 선택", style: TextStyle(fontWeight: FontWeight.bold)),
                 ElevatedButton(
                   onPressed: () async {
@@ -307,7 +310,7 @@ class _MatchingState extends State<Matching> {
 
                 SizedBox(height: 16.0),
 
-                // 🕒 시간 선택
+                //시간 선택
                 Text("장소 선택", style: TextStyle(fontWeight: FontWeight.bold)),
                 Row(
                   children: [
@@ -409,7 +412,6 @@ class _MatchingState extends State<Matching> {
                         setState(() {
                           isLoading = false;
                         });
-
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text("모든 필드를 입력해주세요.")),
