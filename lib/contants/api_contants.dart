@@ -8,8 +8,8 @@ class ApiConstants {
   static const String webSocketUrl = 'http://172.18.5.99';
   static const String webSocketConnectUrl = 'http://172.18.5.99:714';
   static const String imageBaseUrl = 'http://172.18.5.99:714';
+
   static const String googleApiKey = 'AIzaSyAsOKamrB2H8YIMFLEWMHHQb68HHRwhGfo';
-  
 
   // 맥북 ip 명령어 ipconfig getifaddr en0
   //192.168.0.150

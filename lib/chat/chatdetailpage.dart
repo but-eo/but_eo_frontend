@@ -134,7 +134,10 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
       };
 
       setState(() {
-        messages.insert(0,localMsg,); // insert at the beginning since ListView is reversed
+        messages.insert(
+          0,
+          localMsg,
+        ); // insert at the beginning since ListView is reversed
       });
       stompClient!.send(
         destination: '/app/chat/message',
