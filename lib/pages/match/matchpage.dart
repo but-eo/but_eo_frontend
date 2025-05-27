@@ -62,20 +62,23 @@ class _MatchpageState extends State<Matchpage> {
     }
   }
 
+  //리더인 팀 조회
   Future<void> fetchUserTeam() async {
     final token = await TokenStorage.getAccessToken();
     final dio = Dio();
     try {
       final response = await dio.get(
         //팀 정보 불러오기(리더인지 아닌지 구별은 -> 백엔드)
-        "${ApiConstants.baseUrl}/users/me",
+        "${ApiConstants.baseUrl}/teams/my-leader-teams",
         options: Options(headers: {"Authorization": "Bearer $token"}),
       );
       if (response.statusCode == 200) {
         print("로그인 유저 팀조회 성공: ${response.data}");
-        //TODO
+        return response.data;
       }
-    } catch (e) {}
+    } catch (e) {
+      print("팀조회 실패 ${e}");
+    }
   }
 
   String selectedRegion = "전체";
@@ -208,12 +211,12 @@ class _MatchpageState extends State<Matchpage> {
               children: [
                 ElevatedButton(
                   onPressed: () async {
+                    final myTeam = fetchUserTeam();
                     await Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => Matching()),
+                      MaterialPageRoute(builder: (context) => Matching(userTeam : myTeam)),
                     );
                     fetchMatchCards();
-                    fetchUserTeam();
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white, // 배경색을 빨간색으로 설정
