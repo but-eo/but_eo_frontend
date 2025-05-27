@@ -3,8 +3,24 @@ import 'package:flutter/material.dart';
 class NoticePage extends StatelessWidget {
   const NoticePage({super.key});
 
+  // 색상 변수를 build 메소드 안으로 이동하거나, 아래처럼 클래스 멤버로 두되 final을 제거합니다.
+  // final Color _scaffoldBgColor = Colors.grey.shade200;
+  // final Color _cardBgColor = Colors.white;
+  // final Color _appBarBgColor = Colors.white;
+  // final Color _primaryTextColor = Colors.black87;
+  // final Color _secondaryTextColor = Colors.grey.shade700;
+
+
   @override
   Widget build(BuildContext context) {
+    // 색상 정의를 build 메소드 내부로 이동
+    final Color scaffoldBgColor = Colors.grey.shade200;
+    final Color cardBgColor = Colors.white;
+    final Color appBarBgColor = Colors.white;
+    final Color primaryTextColor = Colors.black87;
+    final Color secondaryTextColor = Colors.grey.shade700;
+
+
     final List<Map<String, String>> notices = [
       {
         'title': '[안내] 5월 20일 서비스 점검 예정',
@@ -39,55 +55,68 @@ class NoticePage extends StatelessWidget {
     ];
 
     return Scaffold(
+      backgroundColor: scaffoldBgColor, // 수정된 변수 사용
       appBar: AppBar(
-        title: const Text('공지사항', style: TextStyle(color: Colors.black)),
-        backgroundColor: Colors.white,
-        iconTheme: const IconThemeData(color: Colors.black),
-        elevation: 0.3,
+        title: Text('공지사항', style: TextStyle(color: primaryTextColor, fontWeight: FontWeight.bold)),
+        backgroundColor: appBarBgColor, // 수정된 변수 사용
+        iconTheme: IconThemeData(color: primaryTextColor),
+        elevation: 0.5,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
-      backgroundColor: Colors.white,
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: notices.length,
         itemBuilder: (context, index) {
           final notice = notices[index];
-          return Container(
+          return Card(
             margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
+            elevation: 1.0,
+            color: cardBgColor, // 수정된 변수 사용
+            shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        notice['title']!,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          notice['title']!,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                            color: primaryTextColor, // 수정된 변수 사용
+                          ),
                         ),
                       ),
-                    ),
-                    Text(
-                      notice['date']!,
-                      style: const TextStyle(
-                        color: Colors.grey,
-                        fontSize: 12,
+                      const SizedBox(width: 8),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2.0),
+                        child: Text(
+                          notice['date']!,
+                          style: TextStyle(
+                            color: secondaryTextColor, // 수정된 변수 사용
+                            fontSize: 12,
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  notice['content']!,
-                  style: const TextStyle(fontSize: 14),
-                ),
-              ],
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    notice['content']!,
+                    style: TextStyle(fontSize: 14, color: primaryTextColor.withOpacity(0.8), height: 1.5), // 수정된 변수 사용
+                  ),
+                ],
+              ),
             ),
           );
         },
