@@ -128,13 +128,30 @@ class TeamService {
 
 
   /// 팀 목록 조회
-  static Future<List<dynamic>> fetchTeams() async {
+  static Future<List<dynamic>> fetchTeams({
+    String? region,
+    String? event,
+    String? teamType,
+    String? teamCase,
+    String? teamName,
+  }) async {
     try {
       final token = await TokenStorage.getAccessToken();
-
+      print("🟨 현재 토큰: $token");
+      print("🟥 토큰 만료 여부: ${token == null ? '없음' : '몰라'}");
       final dio = Dio();
+
+      final query = <String, dynamic>{
+        if (region != null) 'region': region,
+        if (event != null) 'event': event,
+        if (teamType != null) 'teamType': teamType,
+        if (teamCase != null) 'teamCase': teamCase,
+        if (teamName != null) 'teamName': teamName,
+      };
+
       final res = await dio.get(
         '${ApiConstants.baseUrl}/teams',
+        queryParameters: query,
         options: Options(headers: {
           'Authorization': 'Bearer $token',
         }),
@@ -151,6 +168,7 @@ class TeamService {
       return [];
     }
   }
+
 
 
 

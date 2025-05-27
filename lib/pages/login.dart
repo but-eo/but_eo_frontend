@@ -242,7 +242,6 @@ class _LoginState extends State<Login> {
                         // navigateToMainPage();
                       }
                     },
-
                     child: Text(
                       "로그인",
                       style: Theme.of(context).textTheme.titleMedium,

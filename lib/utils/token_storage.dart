@@ -6,6 +6,7 @@ class TokenStorage {
   static Future<void> saveTokens(String accessToken) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('accessToken', accessToken);
+    print("✅ accessToken 저장 완료: $accessToken");
 
     if (_isJwtFormat(accessToken)) {
       try{
