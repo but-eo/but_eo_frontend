@@ -1,3 +1,4 @@
+// project/pages/team/teamSearchPage.dart
 import 'package:flutter/material.dart';
 import 'package:project/pages/team/teamFormPage.dart';
 import 'package:project/service/teamService.dart';
@@ -31,19 +32,29 @@ class TeamSearchPageState extends State<TeamSearchPage> {
   @override
   void initState() {
     super.initState();
+    // 페이지 진입시 목록 호출
     fetchTeams();
   }
 
   Future<void> fetchTeams() async {
-    setState(() => isLoading = true);
+    if (mounted) {
+      setState(() => isLoading = true);
+    }
     try {
       final result = await TeamService.fetchTeams();
       allTeams = result;
-      applyFilters(); // 필터 적용
+      applyFilters(); // 팀 목록을 불러온 후 필터를 적용
     } catch (e) {
       print("팀 조회 실패: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("팀 목록을 불러오는데 실패했습니다: $e")),
+        );
+      }
     } finally {
-      setState(() => isLoading = false);
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
     }
   }
 
@@ -61,8 +72,9 @@ class TeamSearchPageState extends State<TeamSearchPage> {
 
   String getEnumLabel<T>(String? enumName, Map<T, String> enumMap) {
     try {
+      if (enumName == null) return "알 수 없음";
       final T enumValue = enumMap.keys.firstWhere(
-            (e) => e.toString().split('.').last.toUpperCase() == enumName?.toUpperCase(),
+            (e) => e.toString().split('.').last.toUpperCase() == enumName.toUpperCase(),
       );
       return enumMap[enumValue] ?? "알 수 없음";
     } catch (_) {
@@ -136,13 +148,17 @@ class TeamSearchPageState extends State<TeamSearchPage> {
                 const Text("팀명", style: TextStyle(fontWeight: FontWeight.bold)),
                 ElevatedButton(
                   onPressed: () async {
+                    // 팀 생성 페이지로 이동
                     final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (_) => const TeamFormPage(),
                       ),
                     );
-                    if (result == 'updated') fetchTeams();
+                    // 팀 생성시 화면 다시 구성
+                    if (result == 'update') {
+                      fetchTeams(); // 목록 재호출
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     shape: const CircleBorder(),
@@ -169,11 +185,12 @@ class TeamSearchPageState extends State<TeamSearchPage> {
                 final team = teams[index];
                 return ListTile(
                   leading: CircleAvatar(
-                    backgroundImage: team['teamImg'] != null && team['teamImg'] != ''
-                        ? NetworkImage(TeamService.getFullTeamImageUrl(team['teamImg']) + "?t=${DateTime.now().millisecondsSinceEpoch}")
+                    // 이미지 URL 갱신을 위해 캐시를 피하는 쿼리 파라미터 추가
+                    backgroundImage: team['teamImg'] != null && team['teamImg'].toString().isNotEmpty
+                        ? NetworkImage("${TeamService.getFullTeamImageUrl(team['teamImg'])}?v=${DateTime.now().millisecondsSinceEpoch}")
                         : null,
                     backgroundColor: Colors.grey,
-                    child: team['teamImg'] == null || team['teamImg'] == ''
+                    child: team['teamImg'] == null || team['teamImg'].toString().isEmpty
                         ? const Icon(Icons.group, color: Colors.white)
                         : null,
                   ),
@@ -184,13 +201,17 @@ class TeamSearchPageState extends State<TeamSearchPage> {
                         "${team['memberAge'] ?? '나이 미상'}대",
                   ),
                   onTap: () async {
+                    // 팀 상세 페이지로 이동
                     final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (_) => TeamDetailPage(team: team),
                       ),
                     );
-                    if (result == 'updated') fetchTeams();
+                    //수정 삭제시 화면 갱신
+                    if (result == 'update' || result == 'updated') {
+                      fetchTeams(); // 목록을 다시 불러옵니다.
+                    }
                   },
                 );
               },

@@ -4,7 +4,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:dio/dio.dart';
 import 'package:project/service/teamService.dart';
 import 'package:project/data/teamEnum.dart';
-import 'package:project/pages/team/teamDetailPage.dart';
 
 class TeamFormPage extends StatefulWidget {
   final Map<String, dynamic>? initialData;
@@ -49,16 +48,16 @@ class _TeamFormPageState extends State<TeamFormPage> {
     final caseStr = widget.initialData?['teamCase'];
     final ageVal = widget.initialData?['memberAge'];
 
-    selectedRegion = enumFromBackend(regionStr, Region.values);
-    selectedEvent = enumFromBackend(eventStr, Event.values);
-    selectedCase = enumFromBackend(caseStr, TeamCase.values);
+    selectedRegion = enumFromBackend(regionStr, Region.values) ?? Region.seoul;
+    selectedEvent = enumFromBackend(eventStr, Event.values) ?? Event.soccer;
+    selectedCase = enumFromBackend(caseStr, TeamCase.values) ?? TeamCase.club;
     selectedAgeGroup = AgeGroup.values.firstWhere(
           (e) => _ageGroupToInt(e) == ageVal,
       orElse: () => AgeGroup.twenties,
     );
 
     initialImageUrl = widget.initialData?['teamImg'] != null && widget.initialData!['teamImg'].toString().isNotEmpty
-        ? TeamService.getFullTeamImageUrl(widget.initialData!['teamImg'])
+        ? TeamService.getFullTeamImageUrl(widget.initialData!['teamImg']) + "?v=${DateTime.now().millisecondsSinceEpoch}"
         : null;
   }
 
@@ -88,28 +87,49 @@ class _TeamFormPageState extends State<TeamFormPage> {
       final teamDescription = _descriptionController.text;
 
       String? errorMessage;
+      // FormData는 수정 시에만 사용. 생성 시에는 TeamService.createTeam의 파라미터를 직접 사용
+      Map<String, dynamic> formMapForUpdate = {};
 
       if (isEdit) {
-        final formMap = {
-          'team_name': teamName,
-          'event': selectedEvent!.name.toUpperCase(),
-          'region': selectedRegion!.name.toUpperCase(),
-          'member_age': _ageGroupToInt(selectedAgeGroup!),
-          if (selectedCase != null) 'team_case': selectedCase!.name.toUpperCase(),
-          'team_description': teamDescription,
-        };
+        // 팀 수정 로직
+        final original = widget.initialData!;
 
-        if (imageFile != null) {
-          formMap['team_img'] = await MultipartFile.fromFile(imageFile!.path);
+        // 백엔드 DTO (UpdateTeamRequest) 필드명에 맞춰 키를 설정한거
+        // 변경된 값만 formMapForUpdate에 추가합니다.
+        if (teamName != original['teamName']) formMapForUpdate['teamName'] = teamName;
+        if (teamDescription != original['teamDescription']) formMapForUpdate['teamDescription'] = teamDescription;
+        if (selectedEvent!.name.toUpperCase() != original['event']) formMapForUpdate['event'] = selectedEvent!.name.toUpperCase();
+        if (selectedRegion!.name.toUpperCase() != original['region']) formMapForUpdate['region'] = selectedRegion!.name.toUpperCase();
+        if (selectedCase != null && selectedCase!.name.toUpperCase() != original['teamCase']) {
+          formMapForUpdate['teamCase'] = selectedCase!.name.toUpperCase();
+        }
+        if (_ageGroupToInt(selectedAgeGroup!) != original['memberAge']) {
+          formMapForUpdate['memberAge'] = _ageGroupToInt(selectedAgeGroup!);
         }
 
-        final formData = FormData.fromMap(formMap);
+        if (imageFile != null) {
+          formMapForUpdate['teamImg'] = await MultipartFile.fromFile(
+            imageFile!.path,
+            filename: imageFile!.path.split('/').last,
+          );
+        }
+
+        if (formMapForUpdate.isEmpty) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("변경된 내용이 없습니다.")),
+          );
+          return;
+        }
+
+        final formData = FormData.fromMap(formMapForUpdate);
 
         errorMessage = await TeamService.updateTeam(
-          teamId: widget.initialData!['teamId'],
+          teamId: original['teamId'],
           formData: formData,
         );
       } else {
+        // 팀 생성 로직 (FormData 사용하지 않고, TeamService.createTeam 파라미터에 직접 전달)
         errorMessage = await TeamService.createTeam(
           teamName: teamName,
           event: selectedEvent!.name.toUpperCase(),
@@ -117,7 +137,7 @@ class _TeamFormPageState extends State<TeamFormPage> {
           memberAge: _ageGroupToInt(selectedAgeGroup!),
           teamCase: selectedCase?.name.toUpperCase(),
           teamDescription: teamDescription,
-          teamImage: imageFile,
+          teamImage: imageFile, // File? 타입으로 바로 전달
         );
       }
 
@@ -127,21 +147,9 @@ class _TeamFormPageState extends State<TeamFormPage> {
         return;
       }
 
-      final allTeams = await TeamService.fetchTeams();
-      final targetTeam = allTeams.firstWhere(
-            (team) => team['teamId'] == widget.initialData?['teamId'] || team['teamName'] == teamName,
-        orElse: () => null,
-      );
-
       if (mounted) {
-        if (isEdit) {
-          Navigator.pop(context, 'update');
-        } else {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => TeamDetailPage(team: targetTeam)),
-          );
-        }
+        // 팀 생성/수정이 성공했음을 이전 페이지에 알리기 위해 'update' 문자열을 반환
+        Navigator.pop(context, 'update');
       }
     }
   }
