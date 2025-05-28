@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:project/model/board_model.dart';
 import 'package:project/pages/board/board_detail_page.dart';
-import 'package:project/service/board_api_service.dart';
+import 'package:project/pages/board/create_board_page.dart';
+import 'package:project/service/board_api_get_service.dart';
 
 class BoardPage extends StatelessWidget {
   final String event;
@@ -77,6 +78,16 @@ class BoardPage extends StatelessWidget {
             },
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => CreateBoardPage()),
+          );
+        },
+        child: Icon(Icons.edit),
+        tooltip: '게시글 작성',
       ),
     );
   }
