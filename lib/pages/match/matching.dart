@@ -11,7 +11,7 @@ import 'package:project/contants/api_contants.dart';
 import 'package:intl/intl.dart';
 
 class Matching extends StatefulWidget {
-  const Matching({super.key});
+  const Matching({super.key, required userTeam});
 
   @override
   State<Matching> createState() => _MatchingState();

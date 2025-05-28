@@ -98,7 +98,7 @@ class _ChatPageState extends State<ChatPage> {
                     children: [
                       SizedBox(height: 10.0),
                       Text(
-                        room['lastMessage'] ?? '안녕하세요',
+                        room['lastMessage'] ?? '',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(color: Colors.grey[700]),
@@ -107,19 +107,22 @@ class _ChatPageState extends State<ChatPage> {
                   ),
                   SizedBox(width: size.width * 0.5),
                   Text(
-                    (room['lastMessageTime']),
+                    (room['lastMessageTime'] ?? ''),
                     style: TextStyle(color: Colors.grey[500], fontSize: 12),
                   ),
                 ],
               ),
-              onTap: () {
+              onTap: () async{
                 print(room['lastMessageTime']);
-                Navigator.push(
+                final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => ChatDetailpage(chatRoom: room),
                   ),
                 );
+                if(result == 'refresh'){
+                  await loadChatRooms();
+                }
                 print("현재 접속 채팅방 :  ${room}");
               },
             );
@@ -229,14 +232,16 @@ class _ChatPageState extends State<ChatPage> {
                           chatRooms.add(room); // ✅ 리스트에 추가!
                         });
                         Navigator.pop(context);
-                        Navigator.push(
+                        final result = await Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder:
                                 (context) => ChatDetailpage(chatRoom: room),
                           ),
                         );
-                        loadChatRooms();
+                        if(result =='refresh'){
+                          await loadChatRooms();
+                        }
                       }
                     }
                   },

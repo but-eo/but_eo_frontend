@@ -46,7 +46,7 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
   //웹소켓 연결후 메세지 구독
   void onStompConnected(StompFrame frame) {
     stompClient!.subscribe(
-      destination: '/all/chatroom/${widget.chatRoom['roomId']}',
+      destination: '/all/chat/${widget.chatRoom['roomId']}',
       callback: (frame) {
         if (frame.body != null) {
           final newMsg = jsonDecode(frame.body!);
@@ -133,12 +133,12 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
         "nickName": userName,
       };
 
-      setState(() {
-        messages.insert(
-          0,
-          localMsg,
-        ); // insert at the beginning since ListView is reversed
-      });
+      // setState(() {
+      //   messages.insert(
+      //     0,
+      //     localMsg,
+      //   ); // insert at the beginning since ListView is reversed
+      // });
       stompClient!.send(
         destination: '/app/chat/message',
         body:
@@ -160,129 +160,138 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("채팅방", style: TextStyle(fontSize: 16)),
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (!didPop) {
+          Navigator.pop(context, 'refresh'); // refresh를 리턴하며 pop
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text("채팅방", style: TextStyle(fontSize: 16)),
 
-        actions: [
-          IconButton(onPressed: () {}, icon: const Icon(Icons.search)),
-          Builder(
-            builder:
-                (context) => IconButton(
-                  onPressed: () {
-                    Scaffold.of(context).openEndDrawer();
-                  },
-                  icon: const Icon(Icons.menu),
-                ),
-          ),
-        ],
-      ),
-      endDrawer: Drawer(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const DrawerHeader(
-              child: Text('채팅방 메뉴', style: TextStyle(fontSize: 18)),
-            ),
-            ListTile(
-              leading: const Icon(Icons.people),
-              title: const Text('참여자 목록'),
-              onTap: () {},
-            ),
-            ListTile(
-              leading: const Icon(Icons.exit_to_app),
-              title: const Text('채팅방 나가기'),
-              onTap: () {
-                //TODO: 채팅방 나가기 요청 보내기)
-              },
+          actions: [
+            IconButton(onPressed: () {}, icon: const Icon(Icons.search)),
+            Builder(
+              builder:
+                  (context) => IconButton(
+                    onPressed: () {
+                      Scaffold.of(context).openEndDrawer();
+                    },
+                    icon: const Icon(Icons.menu),
+                  ),
             ),
           ],
         ),
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              reverse: true,
-              itemCount: messages.length,
-              itemBuilder: (context, index) {
-                final message = messages[index];
-                final isMine = message['sender'] == userHashId; // 내 메시지인지 판별
-                print(
-                  'userHashId: $userHashId, message sender: ${message['sender']}',
-                );
-                return Align(
-                  alignment:
-                      isMine
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft, //내가 보낸 메세지면 오른쪽 배치, 아니면 왼쪽 배치
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 8,
-                      horizontal: 12,
-                    ),
-                    margin: const EdgeInsets.symmetric(
-                      vertical: 4,
-                      horizontal: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isMine ? Colors.blue[100] : Colors.grey[300],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      crossAxisAlignment:
-                          isMine
-                              ? CrossAxisAlignment.end
-                              : CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          message['nickName'] ?? "알 수 없음",
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
+        endDrawer: Drawer(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const DrawerHeader(
+                child: Text('채팅방 메뉴', style: TextStyle(fontSize: 18)),
+              ),
+              ListTile(
+                leading: const Icon(Icons.people),
+                title: const Text('참여자 목록'),
+                onTap: () {},
+              ),
+              ListTile(
+                leading: const Icon(Icons.exit_to_app),
+                title: const Text('채팅방 나가기'),
+                onTap: () {
+                  //TODO: 채팅방 나가기 요청 보내기)
+                },
+              ),
+            ],
+          ),
+        ),
+        body: Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                reverse: false,
+                itemCount: messages.length,
+                itemBuilder: (context, index) {
+                  final message = messages[index];
+                  final isMine = message['sender'] == userHashId; // 내 메시지인지 판별
+                  print(
+                    'userHashId: $userHashId, message sender: ${message['sender']}',
+                  );
+                  return Align(
+                    alignment:
+                        isMine
+                            ? Alignment.centerRight
+                            : Alignment
+                                .centerLeft, //내가 보낸 메세지면 오른쪽 배치, 아니면 왼쪽 배치
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 8,
+                        horizontal: 12,
+                      ),
+                      margin: const EdgeInsets.symmetric(
+                        vertical: 4,
+                        horizontal: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isMine ? Colors.blue[100] : Colors.grey[300],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment:
+                            isMine
+                                ? CrossAxisAlignment.end
+                                : CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            message['nickName'] ?? "알 수 없음",
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          message['message'] ?? '',
-                          style: const TextStyle(fontSize: 14),
-                        ),
-                      ],
+                          const SizedBox(height: 4),
+                          Text(
+                            message['message'] ?? '',
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: messageController,
+                      decoration: InputDecoration(hintText: "메시지 입력"),
                     ),
                   ),
-                );
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: messageController,
-                    decoration: InputDecoration(hintText: "메시지 입력"),
+                  IconButton(
+                    icon: Icon(Icons.send),
+                    onPressed: () async {
+                      if (messageController.text.isNotEmpty) {
+                        print(
+                          "메세지 전송 : ${widget.chatRoom['roomId'].toString()} , ${messageController.text}",
+                        );
+                        await sendMessage(
+                          widget.chatRoom['roomId'].toString(),
+                          userHashId,
+                          messageController.text,
+                        );
+                      }
+                    },
                   ),
-                ),
-                IconButton(
-                  icon: Icon(Icons.send),
-                  onPressed: () {
-                    if (messageController.text.isNotEmpty) {
-                      print(
-                        "메세지 전송 : ${widget.chatRoom['roomId'].toString()} , ${messageController.text}",
-                      );
-                      sendMessage(
-                        widget.chatRoom['roomId'].toString(),
-                        userHashId,
-                        messageController.text,
-                      );
-                    }
-                  },
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
