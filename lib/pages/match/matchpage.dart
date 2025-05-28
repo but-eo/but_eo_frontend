@@ -4,6 +4,7 @@ import 'package:project/contants/api_contants.dart';
 import 'package:project/pages/match/fetchMatch.dart';
 import 'package:project/pages/match/matching.dart';
 import 'package:project/pages/match/matching_data.dart';
+import 'package:project/pages/stadium/stadiumSearchPage.dart';
 import 'package:project/utils/token_storage.dart';
 import 'package:project/widgets/matchingCard.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -245,6 +246,19 @@ class _MatchpageState extends State<Matchpage> {
                 ),
               ],
             ),
+            SizedBox(height: 30.0),
+            ElevatedButton(
+                onPressed: ()  {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const StadiumSearchPage()),
+                  );
+            },
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                ),
+                child: Text("경기장 찾기")),
             SizedBox(height: 10.0),
             ListView.builder(
               shrinkWrap: true,
