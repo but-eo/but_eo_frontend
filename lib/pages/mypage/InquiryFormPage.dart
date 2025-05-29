@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'inquiry_service.dart';
 
 class InquiryFormPage extends StatefulWidget {

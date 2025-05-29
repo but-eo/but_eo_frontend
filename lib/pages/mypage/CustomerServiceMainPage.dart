@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:project/pages/InquiryFormPage.dart';
-import 'package:project/pages/asked_questions.dart';
+import 'package:project/pages/mypage/asked_questions.dart';
 import 'package:project/pages/NoticePage.dart';
-import 'InquiryMainPage.dart'; // 1:1 문의 목록 페이지
+
+import 'InquiryMainPage.dart';
 
 class CustomerServiceMainPage extends StatelessWidget {
   const CustomerServiceMainPage({super.key});

@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart'; // DioException을 사용하기 위해 추가
 import 'package:flutter/material.dart';
-import 'package:project/pages/InquiryFormPage.dart';
-import 'package:project/pages/InquiryDetailPage.dart'; // InquiryDetailPage 사용
 // inquiry_service.dart 파일의 실제 경로로 수정해야 합니다.
 // 예: import 'package:project/services/inquiry_service.dart';
+import 'InquiryDetailPage.dart';
+import 'InquiryFormPage.dart';
 import 'inquiry_service.dart';
 
 
