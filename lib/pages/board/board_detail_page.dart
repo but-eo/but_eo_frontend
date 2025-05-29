@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:project/model/board_detail_model.dart';
 import 'package:project/model/board_comment_model.dart';
-import 'package:project/service/board_api_service.dart';
+import 'package:project/service/board_api_get_service.dart';
 
 
 class BoardDetailPage extends StatelessWidget {

@@ -12,7 +12,6 @@ import 'package:project/pages/sign.dart';
 import 'package:project/pages/mainpage.dart';
 import 'package:project/utils/token_storage.dart';
 import 'package:project/widgets/login_button.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
 class Login extends StatefulWidget {

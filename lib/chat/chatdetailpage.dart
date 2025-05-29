@@ -23,6 +23,9 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
   String profileImageUrl = ""; //프로필 이미지
   String userHashId = "";
 
+  //채팅방 참여자 목록
+  List<Map<String, dynamic>> participants = [];
+
   @override
   void initState() {
     super.initState();
@@ -41,6 +44,7 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
       stompClient!.activate();
       loadMessages();
     });
+    fetchUsers(widget.chatRoom['roomId'].toString());
   }
 
   //웹소켓 연결후 메세지 구독
@@ -59,20 +63,6 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
     );
 
     print("채팅방 아이디 : ${widget.chatRoom['roomId']}");
-
-    //TODO: 알람
-    // stompClient!.subscribe(
-    //   destination: '/user/alram/${widget.chatRoom['roomId']}',
-    //   callback: (frame) {
-    //     if (frame.body != null) {
-    //       final msg = jsonDecode(frame.body!);
-    //       setState(() {
-    //         messages.add(msg); // 새 메시지만 추가
-    //       });
-    //     }
-    //   },
-
-    // );
   }
 
   Future<void> fetchUserInfo() async {
@@ -132,13 +122,6 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
         "message": text,
         "nickName": userName,
       };
-
-      // setState(() {
-      //   messages.insert(
-      //     0,
-      //     localMsg,
-      //   ); // insert at the beginning since ListView is reversed
-      // });
       stompClient!.send(
         destination: '/app/chat/message',
         body:
@@ -148,6 +131,53 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
       messageController.clear();
     } else {
       print('STOMP 연결되지 않음');
+    }
+  }
+
+  Future<bool> exitChatRoom(String chatRoomId) async {
+    try {
+      final dio = Dio();
+      final token = await TokenStorage.getAccessToken();
+      if (token == null || token.isEmpty) {
+        print("인증 토큰이 존재하지 않습니다.");
+        return false;
+        ;
+      }
+      final response = await dio.post(
+        "${ApiConstants.webSocketConnectUrl}/exit/ChatRoom/${chatRoomId}",
+        options: Options(headers: {"Authorization": "Bearer $token"}),
+      );
+      print("token : ${token}");
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        print("채팅방 나가기 성공!");
+        Navigator.pop(context);
+        return true;
+      } else {
+        print("채팅방 나가기 실패 - 상태 코드: ${response.statusCode}");
+        return false;
+      }
+    } catch (e) {
+      print("채팅방 나가기 실패 ${e}");
+      return false;
+    }
+  }
+
+  Future<void> fetchUsers(String chatRoomId) async {
+    try {
+      final dio = Dio();
+      final response = await dio.get(
+        "${ApiConstants.webSocketConnectUrl}/load/members/${chatRoomId}",
+      );
+      if (response.statusCode == 200) {
+        setState(() {
+          participants = List<Map<String, dynamic>>.from(response.data);
+          print("채팅방 유저 리스트 조회 성공: $participants");
+        });
+      } else {
+        print("채팅방 유저 리스트 조회 실패 : ${response.statusCode}");
+      }
+    } catch (e) {
+      print("채팅방 유저 리스트 조회 실패 : ${e}");
     }
   }
 
@@ -185,22 +215,64 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
           ],
         ),
         endDrawer: Drawer(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: ListView(
+            padding: EdgeInsets.zero,
             children: [
               const DrawerHeader(
                 child: Text('채팅방 메뉴', style: TextStyle(fontSize: 18)),
               ),
-              ListTile(
+              ExpansionTile(
                 leading: const Icon(Icons.people),
                 title: const Text('참여자 목록'),
-                onTap: () {},
+                children: <Widget>[
+                  // 각 참여자를 ListTile로 표시 (참여자가 항상 있다고 가정)
+                  ...participants.map((participant) {
+                    final String name =
+                        participant['nickName'] ?? '유저'; // 이름이 없을 경우 기본값 설정
+                    final String? profileImageUrl =
+                        participant['profile']; // 프로필 이미지 URL (nullable)
+                    return ListTile(
+                      leading: CircleAvatar(
+                        // profileImageUrl이 존재하면 NetworkImage를 사용하고,
+                        // 없으면 기본 아이콘이나 Asset 이미지를 사용합니다.
+                        backgroundImage:
+                            profileImageUrl != null &&
+                                    profileImageUrl.isNotEmpty
+                                ? NetworkImage(profileImageUrl)
+                                    as ImageProvider<Object>?
+                                : null, // profileImageUrl이 없으면 null로 설정
+                        child:
+                            profileImageUrl == null || profileImageUrl.isEmpty
+                                ? const Icon(
+                                  Icons.person,
+                                ) // 프로필 이미지가 없으면 기본 아이콘
+                                : null, // 이미지가 있으면 child는 null
+                      ),
+                      // title: 참여자의 이름을 표시합니다.
+                      title: Text(name),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 4.0,
+                      ),
+                    );
+                  }).toList(),
+                ],
               ),
               ListTile(
                 leading: const Icon(Icons.exit_to_app),
                 title: const Text('채팅방 나가기'),
-                onTap: () {
-                  //TODO: 채팅방 나가기 요청 보내기)
+                onTap: () async {
+                  final bool success = await exitChatRoom(
+                    widget.chatRoom['roomId'].toString(),
+                  );
+                  if (success) {
+                    Navigator.pop(context, 'refresh');
+                    print("채팅방 나가기 성공");
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('채팅방 나가기에 실패했습니다.')),
+                    );
+                  }
                 },
               ),
             ],
