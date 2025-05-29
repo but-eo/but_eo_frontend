@@ -7,7 +7,7 @@ import 'package:project/contants/api_contants.dart';
 import 'package:project/pages/Sign.dart';
 import 'package:project/pages/mainpage.dart';
 import 'package:project/pages/login.dart';
-import 'package:project/pages/myteam.dart';
+import 'package:project/pages/mypage/myteam.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 

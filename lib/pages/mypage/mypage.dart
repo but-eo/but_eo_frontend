@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 // 실제 프로젝트 경로에 맞게 아래 import 경로를 수정해주세요.
 import 'package:project/contants/api_contants.dart';
-import 'package:project/pages/myteam.dart';
+import 'package:project/pages/mypage/myteam.dart';
 import 'package:project/utils/token_storage.dart';
-import 'package:project/pages/EditProfilePage.dart';
-import 'package:project/pages/asked_questions.dart';
-import 'package:project/pages/CustomerServiceMainPage.dart';
+import 'package:project/pages/mypage/CustomerServiceMainPage.dart';
 import 'package:project/pages/NoticePage.dart';
+
+import 'EditProfilePage.dart';
+import 'asked_questions.dart';
 
 class MyPageScreen extends StatefulWidget {
   const MyPageScreen({super.key});

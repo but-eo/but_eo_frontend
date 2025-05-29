@@ -1,10 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:project/contants/api_contants.dart';
 import 'package:project/utils/token_storage.dart';
+
+import 'InquiryMainPage.dart';
 // Inquiry 모델이 정의된 파일의 실제 경로로 수정해주세요.
 // 예: import 'package:project/models/inquiry_model.dart';
 // 또는 InquiryMainPage.dart 에 있다면
-import 'package:project/pages/InquiryMainPage.dart';
 
 
 class InquiryApiService {

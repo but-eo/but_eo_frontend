@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:project/pages/InquiryMainPage.dart'; // Inquiry 모델 사용을 위해
+import 'InquiryMainPage.dart'; // Inquiry 모델 사용을 위해
 
 class InquiryDetailPage extends StatelessWidget {
   final Inquiry inquiry;
