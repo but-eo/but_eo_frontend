@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:project/pages/mypage/asked_questions.dart';
-import 'package:project/pages/NoticePage.dart';
 
 import 'InquiryMainPage.dart';
+import 'NoticePage.dart';
 
 class CustomerServiceMainPage extends StatelessWidget {
   const CustomerServiceMainPage({super.key});

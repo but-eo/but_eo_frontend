@@ -5,9 +5,9 @@ import 'package:project/contants/api_contants.dart';
 import 'package:project/pages/mypage/myteam.dart';
 import 'package:project/utils/token_storage.dart';
 import 'package:project/pages/mypage/CustomerServiceMainPage.dart';
-import 'package:project/pages/NoticePage.dart';
 
 import 'EditProfilePage.dart';
+import 'NoticePage.dart';
 import 'asked_questions.dart';
 
 class MyPageScreen extends StatefulWidget {
