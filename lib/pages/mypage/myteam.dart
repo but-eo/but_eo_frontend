@@ -7,11 +7,14 @@ import 'package:project/pages/team/teamFormPage.dart';
 import 'package:project/pages/team/teamSearchPage.dart';
 import 'package:project/service/teamService.dart';
 import 'package:project/utils/token_storage.dart';
-// teamEnum.dart는 TeamService 내에서 label 변환 함수들이 사용하므로,
-// myteam.dart에서 직접 사용할 필요는 없지만 TeamService에서는 import 되어야 합니다.
 
 class MyTeamPage extends StatefulWidget {
-  const MyTeamPage({super.key});
+  final int initialTabIndex; // ✨ 1. 초기 탭 인덱스를 받을 변수 추가
+
+  const MyTeamPage({
+    super.key,
+    this.initialTabIndex = 0, // ✨ 2. 생성자에 파라미터 추가 (기본값 0)
+  });
 
   @override
   State<MyTeamPage> createState() => _MyTeamPageState();
@@ -32,6 +35,7 @@ class _MyTeamPageState extends State<MyTeamPage> {
   @override
   void initState() {
     super.initState();
+    _tabIndex = widget.initialTabIndex; // ✨ 3. 위젯에서 전달받은 값으로 _tabIndex 초기화
     _fetchDataForCurrentTab();
   }
 
