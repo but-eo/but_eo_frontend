@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project/data/teamEnum.dart';
 import 'package:project/pages/board/board_page.dart';
 
 class Board extends StatefulWidget {
@@ -11,7 +12,17 @@ class Board extends StatefulWidget {
 class _BoardState extends State<Board> {
   String selectedSport = '축구'; // 처음 선택된 스포츠
 
+  final List<String> sports = [...eventEnumMap.values];
 
+  // void applyFilters() {
+  //   setState(() {
+  //     teams = allTeams.where((team) {
+  //       final eventMatch = selectedSport == "전체" ||
+  //           team['event']?.toString().toUpperCase() == reverseEventEnumMap[selectedSport];
+  //       return  eventMatch;
+  //     }).toList();
+  //   });
+  // }
 
   // 스포츠별 게시판 리스트
   final Map<String, List<String>> boardCategories = {
@@ -25,6 +36,8 @@ class _BoardState extends State<Board> {
     '야구': ['자유게시판', '팀찾기게시판', '팀원찾기게시판', '후기게시판', '경기장게시판'],
   };
 
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,22 +45,27 @@ class _BoardState extends State<Board> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // 스포츠 카테고리 버튼
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
-                  children: [
-                    _sportButton("축구"),
-                    _sportButton("풋살"),
-                    _sportButton("농구"),
-                    _sportButton("탁구"),
-                    _sportButton("볼링"),
-                    _sportButton("테니스"),
-                    _sportButton("배드민턴"),
-                    _sportButton("야구"),
-                  ],
+                  children: sports.map((sport) {
+                    final isSelected = sport == selectedSport;
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                      child: ChoiceChip(
+                        label: Text(sport),
+                        selected: isSelected,
+                        onSelected: (_) {
+                          setState(() => selectedSport = sport);
+                          // applyFilters();
+                        },
+                        selectedColor: Colors.grey[700],
+                        labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black),
+                      ),
+                    );
+                  }).toList(),
                 ),
               ),
             ),
@@ -55,6 +73,7 @@ class _BoardState extends State<Board> {
 
             // 선택된 스포츠 이름 보여주기
             Center(child: Text("$selectedSport 게시판", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
+            const Divider(),
 
             const SizedBox(height: 20),
 
@@ -95,7 +114,7 @@ class _BoardState extends State<Board> {
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           minimumSize: Size(500, 45),
-          backgroundColor: Colors.blueAccent,
+          backgroundColor: Color(0xffe4e5f0),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(5),
           ),
@@ -116,7 +135,7 @@ class _BoardState extends State<Board> {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: Colors.black,
           ),
         ),
       ),

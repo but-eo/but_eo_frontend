@@ -4,22 +4,44 @@ import 'package:project/pages/board/board_detail_page.dart';
 import 'package:project/pages/board/create_board_page.dart';
 import 'package:project/service/board_api_get_service.dart';
 
-class BoardPage extends StatelessWidget {
+class BoardPage extends StatefulWidget {
   final String event;
   final String category;
 
   BoardPage({required this.event, required this.category});
 
   @override
+  _BoardPageState createState() => _BoardPageState();
+}
+
+class _BoardPageState extends State<BoardPage> {
+  late Future<List<Board>> boardFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    boardFuture = fetchBoardList();
+  }
+
+  Future<List<Board>> fetchBoardList() {
+    final eventEnum = convertSportToEventEnum(widget.event);
+    final categoryEnum = convertCategoryToEnum(widget.category);
+    return fetchBoards(eventEnum, categoryEnum);
+  }
+
+  void refreshBoardList() async {
+    await Future.delayed(Duration(milliseconds: 500));
+    setState(() {
+      boardFuture = fetchBoardList();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final eventEnum = convertSportToEventEnum(event);
-    final categoryEnum = convertCategoryToEnum(category);
-
-
     return Scaffold(
-      appBar: AppBar(title: Text('$event $category')),
+      appBar: AppBar(title: Text('${widget.event} ${widget.category}')),
       body: FutureBuilder<List<Board>>(
-        future: fetchBoards(eventEnum, categoryEnum),
+        future: boardFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
@@ -33,13 +55,17 @@ class BoardPage extends StatelessWidget {
             itemBuilder: (context, index) {
               final board = boards[index];
               return GestureDetector(
-                onTap: () {
-                  Navigator.push(
+                onTap: () async {
+                  final result = await Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => BoardDetailPage(boardId: board.boardId),
                     ),
                   );
+
+                  if (result == true) {
+                    refreshBoardList(); // 🔥 핵심
+                  }
                 },
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
@@ -80,11 +106,20 @@ class BoardPage extends StatelessWidget {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
+        onPressed: () async {
+          final result = await Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => CreateBoardPage()),
+            MaterialPageRoute(
+              builder: (context) => CreateBoardPage(
+                initialEvent: widget.event,
+                initialCategory: widget.category,
+              ),
+            ),
           );
+
+          if (result == true) {
+            refreshBoardList(); // 작성 성공 시 목록 새로고침
+          }
         },
         child: Icon(Icons.edit),
         tooltip: '게시글 작성',
