@@ -64,21 +64,24 @@ class _MatchpageState extends State<Matchpage> {
   }
 
   //리더인 팀 조회
-  Future<void> fetchUserTeam() async {
+  Future<List<Map<String, dynamic>>> fetchUserTeam() async {
     final token = await TokenStorage.getAccessToken();
     final dio = Dio();
     try {
       final response = await dio.get(
-        //팀 정보 불러오기(리더인지 아닌지 구별은 -> 백엔드)
         "${ApiConstants.baseUrl}/teams/my-leader-teams",
         options: Options(headers: {"Authorization": "Bearer $token"}),
       );
+
       if (response.statusCode == 200) {
         print("로그인 유저 팀조회 성공: ${response.data}");
-        return response.data;
+        return List<Map<String, dynamic>>.from(response.data);
+      } else {
+        throw Exception("서버 응답 오류: ${response.statusCode}");
       }
     } catch (e) {
-      print("팀조회 실패 ${e}");
+      print("팀조회 실패 $e");
+      throw Exception("팀 조회 실패"); // ✅ 예외 던지기
     }
   }
 
@@ -212,10 +215,12 @@ class _MatchpageState extends State<Matchpage> {
               children: [
                 ElevatedButton(
                   onPressed: () async {
-                    final myTeam = fetchUserTeam();
+                    final myTeam = await fetchUserTeam();
                     await Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => Matching(userTeam : myTeam)),
+                      MaterialPageRoute(
+                        builder: (context) => Matching(userTeam: myTeam),
+                      ),
                     );
                     fetchMatchCards();
                   },
@@ -248,17 +253,20 @@ class _MatchpageState extends State<Matchpage> {
             ),
             SizedBox(height: 30.0),
             ElevatedButton(
-                onPressed: ()  {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const StadiumSearchPage()),
-                  );
-            },
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.black,
-                ),
-                child: Text("경기장 찾기")),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const StadiumSearchPage(),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+              ),
+              child: Text("경기장 찾기"),
+            ),
             SizedBox(height: 10.0),
             ListView.builder(
               shrinkWrap: true,
