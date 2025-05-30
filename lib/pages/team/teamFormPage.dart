@@ -57,7 +57,7 @@ class _TeamFormPageState extends State<TeamFormPage> {
     );
 
     initialImageUrl = widget.initialData?['teamImg'] != null && widget.initialData!['teamImg'].toString().isNotEmpty
-        ? TeamService.getFullTeamImageUrl(widget.initialData!['teamImg']) + "?v=${DateTime.now().millisecondsSinceEpoch}"
+        ? TeamService.getFullTeamImageUrl(widget.initialData!['teamImg']) + "?v=\${DateTime.now().millisecondsSinceEpoch}"
         : null;
   }
 
@@ -87,15 +87,11 @@ class _TeamFormPageState extends State<TeamFormPage> {
       final teamDescription = _descriptionController.text;
 
       String? errorMessage;
-      // FormData는 수정 시에만 사용. 생성 시에는 TeamService.createTeam의 파라미터를 직접 사용
       Map<String, dynamic> formMapForUpdate = {};
 
       if (isEdit) {
-        // 팀 수정 로직
         final original = widget.initialData!;
 
-        // 백엔드 DTO (UpdateTeamRequest) 필드명에 맞춰 키를 설정한거
-        // 변경된 값만 formMapForUpdate에 추가합니다.
         if (teamName != original['teamName']) formMapForUpdate['teamName'] = teamName;
         if (teamDescription != original['teamDescription']) formMapForUpdate['teamDescription'] = teamDescription;
         if (selectedEvent!.name.toUpperCase() != original['event']) formMapForUpdate['event'] = selectedEvent!.name.toUpperCase();
@@ -129,7 +125,6 @@ class _TeamFormPageState extends State<TeamFormPage> {
           formData: formData,
         );
       } else {
-        // 팀 생성 로직 (FormData 사용하지 않고, TeamService.createTeam 파라미터에 직접 전달)
         errorMessage = await TeamService.createTeam(
           teamName: teamName,
           event: selectedEvent!.name.toUpperCase(),
@@ -137,7 +132,7 @@ class _TeamFormPageState extends State<TeamFormPage> {
           memberAge: _ageGroupToInt(selectedAgeGroup!),
           teamCase: selectedCase?.name.toUpperCase(),
           teamDescription: teamDescription,
-          teamImage: imageFile, // File? 타입으로 바로 전달
+          teamImage: imageFile,
         );
       }
 
@@ -148,7 +143,6 @@ class _TeamFormPageState extends State<TeamFormPage> {
       }
 
       if (mounted) {
-        // 팀 생성/수정이 성공했음을 이전 페이지에 알리기 위해 'update' 문자열을 반환
         Navigator.pop(context, 'update');
       }
     }
@@ -163,6 +157,7 @@ class _TeamFormPageState extends State<TeamFormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[200],
       appBar: AppBar(
         title: Text(isEdit ? '팀 정보 수정' : '팀 생성'),
         centerTitle: true,
@@ -175,30 +170,43 @@ class _TeamFormPageState extends State<TeamFormPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
-                child: Column(
+                child: Stack(
+                  alignment: Alignment.bottomRight,
                   children: [
-                    GestureDetector(
-                      onTap: _pickImage,
-                      child: CircleAvatar(
-                        radius: 48,
-                        backgroundImage: imageFile != null
-                            ? FileImage(imageFile!)
-                            : (initialImageUrl != null ? NetworkImage(initialImageUrl!) : null) as ImageProvider?,
-                        child: (imageFile == null && initialImageUrl == null)
-                            ? const Icon(Icons.person, size: 48, color: Colors.white)
-                            : null,
-                        backgroundColor: Colors.grey[400],
-                      ),
+                    CircleAvatar(
+                      radius: 48,
+                      backgroundImage: imageFile != null
+                          ? FileImage(imageFile!)
+                          : (initialImageUrl != null
+                          ? NetworkImage(initialImageUrl!)
+                          : null) as ImageProvider?,
+                      child: (imageFile == null && initialImageUrl == null)
+                          ? const Icon(Icons.person, size: 48, color: Colors.white)
+                          : null,
+                      backgroundColor: Colors.grey[400],
                     ),
-                    const SizedBox(height: 8),
-                    const Text("사진 올리기", style: TextStyle(color: Colors.blue)),
+                    Positioned(
+                      bottom: 0,
+                      right: 4,
+                      child: GestureDetector(
+                        onTap: _pickImage,
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white,
+                          ),
+                          child: const Icon(Icons.camera_alt, color: Colors.blue, size: 20),
+                        ),
+                      ),
+                    )
                   ],
                 ),
               ),
               const SizedBox(height: 24),
               _buildLabeledInput("팀 이름", TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(hintText: '입력해주세요'),
+                decoration: const InputDecoration(border: InputBorder.none, hintText: '입력해주세요'),
                 validator: (v) => v == null || v.isEmpty ? '입력해주세요' : null,
               )),
               _buildLabeledDropdown<Event>("경기 종목", selectedEvent, Event.values, eventEnumMap, (val) => setState(() => selectedEvent = val)),
@@ -208,13 +216,18 @@ class _TeamFormPageState extends State<TeamFormPage> {
               _buildLabeledInput("팀 소개", TextFormField(
                 controller: _descriptionController,
                 maxLines: 3,
-                decoration: const InputDecoration(hintText: '입력해주세요'),
+                decoration: const InputDecoration(border: InputBorder.none, hintText: '입력해주세요'),
               )),
               const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: _submit,
-                style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
-                child: Text(isEdit ? "수정 완료" : "팀 생성하기"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  minimumSize: const Size.fromHeight(48),
+                ),
+                child: Text(isEdit ? "수정 완료" : "팀 생성하기", style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),),
               )
             ],
           ),
@@ -227,8 +240,16 @@ class _TeamFormPageState extends State<TeamFormPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 14)),
-        inputField,
+        Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: inputField,
+        ),
         const SizedBox(height: 20),
       ],
     );
@@ -238,13 +259,21 @@ class _TeamFormPageState extends State<TeamFormPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 14)),
-        DropdownButtonFormField<T>(
-          value: selected,
-          isExpanded: true,
-          items: items.map((e) => DropdownMenuItem(value: e, child: Text(labelMap[e]!))).toList(),
-          onChanged: onChanged,
-          decoration: const InputDecoration(border: UnderlineInputBorder()),
+        Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: DropdownButtonFormField<T>(
+            value: selected,
+            isExpanded: true,
+            items: items.map((e) => DropdownMenuItem(value: e, child: Text(labelMap[e]!))).toList(),
+            onChanged: onChanged,
+            decoration: const InputDecoration(border: InputBorder.none),
+          ),
         ),
         const SizedBox(height: 20),
       ],
