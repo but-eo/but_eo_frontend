@@ -1,27 +1,27 @@
 import 'package:dio/dio.dart';
 import 'package:project/contants/api_contants.dart';
 import 'package:project/pages/match/matching_data.dart';
+import 'package:project/utils/token_storage.dart';
 
 Future<List<MatchingData>> fetchMatchCardsFromServer() async {
-  try {
-    final dio = Dio();
+  final dio = Dio();
+  final token = await TokenStorage.getAccessToken();
 
-    // 서버 주소 및 포트는 프로젝트에 맞게 수정
+  try {
     final response = await dio.get(
-      'http://${ApiConstants.serverUrl}:714/api/matches',
+      "${ApiConstants.baseUrl}/matchings",
+      options: Options(headers: {"Authorization": "Bearer $token"}),
     );
 
     if (response.statusCode == 200) {
-      final List<dynamic> data = response.data;
+      final List<dynamic> contentList = response.data['content'];
 
-      // JSON 배열을 MatchCardModel 리스트로 변환
-      return data.map((json) => MatchingData.fromJson(json)).toList();
+      return contentList.map((json) => MatchingData.fromJson(json)).toList();
     } else {
-      throw Exception(
-        '매칭 카드 데이터를 불러오는 데 실패했습니다. 상태 코드: ${response.statusCode}',
-      );
+      throw Exception("매칭 카드 데이터 요청 중 오류 발생: ${response.statusCode}");
     }
   } catch (e) {
-    throw Exception('매칭 카드 데이터 요청 중 오류 발생: $e');
+    print("에러: $e");
+    throw Exception("매칭 카드 데이터 요청 중 오류 발생: $e");
   }
 }
