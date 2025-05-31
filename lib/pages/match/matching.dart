@@ -41,7 +41,24 @@ class _MatchingState extends State<Matching> {
   TimeOfDay? selectedTime;
   String? detailAddress;
 
-  final dateFormatter = DateFormat('yyyy년-MM월-dd일');
+  final dateFormatter = DateFormat('yyyy-MM-dd');
+  String formatTimeOfDay(TimeOfDay tod) {
+    final hour = tod.hour.toString().padLeft(2, '0');
+    final minute = tod.minute.toString().padLeft(2, '0');
+    return "$hour:$minute";
+  }
+
+  //ENUM
+  Map<String, String> sportTypeMapping = {
+    '축구': 'SOCCER',
+    '풋살': 'FUTSAL',
+    '야구': 'BASEBALL',
+    '농구': 'BASKETBALL',
+    '배드민턴': 'BADMINTON',
+    '테니스': 'TENNIS',
+    '탁구': 'TABLE_TENNIS',
+    '볼링': 'BOWLING',
+  };
 
   TextEditingController addressController = TextEditingController();
 
@@ -160,7 +177,7 @@ class _MatchingState extends State<Matching> {
     String etc,
   ) async {
     final dio = Dio();
-
+    final token = await TokenStorage.getAccessToken();
     try {
       final response = await dio.post(
         "${ApiConstants.baseUrl}/matchings/create",
@@ -174,7 +191,12 @@ class _MatchingState extends State<Matching> {
           'region': region,
           'etc': etc,
         },
-        options: Options(headers: {'Content-Type': 'application/json'}),
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            "Authorization": "Bearer $token",
+          },
+        ),
       );
       print('Response data : ${response.data}');
       if (response.statusCode == 200) {
@@ -410,22 +432,25 @@ class _MatchingState extends State<Matching> {
                         });
 
                         String dateStirng = dateFormatter.format(selectedDate!);
+                        String timeString = formatTimeOfDay(selectedTime!);
 
                         await Future.delayed(Duration(seconds: 1));
                         // 예시 출력
                         print("팀: $selectedTeam");
                         print("종목: $sport");
                         print("날짜: ${dateStirng}");
-                        print("시간: ${selectedTime!.format(context)}");
+                        print("시간: ${timeString}");
                         print("경기장 대여 여부: $selectedLoan");
                         print("장소: $detailAddress");
                         print("기타: ${etcController.text}");
+                        String typeToSend =
+                            sportTypeMapping[sport] ?? 'UNKNOWN';
 
                         await createMatch(
                           selectedTeam!,
-                          sport!,
+                          typeToSend!,
                           dateStirng,
-                          selectedTime!.format(context),
+                          timeString,
                           selectedLoan!,
                           detailAddress!,
                           etcController.text,

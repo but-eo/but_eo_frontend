@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:project/contants/api_contants.dart';
@@ -74,7 +73,7 @@ class Matchingcard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: MediaQuery.of(context).size.width * 0.6,
+      width: MediaQuery.of(context).size.width * 0.98,
       decoration: BoxDecoration(
         border: Border.all(width: 1.0),
         borderRadius: BorderRadius.circular(10.0),

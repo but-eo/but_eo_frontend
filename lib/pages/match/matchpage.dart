@@ -17,6 +17,15 @@ class Matchpage extends StatefulWidget {
 }
 
 class _MatchpageState extends State<Matchpage> {
+  late Future<List<MatchingData>> _matchDataFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedDay = DateTime.now(); // 오늘 날짜로 초기화
+    fetchMatchCards();
+  }
+
   final List<String> regions = ["전체", "서울", "경기", "강원", "충청", "전라", "경상", "제주"];
   final List<String> sports = [
     "전체",
@@ -33,6 +42,22 @@ class _MatchpageState extends State<Matchpage> {
 
   List<MatchingData> allMatchCards = [];
   List<MatchingData> filterMatchCards = [];
+  void applyFilters() {
+    setState(() {
+      filterMatchCards =
+          allMatchCards.where((match) {
+            final matchesDate =
+                _selectedDay == null ||
+                isSameDay(match.matchDay, _selectedDay!);
+            final matchesRegion =
+                selectedRegion == "전체" || match.region == selectedRegion;
+            final matchesSport =
+                selectedSport == "전체" || match.matchType == selectedSport;
+
+            return matchesDate && matchesRegion && matchesSport;
+          }).toList();
+    });
+  }
 
   void _onDaySelected(DateTime selectedDay, DateTime focusDay) {
     setState(() {
@@ -57,6 +82,7 @@ class _MatchpageState extends State<Matchpage> {
             data
                 .where((match) => isSameDay(match.matchDay, DateTime.now()))
                 .toList();
+        applyFilters();
       });
     } catch (e) {
       print("에러: $e");
@@ -124,6 +150,7 @@ class _MatchpageState extends State<Matchpage> {
                             setState(() {
                               selectedRegion = region;
                             });
+                            applyFilters();
                           },
                           selectedColor: Colors.orange,
                         ),
@@ -151,6 +178,7 @@ class _MatchpageState extends State<Matchpage> {
                             setState(() {
                               selectedSport = sport;
                             });
+                            applyFilters();
                           },
                           selectedColor: Colors.grey[700],
                           labelStyle: TextStyle(
@@ -195,6 +223,7 @@ class _MatchpageState extends State<Matchpage> {
                     _selectedDay = selectedDay;
                     _focusedDay = focusedDay;
                   });
+                  applyFilters();
                 }
               },
               onFormatChanged: (format) {
