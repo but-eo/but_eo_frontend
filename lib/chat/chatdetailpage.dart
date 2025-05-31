@@ -104,6 +104,7 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
         setState(() {
           messages = List<Map<String, dynamic>>.from(response.data);
         });
+        print(response.data);
       }
     } catch (e) {
       print('메시지 불러오기 실패: $e');
