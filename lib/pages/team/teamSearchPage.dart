@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project/pages/components/reusable_filter.dart';
 import 'package:project/pages/team/teamFormPage.dart';
 import 'package:project/service/teamService.dart';
 import 'package:project/data/teamEnum.dart';
@@ -55,13 +56,19 @@ class TeamSearchPageState extends State<TeamSearchPage> {
     setState(() {
       teams = allTeams.where((team) {
         final regionMatch = selectedRegion == "전체" ||
-            team['region']?.toString().toUpperCase() == reverseRegionEnumMap[selectedRegion];
+            (team['region']?.toString().toUpperCase() ==
+                reverseRegionEnumMap[selectedRegion]);
+
         final eventMatch = selectedSport == "전체" ||
-            team['event']?.toString().toUpperCase() == reverseEventEnumMap[selectedSport];
+            (team['event']?.toString() == selectedSport); // 🔥 한글끼리 직접 비교!
+
         return regionMatch && eventMatch;
       }).toList();
     });
   }
+
+
+
 
   String getEnumLabel<T>(String? value, Map<T, String> enumMap) {
     if (value == null) return "알 수 없음";
@@ -101,7 +108,29 @@ class TeamSearchPageState extends State<TeamSearchPage> {
               ],
             ),
           ),
-          _buildChips(),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ReusableFilter(
+                options: regions,
+                selectedOption: selectedRegion,
+                onSelected: (region) {
+                  setState(() => selectedRegion = region);
+                  applyFilters();
+                },
+              ),
+              const SizedBox(height: 6),
+              ReusableFilter(
+                options: sports,
+                selectedOption: selectedSport,
+                onSelected: (sport) {
+                  setState(() => selectedSport = sport);
+                  applyFilters();
+                },
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
           Expanded(
             child: Container(
               decoration: const BoxDecoration(
@@ -183,57 +212,4 @@ class TeamSearchPageState extends State<TeamSearchPage> {
     );
   }
 
-  Widget _buildChips() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: EdgeInsets.zero,
-          child: Row(
-            children: regions.map((region) {
-              final isSelected = region == selectedRegion;
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6.0),
-                child: ChoiceChip(
-                  label: Text(region),
-                  selected: isSelected,
-                  onSelected: (_) {
-                    setState(() => selectedRegion = region);
-                    applyFilters();
-                  },
-                  selectedColor: Colors.white,
-                  backgroundColor: Colors.white,
-                  labelStyle: TextStyle(color: isSelected ? Colors.black : Colors.grey),
-                ),
-              );
-            }).toList(),
-          ),
-        ),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.only(top: 6, bottom: 12),
-          child: Row(
-            children: sports.map((sport) {
-              final isSelected = sport == selectedSport;
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6.0),
-                child: ChoiceChip(
-                  label: Text(sport),
-                  selected: isSelected,
-                  onSelected: (_) {
-                    setState(() => selectedSport = sport);
-                    applyFilters();
-                  },
-                  selectedColor: Colors.white,
-                  backgroundColor: Colors.white,
-                  labelStyle: TextStyle(color: isSelected ? Colors.black : Colors.grey),
-                ),
-              );
-            }).toList(),
-          ),
-        ),
-      ],
-    );
-  }
 }
