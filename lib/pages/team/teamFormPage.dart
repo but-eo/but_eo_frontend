@@ -57,7 +57,7 @@ class _TeamFormPageState extends State<TeamFormPage> {
     );
 
     initialImageUrl = widget.initialData?['teamImg'] != null && widget.initialData!['teamImg'].toString().isNotEmpty
-        ? TeamService.getFullTeamImageUrl(widget.initialData!['teamImg']) + "?v=\${DateTime.now().millisecondsSinceEpoch}"
+        ? TeamService.getFullTeamImageUrl(widget.initialData!['teamImg']) + "?v=${DateTime.now().millisecondsSinceEpoch}"
         : null;
   }
 
