@@ -51,7 +51,6 @@ class TeamService {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) { // 201도 성공으로 간주
-        print("팀 생성 성공");
         return null;
       } else {
         final msg = response.data is Map
@@ -68,7 +67,6 @@ class TeamService {
         print("DioException 발생 (팀 생성): $msg");
         return msg;
       } else {
-        print("예외 발생 (팀 생성): $e");
         return "예기치 않은 오류 발생";
       }
     }
@@ -126,7 +124,6 @@ class TeamService {
         print("팀 수정 성공");
         return null;
       } else {
-        print("❌ 팀 수정 실패: ${response.statusCode} / ${response.data}");
         return response.data?.toString() ?? "팀 수정 중 알 수 없는 오류";
       }
     } catch (e) {
@@ -134,7 +131,6 @@ class TeamService {
         final msg = e.response?.data is Map
             ? e.response?.data["message"] ?? e.response?.data["error"] ?? "서버 오류 발생 (${e.response?.statusCode})"
             : "서버 오류: ${e.response?.statusCode}";
-        print("DioException 발생 (팀 수정): $msg");
         return msg;
       } else {
         print("오류 발생 (팀 수정): ${e.toString()}");
@@ -158,18 +154,18 @@ class TeamService {
         if (event != null && event != "전체") 'event': event,
         if (teamType != null) 'teamType': teamType,
         if (teamCase != null) 'teamCase': teamCase,
-        if (teamName != null && teamName.isNotEmpty) 'teamName': teamName, // teamName이 비어있지 않을 때만 추가
+        if (teamName != null && teamName.isNotEmpty) 'teamName': teamName,
       };
 
       final res = await _dio.get(
         '${ApiConstants.baseUrl}/teams',
-        queryParameters: query.isNotEmpty ? query : null, // query가 비어있으면 null로 전달
+        queryParameters: query.isNotEmpty ? query : null,
         options: Options(headers: {
-          // 백엔드 API가 토큰을 요구한다면 Authorization 헤더 추가
           if (token != null) 'Authorization': 'Bearer $token',
         }),
       );
 
+      print(res.data.toString());
       if (res.statusCode == 200 && res.data is List) {
         return res.data as List<dynamic>;
       } else {
@@ -186,9 +182,7 @@ class TeamService {
   static String getFullTeamImageUrl(String? path) {
     if (path == null || path.isEmpty) return "";
     if (path.startsWith("http")) return path;
-    // ApiConstants.imageBaseUrl 사용을 권장 (baseUrl은 /api를 포함할 수 있으므로)
-    // ApiConstants.dart 파일에 imageBaseUrl이 'http://서버주소:포트' 형태로 정의되어 있다고 가정합니다.
-    return "${ApiConstants.imageBaseUrl}$path"; // ✅ imageBaseUrl 사용
+    return "${ApiConstants.imageBaseUrl}$path";
   }
 
   /// 팀 리더 여부 조회
@@ -216,109 +210,27 @@ class TeamService {
     }
   }
 
-  /// 팀 상세조회 (팀 이름으로 조회 - 백엔드에 고유 ID로 조회하는 API 권장)
-  static Future<Map<String, dynamic>> getTeamByName(String teamName) async {
+  // 팀 상세조회
+  static Future<Map<String, dynamic>> getTeamById(String teamId) async {
     try {
       final token = await TokenStorage.getAccessToken();
-      if (token == null) throw Exception("토큰이 없습니다.");
 
       final res = await _dio.get(
-        '${ApiConstants.baseUrl}/teams', // 전체 팀 목록 조회 API 사용
-        queryParameters: {'teamName': teamName},
+        '${ApiConstants.baseUrl}/teams/team/$teamId',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
-      if (res.statusCode == 200 && res.data is List && (res.data as List).isNotEmpty) {
-        return (res.data as List)[0] as Map<String, dynamic>;
+      if (res.statusCode == 200 && res.data is Map<String, dynamic>) {
+        return res.data as Map<String, dynamic>;
       } else {
-        throw Exception('해당 팀 이름으로 조회된 팀 데이터가 없습니다.');
+        throw Exception('해당 팀 ID로 조회된 팀 데이터가 없거나 형식이 올바르지 않습니다: ${res.statusCode} - ${res.data}');
       }
     } catch (e) {
-      print("getTeamByName 에러: $e");
+      print("getTeamById 에러: $e");
       rethrow;
     }
   }
 
-  /// 유저 초대
-  static Future<String?> inviteUserToTeam({
-    required String teamId,
-    required String userId,
-  }) async {
-    try {
-      final token = await TokenStorage.getAccessToken();
-      if (token == null) throw Exception("토큰이 없습니다.");
-
-      final response = await _dio.post(
-        '${ApiConstants.baseUrl}/teams/$teamId/invite',
-        data: {'userId': userId},
-        options: Options(
-          headers: {
-            'Authorization': 'Bearer $token',
-            'Content-Type': 'application/json',
-          },
-        ),
-      );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        print("초대 성공");
-        return null;
-      } else {
-        final msg = response.data is Map
-            ? response.data["message"] ?? response.data["error"] ?? "초대 실패"
-            : "초대 실패: ${response.statusCode}";
-        return msg;
-      }
-    } catch (e) {
-      if (e is DioException) {
-        final msg = e.response?.data is Map
-            ? e.response?.data["message"] ?? e.response?.data["error"] ?? "초대 요청 중 서버 오류 (${e.response?.statusCode})"
-            : "초대 요청 중 서버 오류: ${e.response?.statusCode}";
-        print("DioException (유저 초대): $msg");
-        return msg;
-      }
-      print("초대 요청 에러: $e");
-      return "초대 요청 중 오류 발생";
-    }
-  }
-
-  /// 초대 취소
-  static Future<String?> cancelInvite({
-    required String teamId,
-    required String userId,
-  }) async {
-    try {
-      final token = await TokenStorage.getAccessToken();
-      if (token == null) throw Exception("토큰이 없습니다.");
-
-      // 백엔드 TeamInviteController.java 의 @DeleteMapping("/{userId}") 와 경로 일치
-      final response = await _dio.delete(
-        '${ApiConstants.baseUrl}/teams/$teamId/invite/$userId',
-        options: Options(
-          headers: {'Authorization': 'Bearer $token'},
-        ),
-      );
-
-      if (response.statusCode == 200) {
-        print("초대 취소 완료");
-        return null;
-      } else {
-        final msg = response.data is Map
-            ? response.data["message"] ?? response.data["error"] ?? "초대 취소 실패"
-            : "초대 취소 실패: ${response.statusCode}";
-        return msg;
-      }
-    } catch (e) {
-      if (e is DioException) {
-        final msg = e.response?.data is Map
-            ? e.response?.data["message"] ?? e.response?.data["error"] ?? "초대 취소 중 서버 오류 (${e.response?.statusCode})"
-            : "초대 취소 중 서버 오류: ${e.response?.statusCode}";
-        print("DioException (초대 취소): $msg");
-        return msg;
-      }
-      print("초대 취소 에러: $e");
-      return "초대 취소 중 오류 발생";
-    }
-  }
 
   // ✅ 사용자가 리더로 있는 팀 목록 조회
   static Future<List<dynamic>> getMyTeams() async {

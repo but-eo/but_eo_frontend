@@ -1,5 +1,5 @@
-// project/pages/team/teamSearchPage.dart
 import 'package:flutter/material.dart';
+import 'package:project/pages/components/reusable_filter.dart';
 import 'package:project/pages/team/teamFormPage.dart';
 import 'package:project/service/teamService.dart';
 import 'package:project/data/teamEnum.dart';
@@ -25,36 +25,30 @@ class TeamSearchPageState extends State<TeamSearchPage> {
 
   String selectedRegion = "전체";
   String selectedSport = "전체";
-  List<dynamic> allTeams = []; // 전체 목록
-  List<dynamic> teams = [];    // 필터링된 목록
+  List<dynamic> allTeams = [];
+  List<dynamic> teams = [];
   bool isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    // 페이지 진입시 목록 호출
     fetchTeams();
   }
 
   Future<void> fetchTeams() async {
-    if (mounted) {
-      setState(() => isLoading = true);
-    }
+    if (mounted) setState(() => isLoading = true);
     try {
       final result = await TeamService.fetchTeams();
       allTeams = result;
-      applyFilters(); // 팀 목록을 불러온 후 필터를 적용
+      applyFilters();
     } catch (e) {
-      print("팀 조회 실패: $e");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("팀 목록을 불러오는데 실패했습니다: $e")),
         );
       }
     } finally {
-      if (mounted) {
-        setState(() => isLoading = false);
-      }
+      if (mounted) setState(() => isLoading = false);
     }
   }
 
@@ -62,21 +56,28 @@ class TeamSearchPageState extends State<TeamSearchPage> {
     setState(() {
       teams = allTeams.where((team) {
         final regionMatch = selectedRegion == "전체" ||
-            team['region']?.toString().toUpperCase() == reverseRegionEnumMap[selectedRegion];
+            (team['region']?.toString().toUpperCase() ==
+                reverseRegionEnumMap[selectedRegion]);
+
         final eventMatch = selectedSport == "전체" ||
-            team['event']?.toString().toUpperCase() == reverseEventEnumMap[selectedSport];
+            (team['event']?.toString() == selectedSport); // 🔥 한글끼리 직접 비교!
+
         return regionMatch && eventMatch;
       }).toList();
     });
   }
 
-  String getEnumLabel<T>(String? enumName, Map<T, String> enumMap) {
+
+
+
+  String getEnumLabel<T>(String? value, Map<T, String> enumMap) {
+    if (value == null) return "알 수 없음";
+    if (enumMap.containsValue(value)) return value;
     try {
-      if (enumName == null) return "알 수 없음";
-      final T enumValue = enumMap.keys.firstWhere(
-            (e) => e.toString().split('.').last.toUpperCase() == enumName.toUpperCase(),
+      final T enumKey = enumMap.keys.firstWhere(
+            (e) => e.toString().split('.').last.toUpperCase() == value.toUpperCase(),
       );
-      return enumMap[enumValue] ?? "알 수 없음";
+      return enumMap[enumKey] ?? "알 수 없음";
     } catch (_) {
       return "알 수 없음";
     }
@@ -85,140 +86,130 @@ class TeamSearchPageState extends State<TeamSearchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFCFE5EF),
       body: Column(
         children: [
-          const SizedBox(height: 16),
-          const Text("전체 팀", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-          const Divider(),
-
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Row(
-              children: regions.map((region) {
-                final isSelected = region == selectedRegion;
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6.0),
-                  child: ChoiceChip(
-                    label: Text(region),
-                    selected: isSelected,
-                    onSelected: (_) {
-                      setState(() => selectedRegion = region);
-                      applyFilters();
-                    },
-                    selectedColor: Colors.orange,
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-
-          const SizedBox(height: 10),
-
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Row(
-              children: sports.map((sport) {
-                final isSelected = sport == selectedSport;
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6.0),
-                  child: ChoiceChip(
-                    label: Text(sport),
-                    selected: isSelected,
-                    onSelected: (_) {
-                      setState(() => selectedSport = sport);
-                      applyFilters();
-                    },
-                    selectedColor: Colors.grey[700],
-                    labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text("팀명", style: TextStyle(fontWeight: FontWeight.bold)),
-                ElevatedButton(
+                const Text("Team", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+                IconButton(
+                  icon: const Icon(Icons.add, color: Colors.white),
                   onPressed: () async {
-                    // 팀 생성 페이지로 이동
                     final result = await Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) => const TeamFormPage(),
-                      ),
+                      MaterialPageRoute(builder: (_) => const TeamFormPage()),
                     );
-                    // 팀 생성시 화면 다시 구성
-                    if (result == 'update') {
-                      fetchTeams(); // 목록 재호출
-                    }
+                    if (result == 'update') fetchTeams();
                   },
-                  style: ElevatedButton.styleFrom(
-                    shape: const CircleBorder(),
-                    padding: const EdgeInsets.all(10),
-                    backgroundColor: Colors.orange,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: const Icon(Icons.add),
                 ),
               ],
             ),
           ),
-
-          const SizedBox(height: 8),
-
-          Expanded(
-            child: isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : teams.isEmpty
-                ? const Center(child: Text("등록된 팀이 없습니다."))
-                : ListView.builder(
-              itemCount: teams.length,
-              itemBuilder: (context, index) {
-                final team = teams[index];
-                return ListTile(
-                  leading: CircleAvatar(
-                    // 이미지 URL 갱신을 위해 캐시를 피하는 쿼리 파라미터 추가
-                    backgroundImage: team['teamImg'] != null && team['teamImg'].toString().isNotEmpty
-                        ? NetworkImage("${TeamService.getFullTeamImageUrl(team['teamImg'])}?v=${DateTime.now().millisecondsSinceEpoch}")
-                        : null,
-                    backgroundColor: Colors.grey,
-                    child: team['teamImg'] == null || team['teamImg'].toString().isEmpty
-                        ? const Icon(Icons.group, color: Colors.white)
-                        : null,
-                  ),
-                  title: Text(team['teamName'] ?? '이름 없음'),
-                  subtitle: Text(
-                    "${getEnumLabel(team['event'], eventEnumMap)} · "
-                        "${getEnumLabel(team['region'], regionEnumMap)} · "
-                        "${team['memberAge'] ?? '나이 미상'}대",
-                  ),
-                  onTap: () async {
-                    // 팀 상세 페이지로 이동
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => TeamDetailPage(team: team),
-                      ),
-                    );
-                    //수정 삭제시 화면 갱신
-                    if (result == 'update' || result == 'updated') {
-                      fetchTeams(); // 목록을 다시 불러옵니다.
-                    }
-                  },
-                );
-              },
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ReusableFilter(
+                options: regions,
+                selectedOption: selectedRegion,
+                onSelected: (region) {
+                  setState(() => selectedRegion = region);
+                  applyFilters();
+                },
+              ),
+              const SizedBox(height: 6),
+              ReusableFilter(
+                options: sports,
+                selectedOption: selectedSport,
+                onSelected: (sport) {
+                  setState(() => selectedSport = sport);
+                  applyFilters();
+                },
+              ),
+              const SizedBox(height: 12),
+            ],
           ),
+          Expanded(
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(32),
+                  topRight: Radius.circular(32),
+                ),
+              ),
+              child: isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : teams.isEmpty
+                  ? const Center(child: Text("등록된 팀이 없습니다."))
+                  : ListView.builder(
+                itemCount: teams.length,
+                padding: const EdgeInsets.all(12),
+                itemBuilder: (context, index) {
+                  final team = teams[index];
+                  return Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    color: const Color(0xFFF5EFFD),
+                    elevation: 2,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(24),
+                      onTap: () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => TeamDetailPage(team: team),
+                          ),
+                        );
+                        if (result == 'update' || result == 'updated') {
+                          fetchTeams();
+                        }
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 32,
+                              backgroundImage: team['teamImg'] != null && team['teamImg'].toString().isNotEmpty
+                                  ? NetworkImage("${TeamService.getFullTeamImageUrl(team['teamImg'])}?v=${DateTime.now().millisecondsSinceEpoch}")
+                                  : null,
+                              backgroundColor: Colors.black,
+                              child: team['teamImg'] == null || team['teamImg'].toString().isEmpty
+                                  ? const Icon(Icons.group, color: Colors.white)
+                                  : null,
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(team['teamName'] ?? '이름 없음',
+                                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    "${getEnumLabel(team['event'], eventEnumMap)} · ${getEnumLabel(team['region'], regionEnumMap)} · ${team['memberAge'] ?? '나이 미상'}대",
+                                    style: const TextStyle(color: Colors.grey),
+                                  ),
+                                ],
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          )
         ],
       ),
     );
   }
+
 }
