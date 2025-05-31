@@ -4,6 +4,7 @@ import 'package:project/model/board_model.dart';
 import 'package:project/model/board_detail_model.dart';
 import 'package:project/model/board_comment_model.dart';
 import 'package:project/contants/api_contants.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Future<List<Board>> fetchBoards(String event, String category, {int page = 0, int size = 10}) async { // 게시판 리스트 조회
   final uri = Uri.parse(
@@ -51,3 +52,24 @@ Future<List<Comment>> fetchComments(String boardId) async {
   }
 }
 
+
+Future<bool> deleteBoard(String boardId) async {
+  final uri = Uri.parse('${ApiConstants.baseUrl}/boards/$boardId');
+
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('accessToken'); // JWT 토큰
+
+  final response = await http.delete(
+    uri,
+    headers: {
+      'Authorization': 'Bearer $token',
+    },
+  );
+
+  if (response.statusCode == 200) {
+    return true;
+  } else {
+    print('게시글 삭제 실패: ${response.statusCode} ${response.body}');
+    return false;
+  }
+}

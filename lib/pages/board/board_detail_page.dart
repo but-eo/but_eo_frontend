@@ -1,20 +1,50 @@
 import 'package:flutter/material.dart';
 import 'package:project/model/board_detail_model.dart';
 import 'package:project/model/board_comment_model.dart';
+import 'package:project/pages/board/Edit_Board_Page.dart';
 import 'package:project/service/board_api_get_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-
-class BoardDetailPage extends StatelessWidget {
+class BoardDetailPage extends StatefulWidget {
   final String boardId;
 
   const BoardDetailPage({super.key, required this.boardId});
 
   @override
+  State<BoardDetailPage> createState() => _BoardDetailPageState();
+}
+
+class _BoardDetailPageState extends State<BoardDetailPage> {
+  String? currentUserId;
+  late Future<BoardDetail> futureBoard;
+
+  @override
+  void initState() {
+    super.initState();
+    futureBoard = fetchBoardDetail(widget.boardId);
+    loadUserId();
+  }
+
+  Future<void> loadUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('userId');
+    setState(() {
+      currentUserId = userId;
+    });
+  }
+
+  void refreshBoard() {
+    setState(() {
+      futureBoard = fetchBoardDetail(widget.boardId);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("게시글 상세보기")),
+      appBar: AppBar(title: const Text("게시글")),
       body: FutureBuilder<BoardDetail>(
-        future: fetchBoardDetail(boardId),
+        future: futureBoard,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -25,25 +55,22 @@ class BoardDetailPage extends StatelessWidget {
           }
 
           final board = snapshot.data!;
+          final isAuthor = board.userId == currentUserId;
+
           return Padding(
             padding: const EdgeInsets.all(16.0),
             child: ListView(
               children: [
-                /// 제목
                 Text(
                   board.title,
                   style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
-
-                /// 내용
                 Text(
                   board.content,
                   style: const TextStyle(fontSize: 16),
                 ),
                 const SizedBox(height: 16),
-
-                /// 작성자 & 날짜
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -51,26 +78,20 @@ class BoardDetailPage extends StatelessWidget {
                     Text(board.createdAt.split('T')[0], style: TextStyle(color: Colors.grey[700])),
                   ],
                 ),
-
                 const Divider(height: 30),
-
-                /// 좋아요 및 댓글 수
                 Align(
                   alignment: Alignment.centerRight,
                   child: Text('❤️ ${board.likeCount}  💬 ${board.commentCount}'),
                 ),
-
                 const SizedBox(height: 20),
-
-                /// 댓글 목록
                 FutureBuilder<List<Comment>>(
-                  future: fetchComments(boardId),
+                  future: fetchComments(widget.boardId),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return CircularProgressIndicator();
                     }
                     if (snapshot.hasError) {
-                      return Text("댓글을 불러오는 중 오류 발생: ${snapshot.error}");
+                      return Text("댓글을 불러오는 중 오류 발생: \${snapshot.error}");
                     }
 
                     final comments = snapshot.data!;
@@ -96,10 +117,7 @@ class BoardDetailPage extends StatelessWidget {
                                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                                 ),
                                 SizedBox(height: 4),
-                                Text(
-                                  comment.content ?? '',
-                                  style: TextStyle(fontSize: 13),
-                                ),
+                                Text(comment.content ?? '', style: TextStyle(fontSize: 13)),
                                 SizedBox(height: 6),
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -121,7 +139,72 @@ class BoardDetailPage extends StatelessWidget {
                       }).toList(),
                     );
                   },
-                )
+                ),
+                const SizedBox(height: 30),
+                if (isAuthor)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => EditBoardPage(
+                                boardId: board.boardId,
+                                event: board.event,
+                                category: board.category,
+                                userId: board.userId,
+                              ),
+                            ),
+                          );
+                          if (result == true) {
+                            Navigator.pop(context, true);
+                          }
+
+                        },
+                        child: Text('수정'),
+                      ),
+                      SizedBox(width: 8),
+                      ElevatedButton(
+                        onPressed: () async {
+                          final confirmed = await showDialog<bool>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: Text('게시글 삭제'),
+                              content: Text('정말 삭제하시겠습니까?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, false),
+                                  child: Text('취소'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  child: Text('삭제'),
+                                ),
+                              ],
+                            ),
+                          );
+
+                          if (confirmed == true) {
+                            final success = await deleteBoard(widget.boardId);
+                            if (success) {
+                              Navigator.pop(context, true); // 리스트 페이지로 돌아가기
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('게시글이 삭제되었습니다.')),
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('삭제 실패')),
+                              );
+                            }
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                        child: Text('삭제'),
+                      ),
+                    ],
+                  )
               ],
             ),
           );

@@ -6,6 +6,7 @@ class BoardDetail {
   final String category;
   final String event;
   final String userName;
+  final String userId;
   final List<String> fileUrls;
   final int likeCount;
   final int commentCount;
@@ -20,6 +21,7 @@ class BoardDetail {
     required this.category,
     required this.event,
     required this.userName,
+    required this.userId,
     required this.fileUrls,
     required this.likeCount,
     required this.commentCount,
@@ -36,6 +38,7 @@ class BoardDetail {
       category: json['category'],
       event: json['event'],
       userName: json['userName'],
+      userId: json['userHashId'] ?? '',
       fileUrls: List<String>.from(json['fileUrls']),
       likeCount: json['likeCount'],
       commentCount: json['commentCount'],
