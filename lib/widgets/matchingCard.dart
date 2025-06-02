@@ -4,18 +4,28 @@ import 'package:project/contants/api_contants.dart';
 
 class _TeamImage extends StatelessWidget {
   final String teamImageUrl;
-  final String baseUrl = "http://${ApiConstants.serverUrl}:714";
 
   const _TeamImage({required this.teamImageUrl, Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final String baseUrl = "http://${ApiConstants.serverUrl}:714";
+
+    final fullImageUrl =
+        teamImageUrl.startsWith('http')
+            ? teamImageUrl
+            : '$baseUrl${teamImageUrl.startsWith('/') ? '' : '/uploads/teams/'}$teamImageUrl';
+    print("Full image URL: $fullImageUrl");
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CircleAvatar(
           radius: 30,
-          backgroundImage: const AssetImage("assets/images/default_team.png"),
+          backgroundImage:
+              teamImageUrl.isNotEmpty
+                  ? NetworkImage(fullImageUrl)
+                  : const AssetImage("assets/images/default_team.png")
+                      as ImageProvider,
         ),
       ],
     );
@@ -25,11 +35,13 @@ class _TeamImage extends StatelessWidget {
 class _TeamInfo extends StatelessWidget {
   final String teamName;
   final int rating;
+  final String region;
   final DateTime matchDay;
 
   const _TeamInfo({
     required this.teamName,
     required this.rating,
+    required this.region,
     required this.matchDay,
     Key? key,
   }) : super(key: key);
@@ -49,7 +61,8 @@ class _TeamInfo extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(teamName),
-        Text("레이팅 : $rating"),
+        Text("레이팅: $rating"),
+        Text("장소: $region"),
         Text(formatMatchDay(matchDay)),
       ],
     );
@@ -57,15 +70,17 @@ class _TeamInfo extends StatelessWidget {
 }
 
 class Matchingcard extends StatelessWidget {
-  final String teamImage;
+  final String teamImg;
   final String teamName;
   final int rating;
+  final String region;
   final DateTime matchDay;
 
   const Matchingcard({
-    required this.teamImage,
+    required this.teamImg,
     required this.teamName,
     required this.rating,
+    required this.region,
     required this.matchDay,
     Key? key,
   }) : super(key: key);
@@ -73,7 +88,7 @@ class Matchingcard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: MediaQuery.of(context).size.width * 0.98,
+      width: MediaQuery.of(context).size.width * 0.9,
       decoration: BoxDecoration(
         border: Border.all(width: 1.0),
         borderRadius: BorderRadius.circular(10.0),
@@ -84,9 +99,14 @@ class Matchingcard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _TeamImage(teamImageUrl: teamImage),
-              SizedBox(width: 16.0),
-              _TeamInfo(teamName: teamName, rating: rating, matchDay: matchDay),
+              _TeamImage(teamImageUrl: teamImg),
+              SizedBox(width: 10.0),
+              _TeamInfo(
+                teamName: teamName,
+                rating: rating,
+                region: region,
+                matchDay: matchDay,
+              ),
               Expanded(
                 child: Align(
                   alignment: Alignment.centerRight,
