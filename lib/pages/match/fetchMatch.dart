@@ -15,7 +15,7 @@ Future<List<MatchingData>> fetchMatchCardsFromServer() async {
 
     if (response.statusCode == 200) {
       final List<dynamic> contentList = response.data['content'];
-
+      print("매치 정보 $contentList");
       return contentList.map((json) => MatchingData.fromJson(json)).toList();
     } else {
       throw Exception("매칭 카드 데이터 요청 중 오류 발생: ${response.statusCode}");

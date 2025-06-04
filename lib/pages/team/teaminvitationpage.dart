@@ -6,18 +6,12 @@ class Teaminvitationpage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
-
-
     return Scaffold(
       body: Center(
         child: Column(
           children: [
             Expanded(
-              child: Padding(
-                padding: EdgeInsets.all(15),
-                child: _buildList(),
-              ),
+              child: Padding(padding: EdgeInsets.all(15), child: _buildList()),
             ),
           ],
         ),
@@ -74,7 +68,10 @@ class Teaminvitationpage extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       Text(
                         createdAt,
@@ -101,7 +98,7 @@ class Teaminvitationpage extends StatelessWidget {
                               borderRadius: BorderRadius.zero,
                             ),
                           ),
-                          child: Icon(Icons.check, size: 30,),
+                          child: Icon(Icons.check, size: 30),
                         ),
                       ),
                       SizedBox(width: 8),
@@ -119,11 +116,11 @@ class Teaminvitationpage extends StatelessWidget {
                               borderRadius: BorderRadius.zero,
                             ),
                           ),
-                          child: Icon(Icons.close, size: 30,),
+                          child: Icon(Icons.close, size: 30),
                         ),
                       ),
                     ],
-                  )
+                  ),
                 ],
               ),
             ),
@@ -133,15 +130,13 @@ class Teaminvitationpage extends StatelessWidget {
     );
   }
 
-
-// ListTile _tile(String title, String subtitle, String createdAt) => ListTile(
-//   title: Text(title),
-//   subtitle: Text(subtitle),
-//   trailing: Text(createdAt), // 초대를 보낼때 그 시간 받아옴
-//   leading: ClipRRect(
-//     borderRadius: BorderRadius.circular(100),
-//     child: Image.asset("assets/images/whitedog.png"),// 팀 초대를 보낸 팀의 로고 받아와야함(이건임시)
-//   ),
-// );
+  // ListTile _tile(String title, String subtitle, String createdAt) => ListTile(
+  //   title: Text(title),
+  //   subtitle: Text(subtitle),
+  //   trailing: Text(createdAt), // 초대를 보낼때 그 시간 받아옴
+  //   leading: ClipRRect(
+  //     borderRadius: BorderRadius.circular(100),
+  //     child: Image.asset("assets/images/whitedog.png"),// 팀 초대를 보낸 팀의 로고 받아와야함(이건임시)
+  //   ),
+  // );
 }
-
