@@ -10,25 +10,24 @@ enum Event {
   badminton,
   tennis,
   tableTennis,
-  bowling
+  bowling,
 }
 
-enum Region {
-  seoul,
-  gyeonggi,
-  gangwon,
-  chungcheong,
-  jeolla,
-  gyeongsang,
-  jeju
+enum Region { seoul, gyeonggi, gangwon, chungcheong, jeolla, gyeongsang, jeju }
+
+Region parseRegion(String? regionStr) {
+  if (regionStr == null) return Region.seoul; // 기본값 지정 가능
+  // 서버가 대문자면 소문자 변환 후 매칭
+  final lowerStr = regionStr.toLowerCase();
+  return Region.values.firstWhere(
+    (e) => e.name == lowerStr,
+    orElse: () => Region.seoul, // 기본값
+  );
 }
 
 enum AgeGroup { teen, twenties, thirties, fortiesUp }
 
-const teamTypeEnumMap = {
-  TeamType.solo: "1인 팀",
-  TeamType.team: "팀",
-};
+const teamTypeEnumMap = {TeamType.solo: "1인 팀", TeamType.team: "팀"};
 
 const teamCaseEnumMap = {
   TeamCase.teenager: "청소년",
