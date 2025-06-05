@@ -13,13 +13,17 @@ import 'package:table_calendar/table_calendar.dart';
 
 class Matchpage extends StatefulWidget {
   final Map<String, dynamic>? initialData;
-  const Matchpage({super.key, this.initialData});
+  final List<Map<String, dynamic>> leaderTeam;
+  const Matchpage({super.key, this.initialData, required this.leaderTeam});
 
   @override
   State<Matchpage> createState() => _MatchpageState();
 }
 
 class _MatchpageState extends State<Matchpage> {
+  
+  late List<Map<String, dynamic>> teamSports;
+  String? selectedTeam;
   late Future<List<MatchingData>> _matchDataFuture;
   List<MatchingData> allMatchCards = [];
   List<MatchingData> filterMatchCards = [];
@@ -37,6 +41,10 @@ class _MatchpageState extends State<Matchpage> {
     _selectedDay = DateTime.now();
 
     fetchMatchCards();
+    teamSports =
+        widget.leaderTeam.map((team) {
+          return {'teamName': team['teamName'], 'event': team['event']};
+        }).toList();
   }
 
   T? enumFromBackend<T>(String? value, List<T> enumValues) {
@@ -113,7 +121,7 @@ class _MatchpageState extends State<Matchpage> {
   String getShortRegion(String fullAddress) {
     final parts = fullAddress.split(' ');
     if (parts.length >= 3) {
-      return '${parts[1]} ${parts[3]} ${parts[4]}';
+      return '${parts[1]} ${parts[2]} ${parts[3]} ${parts[4]} ';
     }
     return fullAddress;
   }
@@ -216,29 +224,53 @@ class _MatchpageState extends State<Matchpage> {
                 ),
               ],
             ),
-
-            const SizedBox(height: 30.0),
-
-            ElevatedButton(
-              onPressed:
-                  () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const StadiumSearchPage(),
-                    ),
-                  ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
-              ),
-              child: const Text("경기장 찾기"),
-            ),
-
+            // const SizedBox(height: 30.0),
+            // ElevatedButton(
+            //   onPressed:
+            //       () => Navigator.push(
+            //         context,
+            //         MaterialPageRoute(
+            //           builder: (context) => const StadiumSearchPage(),
+            //         ),
+            //       ),
+            //   style: ElevatedButton.styleFrom(
+            //     backgroundColor: Colors.white,
+            //     foregroundColor: Colors.black,
+            //   ),
+            //   child: const Text("경기장 찾기"),
+            // ),
             const SizedBox(height: 10.0),
-
+            SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 🟡 팀 선택
+                  Text("팀 선택", style: TextStyle(fontWeight: FontWeight.bold)),
+                  DropdownButton<String>(
+                    isExpanded: true,
+                    hint: Text("팀을 선택하세요"),
+                    value: selectedTeam,
+                    items:
+                        teamSports.map((team) {
+                          return DropdownMenuItem(
+                            value: team['teamName'] as String,
+                            child: Text(team['teamName']),
+                          );
+                        }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedTeam = value;
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
             ListView.builder(
               shrinkWrap: true,
               physics: NeverScrollableScrollPhysics(),
+              padding: const EdgeInsets.only(bottom: 10.0),
               itemCount: filterMatchCards.length,
               itemBuilder: (context, index) {
                 final data = filterMatchCards[index];
@@ -247,6 +279,7 @@ class _MatchpageState extends State<Matchpage> {
                   child: Padding(
                     padding: EdgeInsets.only(top: index == 0 ? 0 : 16.0),
                     child: Matchingcard(
+                      matchId: data.matchId,
                       teamImg: data.teamImage,
                       teamName: data.teamName,
                       rating: data.rating,
@@ -255,6 +288,7 @@ class _MatchpageState extends State<Matchpage> {
                     ),
                   ),
                 );
+              
               },
             ),
           ],
