@@ -138,3 +138,33 @@ Future<bool> createComment({
     return false;
   }
 }
+
+Future<bool> updateComment({
+  required String commentId,
+  required String content,
+}) async {
+  final uri = Uri.parse('${ApiConstants.baseUrl}/comments/$commentId');
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('accessToken');
+
+  final Map<String, dynamic> body = {
+    'content': content,
+  };
+
+  final response = await http.patch(
+    uri,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    },
+    body: jsonEncode(body),
+  );
+
+  if (response.statusCode == 200) {
+    print('댓글 수정 성공');
+    return true;
+  } else {
+    print('댓글 수정 실패: ${response.statusCode} ${response.body}');
+    return false;
+  }
+}

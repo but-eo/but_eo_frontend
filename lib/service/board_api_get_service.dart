@@ -60,3 +60,24 @@ Future<bool> deleteBoard(String boardId) async {
     return false;
   }
 }
+
+Future<bool> deleteComment(String commentId) async {
+  final uri = Uri.parse('${ApiConstants.baseUrl}/comments/$commentId');
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('accessToken');
+
+  final response = await http.delete(
+    uri,
+    headers: {
+      'Authorization': 'Bearer $token',
+    },
+  );
+
+  if (response.statusCode == 200) {
+    print('댓글 삭제 성공');
+    return true;
+  } else {
+    print('댓글 삭제 실패: ${response.statusCode} ${response.body}');
+    return false;
+  }
+}

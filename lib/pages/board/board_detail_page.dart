@@ -21,6 +21,8 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
   String? currentUserId;
   late Future<BoardDetail> futureBoardDetail;
   final _commentController = TextEditingController();
+  String? editingCommentId;
+  final TextEditingController _editingController = TextEditingController();
 
   @override
   void initState() {
@@ -32,6 +34,7 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
   @override
   void dispose() {
     _commentController.dispose();
+    _editingController.dispose();
     super.dispose();
   }
 
@@ -65,6 +68,27 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('댓글 등록 실패')));
       }
+    }
+  }
+
+  Future<void> _updateComment(String commentId) async {
+    String updatedContent = _editingController.text.trim();
+    print('Updating commentId: $commentId with content: $updatedContent');
+    if (updatedContent.isEmpty) return;
+
+    bool success = await updateComment(
+      commentId: commentId,
+      content: updatedContent,
+    );
+
+    if (success) {
+      setState(() {
+        editingCommentId = null;
+        _editingController.clear();
+      });
+      _refreshData();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('댓글 수정 실패')));
     }
   }
 
@@ -140,34 +164,99 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
   }
 
   Widget _buildCommentItem(Comment comment) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6.0),
-      child: Container(
-        padding: const EdgeInsets.all(12.0),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey.shade300),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(comment.userName ?? '알 수 없음', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-            const SizedBox(height: 4),
-            Text(comment.content ?? '', style: const TextStyle(fontSize: 13)),
-            const SizedBox(height: 6),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(comment.createdAt?.split('T').first ?? '', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-                Text('❤️ ${comment.likeCount}', style: const TextStyle(fontSize: 12, color: Colors.redAccent)),
-              ],
-            ),
-          ],
-        ),
+    bool isEditing = editingCommentId == comment.commentId;
+    bool isMyComment = comment.userName == currentUserId;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.all(12.0),
+      decoration: BoxDecoration(
+        color: Colors.white70,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(comment.userId, style: const TextStyle(fontWeight: FontWeight.bold)),
+              if (isMyComment)
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit, size: 20),
+                      onPressed: () {
+                        setState(() {
+                          editingCommentId = comment.commentId;
+                          _editingController.text = comment.content;
+                        });
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete, size: 20),
+                      onPressed: () async {
+                        final confirmed = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('댓글 삭제'),
+                            content: const Text('댓글을 삭제하시겠습니까?'),
+                            actions: [
+                              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('취소')),
+                              TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('삭제')),
+                            ],
+                          ),
+                        );
+                        if (confirmed == true) {
+                          final success = await deleteComment(comment.commentId);
+                          if (success && mounted) {
+                            _refreshData();
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('댓글이 삭제되었습니다.')));
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('댓글 삭제 실패')));
+                          }
+                        }
+                      },
+                    ),
+                  ],
+                ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          isEditing
+              ? Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextField(
+                controller: _editingController,
+                autofocus: true,
+                maxLines: null,
+                onSubmitted: (_) => _updateComment(comment.commentId),
+              ),
+              const SizedBox(height: 8),
+              ElevatedButton(
+                onPressed: () => _updateComment(comment.commentId),
+                child: const Text('수정 완료'),
+              ),
+            ],
+          )
+              : Text(comment.content),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Icon(Icons.favorite_border, size: 16, color: Colors.red),
+              const SizedBox(width: 4),
+              Text('${comment.likeCount}'),
+            ],
+          ),
+        ],
       ),
     );
   }
+
+
+
 
   Widget _buildAuthorButtons(BoardDetail board) {
     return Row(
