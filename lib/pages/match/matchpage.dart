@@ -35,34 +35,30 @@ class _MatchpageState extends State<Matchpage> {
   void initState() {
     super.initState();
     _selectedDay = DateTime.now();
-
     fetchMatchCards();
   }
 
   T? enumFromBackend<T>(String? value, List<T> enumValues) {
     if (value == null) return null;
     return enumValues.firstWhere(
-      (e) => e.toString().split('.').last.toUpperCase() == value.toUpperCase(),
+          (e) => e.toString().split('.').last.toUpperCase() == value.toUpperCase(),
       orElse: () => enumValues.first,
     );
   }
 
   void applyFilters() {
     setState(() {
-      filterMatchCards =
-          allMatchCards.where((match) {
-            final matchesDate =
-                _selectedDay == null ||
-                isSameDay(match.matchDay, _selectedDay!);
-            final matchesRegion =
-                selectedRegion == "전체" ||
+      filterMatchCards = allMatchCards.where((match) {
+        final matchesDate =
+            _selectedDay == null || isSameDay(match.matchDay, _selectedDay!);
+        final matchesRegion =
+            selectedRegion == "전체" ||
                 regionEnumMap[match.teamRegion] == selectedRegion;
-            print("매치 지역 : ${match.teamRegion}");
-            final matchesSport =
-                selectedSport == "전체" || match.matchType == selectedSport;
+        final matchesSport =
+            selectedSport == "전체" || match.matchType == selectedSport;
 
-            return matchesDate && matchesRegion && matchesSport;
-          }).toList();
+        return matchesDate && matchesRegion && matchesSport;
+      }).toList();
     });
   }
 
@@ -79,10 +75,7 @@ class _MatchpageState extends State<Matchpage> {
       final data = await fetchMatchCardsFromServer();
       setState(() {
         allMatchCards = data;
-        filterMatchCards =
-            data
-                .where((match) => isSameDay(match.matchDay, DateTime.now()))
-                .toList();
+        filterMatchCards = data.where((match) => isSameDay(match.matchDay, DateTime.now())).toList();
         applyFilters();
       });
     } catch (e) {
@@ -131,23 +124,23 @@ class _MatchpageState extends State<Matchpage> {
             ),
             const Divider(),
 
-            ReusableFilter(
-              options: regions,
-              selectedOption: selectedRegion,
-              onSelected: (region) {
-                setState(() => selectedRegion = region);
-                applyFilters();
-              },
-            ),
-            const SizedBox(height: 6),
-            ReusableFilter(
-              options: sports,
-              selectedOption: selectedSport,
-              onSelected: (sport) {
-                setState(() => selectedSport = sport);
-                applyFilters();
-              },
-            ),
+            // ReusableFilter(
+            //   options: regions,
+            //   selectedOption: selectedRegion,
+            //   onSelected: (region) {
+            //     setState(() => selectedRegion = region);
+            //     applyFilters();
+            //   },
+            // ),
+            // const SizedBox(height: 6),
+            // ReusableFilter(
+            //   options: sports,
+            //   selectedOption: selectedSport,
+            //   onSelected: (sport) {
+            //     setState(() => selectedSport = sport);
+            //     applyFilters();
+            //   },
+            // ),
 
             const SizedBox(height: 10.0),
 
@@ -220,13 +213,12 @@ class _MatchpageState extends State<Matchpage> {
             const SizedBox(height: 30.0),
 
             ElevatedButton(
-              onPressed:
-                  () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const StadiumSearchPage(),
-                    ),
-                  ),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const StadiumSearchPage(),
+                ),
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
                 foregroundColor: Colors.black,
