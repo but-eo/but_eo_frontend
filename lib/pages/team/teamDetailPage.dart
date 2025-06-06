@@ -138,7 +138,7 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
             const SizedBox(height: 24),
             _buildDescription(description, context),
             const SizedBox(height: 24),
-            _buildActionButtons(totalMembers),
+            _buildActionButtons(members),
             const SizedBox(height: 12),
             _buildMemberList(members),
           ],
@@ -187,8 +187,9 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
     );
   }
 
-  Widget _buildActionButtons(int totalMembers) {
+  Widget _buildActionButtons(List<dynamic> members) {
     final String teamId = team['teamId'] ?? '';
+    final int memberCount = members.length;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -197,7 +198,7 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
           children: [
             const Text("팀원 목록", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(width: 6),
-            Text("($totalMembers명)", style: const TextStyle(fontSize: 14, color: Colors.grey)),
+            Text("($memberCount명)", style: const TextStyle(fontSize: 14, color: Colors.grey)),
           ],
         ),
         if (!isLeader)
@@ -222,18 +223,30 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             ),
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (_) => Teaminvitationpage(teamId: teamId),
                 ),
               );
+
+              // 변경이 발생한 경우 팀 정보를 다시 불러와 갱신
+              if (result == true) {
+                final updatedTeam = await TeamService.getTeamById(teamId);
+                if (mounted && updatedTeam != null) {
+                  setState(() {
+                    team = updatedTeam;
+                  });
+                }
+              }
             },
+
           ),
       ],
     );
   }
+
 
 
   Future<void> _handleJoinOrCancel() async {
@@ -280,8 +293,16 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
       );
     }
 
+    // 리더 먼저, 그 다음 일반 멤버 정렬
+    final sortedMembers = List<Map<String, dynamic>>.from(members)
+      ..sort((a, b) {
+        final aIsLeader = a['leader'] == true ? 0 : 1;
+        final bIsLeader = b['leader'] == true ? 0 : 1;
+        return aIsLeader.compareTo(bIsLeader);
+      });
+
     return Column(
-      children: members.map((member) {
+      children: sortedMembers.map((member) {
         final name = member['name'] ?? '이름 없음';
         final isLeader = member['leader'] == true;
         return ListTile(
@@ -306,4 +327,5 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
       }).toList(),
     );
   }
+
 }

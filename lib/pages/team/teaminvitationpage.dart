@@ -30,7 +30,7 @@ class _TeaminvitationpageState extends State<Teaminvitationpage> {
         isLoading = false;
       });
     } catch (e) {
-      print("❌ 팀 가입 요청 불러오기 실패: $e");
+      print("\u274c 팀 가입 요청 불러오기 실패: $e");
       setState(() {
         isLoading = false;
       });
@@ -39,32 +39,38 @@ class _TeaminvitationpageState extends State<Teaminvitationpage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.baseGrey10Color,
-      appBar: AppBar(
-        title: const Text("팀 초대 요청", style: TextStyle(color: AppColors.textPrimary)),
-        centerTitle: true,
-        backgroundColor: AppColors.baseWhiteColor,
-        elevation: 1,
-        iconTheme: const IconThemeData(color: AppColors.textPrimary),
-      ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : requests.isEmpty
-          ? const Center(child: Text("초대 요청이 없습니다."))
-          : ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        itemCount: requests.length,
-        itemBuilder: (context, index) {
-          final request = requests[index];
-          return _buildRow(
-            username: request['userName'] ?? '알 수 없음',
-            userId: request['userId'] ?? '',
-            invitationId: request['invitationId'] ?? '',
-            profileImg: request['profileImg'],
-            date: formatRelativeTime(request['requestedAt'] ?? ''),
-          );
-        },
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.pop(context, true); // 뒤로가기 시 변경 여부 전달
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.baseGrey10Color,
+        appBar: AppBar(
+          title: const Text("팀 가입 요청 목록", style: TextStyle(color: AppColors.textPrimary)),
+          centerTitle: true,
+          backgroundColor: AppColors.baseWhiteColor,
+          elevation: 1,
+          iconTheme: const IconThemeData(color: AppColors.textPrimary),
+        ),
+        body: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : requests.isEmpty
+            ? const Center(child: Text("가입 요청이 없습니다."))
+            : ListView.builder(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          itemCount: requests.length,
+          itemBuilder: (context, index) {
+            final request = requests[index];
+            return _buildRow(
+              username: request['userName'] ?? '알 수 없음',
+              userId: request['userId'] ?? '',
+              invitationId: request['invitationId'] ?? '',
+              profileImg: request['profileImg'],
+              date: formatRelativeTime(request['requestedAt'] ?? ''),
+            );
+          },
+        ),
       ),
     );
   }
@@ -113,7 +119,7 @@ class _TeaminvitationpageState extends State<Teaminvitationpage> {
                       TextSpan(
                           text: username,
                           style: const TextStyle(fontWeight: FontWeight.bold)),
-                      const TextSpan(text: "님이 초대를 받았습니다."),
+                      const TextSpan(text: "님이 팀 가입을 요청했습니다."),
                     ],
                   ),
                 ),
@@ -126,21 +132,25 @@ class _TeaminvitationpageState extends State<Teaminvitationpage> {
             children: [
               TextButton(
                 onPressed: () async {
-                  await TeamInvitaionService.acceptInvitation(invitationId, userId);
-                  _loadJoinRequests(); // 새로고침
+                  await TeamInvitaionService.acceptJoinRequest(widget.teamId, userId);
+                  setState(() {
+                    requests.removeWhere((r) => r['userId'] == userId);
+                  });
                 },
                 style: TextButton.styleFrom(
                   backgroundColor: AppColors.brandBlue,
                   foregroundColor: AppColors.baseWhiteColor,
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 ),
-                child: const Text("확인"),
+                child: const Text("수락"),
               ),
               const SizedBox(width: 6),
               TextButton(
                 onPressed: () async {
-                  await TeamInvitaionService.declineInvitation(invitationId, userId);
-                  _loadJoinRequests(); // 새로고침
+                  await TeamInvitaionService.rejectJoinRequest(widget.teamId, userId);
+                  setState(() {
+                    requests.removeWhere((r) => r['userId'] == userId);
+                  });
                 },
                 style: TextButton.styleFrom(
                   backgroundColor: AppColors.lightGrey,
@@ -148,7 +158,7 @@ class _TeaminvitationpageState extends State<Teaminvitationpage> {
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   side: const BorderSide(color: AppColors.baseBlackColor, width: 0.7),
                 ),
-                child: const Text("삭제"),
+                child: const Text("거절"),
               ),
             ],
           ),

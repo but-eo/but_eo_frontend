@@ -32,35 +32,35 @@ class TeamInvitaionService {
     }
   }
 
-  // 초대 수락
-  static Future<void> acceptInvitation(String invitationId, String userId) async {
+
+  //리더 신청 수락
+  static Future<void> acceptJoinRequest(String teamId, String userId) async {
     final token = await TokenStorage.getAccessToken();
 
     final response = await _dio.post(
-      '${ApiConstants.baseUrl}/invitations/$invitationId/accept',
-      queryParameters: {'userId': userId},
+      '${ApiConstants.baseUrl}/teams/$teamId/join/accept/$userId',
       options: Options(headers: {'Authorization': 'Bearer $token'}),
     );
 
     if (response.statusCode != 200) {
-      throw Exception("초대 수락 실패: ${response.statusMessage}");
+      throw Exception("가입 수락 실패: ${response.statusMessage}");
     }
   }
 
-// 초대 거절
-  static Future<void> declineInvitation(String invitationId, String userId) async {
+  //리더 신청 거절
+  static Future<void> rejectJoinRequest(String teamId, String userId) async {
     final token = await TokenStorage.getAccessToken();
 
     final response = await _dio.post(
-      '${ApiConstants.baseUrl}/invitations/$invitationId/decline',
-      queryParameters: {'userId': userId},
+      '${ApiConstants.baseUrl}/teams/$teamId/join/reject/$userId',
       options: Options(headers: {'Authorization': 'Bearer $token'}),
     );
 
     if (response.statusCode != 200) {
-      throw Exception("초대 거절 실패: ${response.statusMessage}");
+      throw Exception("가입 거절 실패: ${response.statusMessage}");
     }
   }
+
 
   // 팀 신청 전체 조회
   static Future<List<Map<String, dynamic>>> getJoinRequests(
