@@ -39,4 +39,12 @@ class MatchingApiService {
       return null;
     }
   }
+
+  Future<void> challenge() async{
+    try{
+      
+    }catch(e){
+      print("챌린지 신청 실패 : ${e}");
+    }
+  }
 }

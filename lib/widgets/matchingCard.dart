@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:project/contants/api_contants.dart';
+import 'package:project/pages/match/matching_detail.dart';
 
 class _TeamImage extends StatelessWidget {
   final String teamImageUrl;
@@ -70,63 +71,57 @@ class _TeamInfo extends StatelessWidget {
 }
 
 class Matchingcard extends StatelessWidget {
+  final String matchId;
   final String teamImg;
   final String teamName;
   final int rating;
   final String region;
   final DateTime matchDay;
+  final VoidCallback? onTap; // ← 추가
 
   const Matchingcard({
+    required this.matchId,
     required this.teamImg,
     required this.teamName,
     required this.rating,
     required this.region,
     required this.matchDay,
+    required this.onTap,
     Key? key,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: MediaQuery.of(context).size.width * 0.9,
-      decoration: BoxDecoration(
-        border: Border.all(width: 1.0),
-        borderRadius: BorderRadius.circular(10.0),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _TeamImage(teamImageUrl: teamImg),
-              SizedBox(width: 10.0),
-              _TeamInfo(
-                teamName: teamName,
-                rating: rating,
-                region: region,
-                matchDay: matchDay,
-              ),
-              Expanded(
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: SizedBox(
-                    height: 40, // 원하는 높이로 조절
-                    child: ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: Colors.black,
-                        side: BorderSide(color: Colors.black, width: 1),
-                        padding: EdgeInsets.symmetric(horizontal: 16), // 내부 여백
-                        textStyle: TextStyle(fontSize: 12),
-                      ),
-                      child: Text("매칭 신청"),
-                    ),
-                  ),
+    return GestureDetector(
+      onTap: onTap,
+      // Navigator.push(
+      //   context,
+      //   MaterialPageRoute(
+      //     builder: (_) => MatchingDetailPage(matchId: matchId),
+      //   ),
+      // );
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.9,
+        decoration: BoxDecoration(
+          border: Border.all(width: 1.0),
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _TeamImage(teamImageUrl: teamImg),
+                SizedBox(width: 10.0),
+                _TeamInfo(
+                  teamName: teamName,
+                  rating: rating,
+                  region: region,
+                  matchDay: matchDay,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

@@ -2,14 +2,15 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:project/appStyle/app_colors.dart';
 import 'package:project/chat/chatpage.dart';
-import 'package:project/contants/api_contants.dart';
 import 'package:project/pages/board/Board.dart';
+import 'package:project/contants/api_contants.dart';
 import 'package:project/pages/homepage.dart';
 import 'package:project/pages/login/login.dart';
 import 'package:project/pages/login/logout.dart';
 import 'package:project/pages/match/matchpage.dart';
 import 'package:project/pages/mypage/mypage.dart';
 import 'package:project/pages/team/teamSearchPage.dart';
+import 'package:project/service/teamService.dart';
 import 'package:project/widgets/bottom_navigation.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -24,25 +25,30 @@ class Main extends StatefulWidget {
 }
 
 class _MainState extends State<Main> {
+  List<Map<String, dynamic>> leaderTeam = [];
+  TeamService teamService = TeamService();
   String userName = "사용자";
   String profileImageUrl = "";
   bool isLoading = true;
   int _selectedIndex = 0;
 
-  final List<Widget> _pages = [
-    Homepage(),
-    Matchpage(),
-    ChatPage(),
-    Board(),
-    TeamSearchPage(),
-    MyPageScreen(),
-  ];
-
   @override
   void initState() {
     super.initState();
     fetchUserInfo();
+    fetchLeaderTeam();
     printAccessToken("MainPage");
+  }
+
+  Future<void> fetchLeaderTeam() async {
+    final myTeams = await TeamService.getMyTeams();
+    if (myTeams != null && myTeams.isNotEmpty) {
+      setState(() {
+        leaderTeam = List<Map<String, dynamic>>.from(myTeams);
+      });
+    } else {
+      print("리더인 팀이 존재하지 않습니다");
+    }
   }
 
   Future<void> printAccessToken(String label) async {
@@ -90,6 +96,15 @@ class _MainState extends State<Main> {
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> _pages = [
+      Homepage(),
+      Matchpage(leaderTeam: leaderTeam),
+      ChatPage(),
+      Board(),
+      TeamSearchPage(),
+      MyPageScreen(),
+    ];
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
