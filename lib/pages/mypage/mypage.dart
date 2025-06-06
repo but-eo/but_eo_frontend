@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
-// 실제 프로젝트 경로에 맞게 아래 import 경로를 수정해주세요.
 import 'package:project/contants/api_contants.dart';
-import 'package:project/pages/mypage/myteam.dart';
-import 'package:project/utils/token_storage.dart';
-import 'package:project/pages/mypage/CustomerServiceMainPage.dart';
-
+import '../../utils/token_storage.dart';
+import 'CustomerServiceMainPage.dart';
 import 'EditProfilePage.dart';
 import 'NoticePage.dart';
 import 'asked_questions.dart';
+import 'myteam.dart';
 
 class MyPageScreen extends StatefulWidget {
   const MyPageScreen({super.key});
@@ -18,18 +16,21 @@ class MyPageScreen extends StatefulWidget {
 }
 
 class _MyPageScreenState extends State<MyPageScreen> {
+  // ✅ fetchUserInfo를 통해 가져온 사용자 정보를 저장할 상태 변수 추가
+  Map<String, dynamic>? _userInfo;
   String? nickname = "로딩 중...";
   String? _profileImageUrl;
+
+  // baseUrl 및 기본 프로필 경로 정의는 그대로 유지
   final String baseUrl = "http://${ApiConstants.serverUrl}:714";
   final String defaultProfilePath = "/uploads/profiles/default_profile.png";
 
-  // 새로운 색상 정의
+  // 색상 정의
   final Color _scaffoldBgColor = Colors.grey.shade200;
   final Color _cardBgColor = Colors.white;
   final Color _appBarBgColor = Colors.white;
   final Color _primaryTextColor = Colors.black87;
   final Color _secondaryTextColor = Colors.grey.shade700;
-  final Color _accentColor = Colors.blue.shade700;
   final Color _iconColor = Colors.black54;
 
 
@@ -46,6 +47,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
         setState(() {
           nickname = "로그인 필요";
           _profileImageUrl = null;
+          _userInfo = null; // ✅ 사용자 정보 초기화
         });
       }
       print("❌ 토큰 없음");
@@ -68,6 +70,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
 
         if (mounted) {
           setState(() {
+            _userInfo = data as Map<String, dynamic>; // ✅ 전체 사용자 정보 저장
             nickname = data['name'] ?? "닉네임 없음";
             if (profilePathFromServer != null && profilePathFromServer is String && profilePathFromServer.isNotEmpty) {
               if (profilePathFromServer.startsWith("http")) {
@@ -85,6 +88,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
         if (mounted) {
           setState(() {
             nickname = "정보 로드 실패";
+            _userInfo = null; // ✅ 사용자 정보 초기화
           });
         }
       }
@@ -93,6 +97,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
       if (mounted) {
         setState(() {
           nickname = "오류 발생";
+          _userInfo = null; // ✅ 사용자 정보 초기화
         });
       }
       if (e is DioException && e.response != null) {
@@ -104,7 +109,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _scaffoldBgColor, // 전체 배경색 변경
+      backgroundColor: _scaffoldBgColor,
       appBar: AppBar(
         title: Text(
           '마이페이지',
@@ -113,7 +118,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
         backgroundColor: _appBarBgColor,
         elevation: 0.5,
         centerTitle: false,
-        iconTheme: IconThemeData(color: _primaryTextColor), // AppBar 아이콘 색상 통일
+        iconTheme: IconThemeData(color: _primaryTextColor),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
@@ -132,9 +137,11 @@ class _MyPageScreenState extends State<MyPageScreen> {
               }),
               _buildListTile(Icons.article_outlined, '내가 작성한 글 보기', context, onTap: () {
                 print('내가 작성한 글 보기 클릭');
+                // TODO: 내가 작성한 글 보기 페이지로 이동
               }),
               _buildListTile(Icons.mode_comment_outlined, '내가 남긴 댓글 보기', context, onTap: () {
                 print('내가 남긴 댓글 보기 클릭');
+                // TODO: 내가 남긴 댓글 보기 페이지로 이동
               }),
             ],
           ),
@@ -170,6 +177,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
             children: [
               _buildListTile(Icons.settings_outlined, '앱 설정', context, onTap: () {
                 print('앱 설정 클릭');
+                // TODO: 앱 설정 페이지로 이동
               }),
             ],
           ),
@@ -186,10 +194,10 @@ class _MyPageScreenState extends State<MyPageScreen> {
         borderRadius: BorderRadius.circular(12.0),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05), // 그림자 색 연하게
+            color: Colors.black.withOpacity(0.05),
             spreadRadius: 1,
-            blurRadius: 8, // 블러 반경 증가
-            offset: const Offset(0, 3), // 그림자 위치 미세 조정
+            blurRadius: 8,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -219,28 +227,31 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
-                // 이메일 등 추가 정보 표시 가능
-                // const SizedBox(height: 4),
-                // Text(
-                //   'email@example.com',
-                //   style: TextStyle(fontSize: 14, color: _secondaryTextColor),
-                // ),
               ],
             ),
           ),
           IconButton(
             icon: Icon(Icons.edit_outlined, color: _secondaryTextColor),
             onPressed: () async {
+              // ✅ EditProfilePage로 이동하기 전에, 현재 페이지의 _userInfo 상태를 한번 더 확인합니다.
+              if (_userInfo == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("사용자 정보를 불러온 후 다시 시도해주세요.")),
+                );
+                return;
+              }
+
               final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => EditProfilePage(
                     initialProfileImageUrl: _profileImageUrl,
+                    userInfo: _userInfo, // ✅ 사용자 정보 전체를 전달
                   ),
                 ),
               );
               if (result == true && mounted) {
-                fetchUserInfo();
+                fetchUserInfo(); // 정보 수정 후 돌아오면 마이페이지 정보도 새로고침
               }
             },
           ),
@@ -250,7 +261,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
   }
 
   Widget _buildSectionCard(BuildContext context, {required String title, required List<Widget> children}) {
-    return Container( // Card 대신 Container와 BoxDecoration 사용으로 커스텀 용이
+    return Container(
       decoration: BoxDecoration(
           color: _cardBgColor,
           borderRadius: BorderRadius.circular(12.0),
@@ -272,7 +283,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
               title,
               style: TextStyle(
                 fontSize: 16,
-                fontWeight: FontWeight.w600, // 약간 더 얇게
+                fontWeight: FontWeight.w600,
                 color: _secondaryTextColor,
               ),
             ),
@@ -294,9 +305,9 @@ class _MyPageScreenState extends State<MyPageScreen> {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(8.0), // InkWell 효과 범위 (선택사항)
+        borderRadius: BorderRadius.circular(8.0),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14), // 패딩 증가
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
           child: Row(
             children: [
               Icon(icon, color: _iconColor, size: 22),
@@ -307,7 +318,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   style: TextStyle(fontSize: 16, color: _primaryTextColor),
                 ),
               ),
-              Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 22), // 색상 연하게
+              Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 22),
             ],
           ),
         ),
