@@ -1,5 +1,6 @@
 // lib/pages/board/board_detail_page.dart
 import 'package:flutter/material.dart';
+import 'package:project/contants/api_contants.dart'; // imageBaseUrl 사용을 위해 import
 import 'package:project/model/board_detail_model.dart';
 import 'package:project/model/board_comment_model.dart';
 import 'package:project/pages/board/Edit_Board_Page.dart';
@@ -17,6 +18,7 @@ class BoardDetailPage extends StatefulWidget {
 }
 
 class _BoardDetailPageState extends State<BoardDetailPage> {
+  // ... (다른 변수 및 메소드들은 이전과 동일) ...
   String? currentUserId;
   late Future<BoardDetail> futureBoardDetail;
   final _commentController = TextEditingController();
@@ -24,18 +26,18 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
   String? _editingCommentId;
   final _editingCommentController = TextEditingController();
 
-  // 새로운 색상 팔레트 적용
-  final Color _scaffoldBgColor = const Color(0xFFF4F6F8); // 아주 약간의 푸른 기가 도는 밝은 회색
+  final Color _scaffoldBgColor = const Color(0xFFF4F6F8);
   final Color _appBarBgColor = Colors.white;
   final Color _cardBgColor = Colors.white;
-  final Color _primaryTextColor = const Color(0xFF2C3E50); // 짙은 남회색 계열
-  final Color _secondaryTextColor = const Color(0xFF7F8C8D); // 부드러운 회색
-  final Color _accentColor = const Color(0xFF3498DB); // 산뜻한 파란색 계열
+  final Color _primaryTextColor = const Color(0xFF2C3E50);
+  final Color _secondaryTextColor = const Color(0xFF7F8C8D);
+  final Color _accentColor = const Color(0xFF3498DB);
   final Color _inputBorderColor = Colors.grey.shade300;
-  final Color _iconColor = const Color(0xFF566573); // 아이콘 색상
+  final Color _iconColor = const Color(0xFF566573);
 
   bool _isBoardLiked = false;
   int _boardLikeCount = 0;
+
 
   @override
   void initState() {
@@ -195,7 +197,7 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)), // 모서리 둥글게
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
         title: Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: _primaryTextColor, fontSize: 18)),
         content: Text(content, style: TextStyle(color: _secondaryTextColor, fontSize: 15, height: 1.4)),
         actionsPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -220,7 +222,7 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
       appBar: AppBar(
         title: Text("게시글", style: TextStyle(color: _primaryTextColor, fontWeight: FontWeight.bold, fontSize: 19)),
         backgroundColor: _appBarBgColor,
-        elevation: 0.8, // 약간의 그림자로 구분감
+        elevation: 0.8,
         iconTheme: IconThemeData(color: _primaryTextColor),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 22),
@@ -253,10 +255,9 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildBoardContentSection(context, board, isAuthor),
-                        // 댓글 섹션 구분 강화
                         Container(
-                          color: _cardBgColor, // 댓글 목록도 카드 배경색과 통일
-                          margin: const EdgeInsets.only(top:8.0), // 게시글 내용 카드와 간격
+                          color: _cardBgColor,
+                          margin: const EdgeInsets.only(top:8.0),
                           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -313,12 +314,13 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
     );
   }
 
+
   Widget _buildBoardContentSection(BuildContext context, BoardDetail board, bool isAuthor) {
     int displayLikeCount = _boardLikeCount;
 
     return Container(
       color: _cardBgColor,
-      padding: const EdgeInsets.fromLTRB(16.0, 20.0, 16.0, 16.0), // 상단 패딩 증가
+      padding: const EdgeInsets.fromLTRB(16.0, 20.0, 16.0, 16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -334,9 +336,9 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
               ),
               if (isAuthor)
                 SizedBox(
-                  height: 40, width: 40, // 터치 영역 확보
+                  height: 40, width: 40,
                   child: PopupMenuButton<String>(
-                    icon: Icon(Icons.more_vert_rounded, color: _secondaryTextColor, size: 24), // 아이콘 변경 및 크기 조정
+                    icon: Icon(Icons.more_vert_rounded, color: _secondaryTextColor, size: 24),
                     onSelected: (value) async {
                       if (value == 'edit') {
                         final result = await Navigator.push(
@@ -386,13 +388,12 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
           ),
           Divider(color: Colors.grey.shade200, thickness: 1),
           Padding(
-            padding: const EdgeInsets.only(top: 14.0, bottom: 4.0), // 패딩 조정
+            padding: const EdgeInsets.only(top: 14.0, bottom: 4.0),
             child: Row(
-              // mainAxisAlignment: MainAxisAlignment.spaceBetween, // 필요시 재조정
               children: [
                 InkWell(
                   onTap: _toggleBoardLike,
-                  borderRadius: BorderRadius.circular(8), // 터치 피드백 영역
+                  borderRadius: BorderRadius.circular(8),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
                     child: Row(
@@ -411,7 +412,7 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 16), // 아이콘 버튼 간 간격
+                const SizedBox(width: 16),
                 Row(
                   children: [
                     Icon(Icons.chat_bubble_outline_rounded, size: 20, color: _iconColor),
@@ -422,8 +423,7 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
                     ),
                   ],
                 ),
-                const Spacer(), // 오른쪽으로 밀기
-                // Text('조회수 ${board.viewCount}', style: TextStyle(fontSize: 13, color: _secondaryTextColor)), // 조회수
+                const Spacer(),
               ],
             ),
           ),
@@ -449,11 +449,10 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
             )),
       );
     }
-    // 댓글 목록은 카드 배경색 없이 Scaffold 배경 위에 바로 표시
     return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 0), // 댓글 목록은 좌우 패딩 제거
+      padding: const EdgeInsets.symmetric(horizontal:0),
       itemCount: comments.length,
       itemBuilder: (context, index) {
         final comment = comments[index];
@@ -463,17 +462,38 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
     );
   }
 
+  // ***** 프로필 사진 표시 로직이 추가된 위젯 *****
   Widget _buildCommentItem(BuildContext context, Comment comment) {
     final bool isMyComment = comment.userId == currentUserId;
     final bool isCurrentlyEditing = _editingCommentId == comment.commentId;
 
+    // 1. 프로필 이미지 URL 생성 로직 추가
+    String? commentAuthorProfileUrl;
+    if (comment.profileImageUrl != null && comment.profileImageUrl!.isNotEmpty) {
+      // 서버에서 내려온 값이 전체 URL인지, 아니면 경로만인지에 따라 분기 처리
+      if (comment.profileImageUrl!.startsWith("http")) {
+        commentAuthorProfileUrl = comment.profileImageUrl;
+      } else {
+        // ApiConstants에 정의된 imageBaseUrl을 사용하여 전체 URL 생성
+        commentAuthorProfileUrl = "${ApiConstants.imageBaseUrl}${comment.profileImageUrl}";
+      }
+    }
+
     return Container(
-      color: _cardBgColor, // 각 댓글 아이템 배경색
+      color: _cardBgColor,
       padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(radius: 19, backgroundColor: _scaffoldBgColor, child: Icon(Icons.account_circle_rounded, size: 22, color: _secondaryTextColor)),
+          // 2. CircleAvatar 수정
+          CircleAvatar(
+            radius: 19,
+            backgroundColor: _scaffoldBgColor,
+            backgroundImage: commentAuthorProfileUrl != null ? NetworkImage(commentAuthorProfileUrl) : null,
+            child: commentAuthorProfileUrl == null
+                ? Icon(Icons.account_circle_rounded, size: 22, color: _secondaryTextColor)
+                : null,
+          ),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -594,7 +614,7 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
   Widget _buildCommentInputSection() {
     return Container(
       padding: EdgeInsets.only(
-        left: 16, right: 10, top: 12, // 패딩 조정
+        left: 16, right: 10, top: 12,
         bottom: MediaQuery.of(context).viewInsets.bottom + 12,
       ),
       decoration: BoxDecoration(
@@ -630,7 +650,7 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
                   borderRadius: BorderRadius.circular(25.0),
                   borderSide: BorderSide(color: _accentColor, width: 1.5),
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13), // 패딩 증가
+                contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13),
                 isDense: true,
                 fillColor: _scaffoldBgColor,
                 filled: true,
@@ -659,7 +679,7 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
       DateTime now = DateTime.now();
       Duration diff = now.difference(dateTime);
 
-      if (diff.inMicroseconds < 0) return "방금 전"; // 미래 시간 방지
+      if (diff.inMicroseconds < 0) return "방금 전";
 
       if (diff.inDays == 0) {
         if (diff.inHours < 1) {
@@ -669,10 +689,9 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
         return '${diff.inHours}시간 전';
       } else if (diff.inDays == 1 || (diff.inHours < 24 && now.day != dateTime.day)) {
         return '어제';
-      } else if (now.year == dateTime.year && short) { // 올해 & 짧은 포맷 요청
+      } else if (now.year == dateTime.year && short) {
         return '${dateTime.month.toString().padLeft(2, '0')}/${dateTime.day.toString().padLeft(2, '0')}';
       }
-      // 그 외 (년도까지)
       return '${dateTime.year}.${dateTime.month.toString().padLeft(2, '0')}.${dateTime.day.toString().padLeft(2, '0')}';
     } catch (e) {
       return dateTimeString;
