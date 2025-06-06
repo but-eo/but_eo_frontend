@@ -337,7 +337,7 @@ class _SignState extends State<Sign> {
                                 hintText: "이메일을 입력하세요",
                                 prefixIcon: IconButton(
                                   onPressed: null,
-                                  icon: SvgPicture.asset(userIcon),
+                                  icon: Icon(Icons.email),
                                 ),
                               ),
                               validator: (value) {
@@ -477,7 +477,7 @@ class _SignState extends State<Sign> {
                           hintText: "닉네임을 입력하세요",
                           prefixIcon: IconButton(
                             onPressed: null,
-                            icon: SvgPicture.asset(userIcon),
+                            icon: Icon(Icons.face),
                           ),
                         ),
                         validator: (value) {
@@ -523,7 +523,7 @@ class _SignState extends State<Sign> {
                           hintText: "비밀번호를 입력해주세요",
                           prefixIcon: IconButton(
                             onPressed: null,
-                            icon: SvgPicture.asset(userIcon),
+                            icon: Icon(Icons.lock),
                           ),
                         ),
                         validator: (value) {
@@ -571,7 +571,7 @@ class _SignState extends State<Sign> {
                           hintText: "비밀번호를 한 번 더 입력해주세요.",
                           prefixIcon: IconButton(
                             onPressed: null,
-                            icon: SvgPicture.asset(userIcon),
+                            icon: Icon(Icons.lock),
                           ),
                         ),
                         validator: (value) {

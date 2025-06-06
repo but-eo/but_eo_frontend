@@ -77,6 +77,7 @@ class Matchingcard extends StatelessWidget {
   final int rating;
   final String region;
   final DateTime matchDay;
+  final VoidCallback? onTap; // ← 추가
 
   const Matchingcard({
     required this.matchId,
@@ -85,20 +86,20 @@ class Matchingcard extends StatelessWidget {
     required this.rating,
     required this.region,
     required this.matchDay,
+    required this.onTap,
     Key? key,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => MatchingDetailPage(matchId: matchId),
-          ),
-        );
-      },
+      onTap: onTap,
+      // Navigator.push(
+      //   context,
+      //   MaterialPageRoute(
+      //     builder: (_) => MatchingDetailPage(matchId: matchId),
+      //   ),
+      // );
       child: Container(
         width: MediaQuery.of(context).size.width * 0.9,
         decoration: BoxDecoration(
@@ -119,7 +120,6 @@ class Matchingcard extends StatelessWidget {
                   region: region,
                   matchDay: matchDay,
                 ),
-              
               ],
             ),
           ),

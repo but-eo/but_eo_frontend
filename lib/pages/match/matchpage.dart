@@ -6,6 +6,7 @@ import 'package:project/pages/components/reusable_filter.dart';
 import 'package:project/pages/match/fetchMatch.dart';
 import 'package:project/pages/match/matching.dart';
 import 'package:project/pages/match/matching_data.dart';
+import 'package:project/pages/match/matching_detail.dart';
 import 'package:project/pages/stadium/stadiumSearchPage.dart';
 import 'package:project/utils/token_storage.dart';
 import 'package:project/widgets/matchingCard.dart';
@@ -21,7 +22,6 @@ class Matchpage extends StatefulWidget {
 }
 
 class _MatchpageState extends State<Matchpage> {
-  
   late List<Map<String, dynamic>> teamSports;
   String? selectedTeam;
   late Future<List<MatchingData>> _matchDataFuture;
@@ -285,10 +285,48 @@ class _MatchpageState extends State<Matchpage> {
                       rating: data.rating,
                       region: getShortRegion(data.matchRegion),
                       matchDay: data.matchDay,
+                      onTap: () {
+                        if (selectedTeam == null) {
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text("팀을 선택해주세요.")));
+                          return;
+                        }
+
+                        final teamData = teamSports.firstWhere(
+                          (team) => team['teamName'] == selectedTeam,
+                          orElse: () => {},
+                        );
+
+                        final selectedEvent = teamData['event'];
+                        final matchEvent = data.matchType;
+
+                        if (selectedTeam == data.teamName) {
+                          // 팀 이름이 같으면 매칭 불가
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("자기 팀과는 매칭할 수 없습니다.")),
+                          );
+                          return;
+                        }
+
+                        if (selectedEvent == matchEvent) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) =>
+                                      MatchingDetailPage(matchId: data.matchId),
+                            ),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("종목이 일치하지 않습니다")),
+                          );
+                        }
+                      },
                     ),
                   ),
                 );
-              
               },
             ),
           ],
@@ -296,4 +334,4 @@ class _MatchpageState extends State<Matchpage> {
       ),
     );
   }
-} // TODO: 팀 조회해서 매칭 등록 요청을 읽어서 -> 매칭카드 생성
+}
