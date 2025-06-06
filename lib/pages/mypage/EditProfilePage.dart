@@ -1,10 +1,10 @@
-// lib/pages/mypage/EditProfilePage.dart
+// lib/pages/EditProfilePage.dart
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http_parser/http_parser.dart';
-import 'package:path/path.dart' as p;
+import 'package:path/path.dart' as p; // ✅ 1. 파일 경로(확장자) 처리를 위해 path 패키지 import
 import 'package:project/contants/api_contants.dart';
 import 'package:project/utils/token_storage.dart';
 
@@ -23,7 +23,6 @@ class EditProfilePage extends StatefulWidget {
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
-  // ... (다른 컨트롤러 및 변수 선언은 이전과 동일) ...
   final nicknameController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
@@ -54,7 +53,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   void _initializeProfileData() {
-    // ... (이전과 동일한 초기화 로직) ...
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     if (widget.initialProfileImageUrl != null && widget.initialProfileImageUrl!.isNotEmpty) {
       currentProfileImageUrlForDisplay = widget.initialProfileImageUrl!.startsWith("http")
@@ -72,11 +70,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
       selectedGender = (widget.userInfo!['gender'] != null && genders.contains(widget.userInfo!['gender'])) ? widget.userInfo!['gender'] : null;
     } else {
       print("EditProfilePage: 초기 사용자 정보가 전달되지 않았습니다.");
+      // 필요하다면 여기서 사용자 정보를 로드하는 API 호출 (예: mypage의 fetchUserInfo)
     }
   }
 
-  // ✨ 2. 파일 확장자를 보고 MIME 타입을 결정하는 헬퍼 함수 추가
+  // ✅ 2. 파일 확장자를 보고 MIME 타입을 결정하는 헬퍼 함수 추가
   MediaType? _getMimeType(String filePath) {
+    // path 패키지의 extension 함수를 사용하여 파일 확장자 추출
     final extension = p.extension(filePath).toLowerCase();
     switch (extension) {
       case '.jpg':
@@ -91,13 +91,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
       case '.heif':
         return MediaType('image', 'heif');
       default:
-      // 알 수 없는 경우, 일반적인 이미지 타입 또는 null 반환
+      // 알 수 없는 경우, 일반적인 이미지 타입 또는 null 반환하여 Dio가 유추하도록 함
         return MediaType('image', 'jpeg'); // 기본값으로 jpeg 제공
     }
   }
 
   Future<void> pickProfileImage() async {
-    // ... (이전과 동일한 이미지 선택 로직) ...
     try {
       final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 85);
       if (pickedFile != null && mounted) {
@@ -136,7 +135,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     };
 
     if (profileImageFile != null) {
-      // ✨ 3. MIME 타입 결정 로직 강화
+      // ✅ 3. MIME 타입 결정 로직 강화
       MediaType? contentType;
       if (profileImageFile!.mimeType != null) {
         try {
@@ -187,7 +186,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    // ... (build 메소드 내부는 이전과 동일) ...
+    // 로컬 색상 변수 정의 (myteam 페이지와 유사하게)
     final Color scaffoldBgColor = Colors.grey.shade200;
     final Color cardBgColor = Colors.white;
     final Color appBarBgColor = Colors.white;
@@ -286,7 +285,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  // ... (_buildProfileImagePicker, _buildSectionCard, _buildTextField, _buildDropdown 위젯들은 이전과 동일) ...
+  // _build... 헬퍼 위젯들은 이전 답변과 동일하게 유지
   Widget _buildProfileImagePicker(BuildContext context, Color cardBgColor, Color accentColor) {
     ImageProvider? displayImageProvider;
     if (profileImageFile != null) {
@@ -432,7 +431,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   ),
                   filled: true,
                   fillColor: inputFillColor,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 ),
                 items: items.map((e) => DropdownMenuItem<String>(value: e, child: Text(e, style: TextStyle(fontSize: 16, color: primaryTextColor)))).toList(),
                 onChanged: onChanged,
