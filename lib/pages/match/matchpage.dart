@@ -6,7 +6,6 @@ import 'package:project/pages/components/reusable_filter.dart';
 import 'package:project/pages/match/fetchMatch.dart';
 import 'package:project/pages/match/matching.dart';
 import 'package:project/pages/match/matching_data.dart';
-import 'package:project/pages/match/matching_detail.dart';
 import 'package:project/pages/stadium/stadiumSearchPage.dart';
 import 'package:project/utils/token_storage.dart';
 import 'package:project/widgets/matchingCard.dart';
@@ -14,16 +13,13 @@ import 'package:table_calendar/table_calendar.dart';
 
 class Matchpage extends StatefulWidget {
   final Map<String, dynamic>? initialData;
-  final List<Map<String, dynamic>> leaderTeam;
-  const Matchpage({super.key, this.initialData, required this.leaderTeam});
+  const Matchpage({super.key, this.initialData});
 
   @override
   State<Matchpage> createState() => _MatchpageState();
 }
 
 class _MatchpageState extends State<Matchpage> {
-  late List<Map<String, dynamic>> teamSports;
-  String? selectedTeam;
   late Future<List<MatchingData>> _matchDataFuture;
   List<MatchingData> allMatchCards = [];
   List<MatchingData> filterMatchCards = [];
@@ -39,38 +35,30 @@ class _MatchpageState extends State<Matchpage> {
   void initState() {
     super.initState();
     _selectedDay = DateTime.now();
-
     fetchMatchCards();
-    teamSports =
-        widget.leaderTeam.map((team) {
-          return {'teamName': team['teamName'], 'event': team['event']};
-        }).toList();
   }
 
   T? enumFromBackend<T>(String? value, List<T> enumValues) {
     if (value == null) return null;
     return enumValues.firstWhere(
-      (e) => e.toString().split('.').last.toUpperCase() == value.toUpperCase(),
+          (e) => e.toString().split('.').last.toUpperCase() == value.toUpperCase(),
       orElse: () => enumValues.first,
     );
   }
 
   void applyFilters() {
     setState(() {
-      filterMatchCards =
-          allMatchCards.where((match) {
-            final matchesDate =
-                _selectedDay == null ||
-                isSameDay(match.matchDay, _selectedDay!);
-            final matchesRegion =
-                selectedRegion == "전체" ||
+      filterMatchCards = allMatchCards.where((match) {
+        final matchesDate =
+            _selectedDay == null || isSameDay(match.matchDay, _selectedDay!);
+        final matchesRegion =
+            selectedRegion == "전체" ||
                 regionEnumMap[match.teamRegion] == selectedRegion;
-            print("매치 지역 : ${match.teamRegion}");
-            final matchesSport =
-                selectedSport == "전체" || match.matchType == selectedSport;
+        final matchesSport =
+            selectedSport == "전체" || match.matchType == selectedSport;
 
-            return matchesDate && matchesRegion && matchesSport;
-          }).toList();
+        return matchesDate && matchesRegion && matchesSport;
+      }).toList();
     });
   }
 
@@ -87,10 +75,7 @@ class _MatchpageState extends State<Matchpage> {
       final data = await fetchMatchCardsFromServer();
       setState(() {
         allMatchCards = data;
-        filterMatchCards =
-            data
-                .where((match) => isSameDay(match.matchDay, DateTime.now()))
-                .toList();
+        filterMatchCards = data.where((match) => isSameDay(match.matchDay, DateTime.now())).toList();
         applyFilters();
       });
     } catch (e) {
@@ -121,7 +106,7 @@ class _MatchpageState extends State<Matchpage> {
   String getShortRegion(String fullAddress) {
     final parts = fullAddress.split(' ');
     if (parts.length >= 3) {
-      return '${parts[1]} ${parts[2]} ${parts[3]} ${parts[4]} ';
+      return '${parts[1]} ${parts[3]} ${parts[4]}';
     }
     return fullAddress;
   }
@@ -139,23 +124,23 @@ class _MatchpageState extends State<Matchpage> {
             ),
             const Divider(),
 
-            ReusableFilter(
-              options: regions,
-              selectedOption: selectedRegion,
-              onSelected: (region) {
-                setState(() => selectedRegion = region);
-                applyFilters();
-              },
-            ),
-            const SizedBox(height: 6),
-            ReusableFilter(
-              options: sports,
-              selectedOption: selectedSport,
-              onSelected: (sport) {
-                setState(() => selectedSport = sport);
-                applyFilters();
-              },
-            ),
+            // ReusableFilter(
+            //   options: regions,
+            //   selectedOption: selectedRegion,
+            //   onSelected: (region) {
+            //     setState(() => selectedRegion = region);
+            //     applyFilters();
+            //   },
+            // ),
+            // const SizedBox(height: 6),
+            // ReusableFilter(
+            //   options: sports,
+            //   selectedOption: selectedSport,
+            //   onSelected: (sport) {
+            //     setState(() => selectedSport = sport);
+            //     applyFilters();
+            //   },
+            // ),
 
             const SizedBox(height: 10.0),
 
@@ -224,53 +209,28 @@ class _MatchpageState extends State<Matchpage> {
                 ),
               ],
             ),
-            // const SizedBox(height: 30.0),
-            // ElevatedButton(
-            //   onPressed:
-            //       () => Navigator.push(
-            //         context,
-            //         MaterialPageRoute(
-            //           builder: (context) => const StadiumSearchPage(),
-            //         ),
-            //       ),
-            //   style: ElevatedButton.styleFrom(
-            //     backgroundColor: Colors.white,
-            //     foregroundColor: Colors.black,
-            //   ),
-            //   child: const Text("경기장 찾기"),
-            // ),
-            const SizedBox(height: 10.0),
-            SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 🟡 팀 선택
-                  Text("팀 선택", style: TextStyle(fontWeight: FontWeight.bold)),
-                  DropdownButton<String>(
-                    isExpanded: true,
-                    hint: Text("팀을 선택하세요"),
-                    value: selectedTeam,
-                    items:
-                        teamSports.map((team) {
-                          return DropdownMenuItem(
-                            value: team['teamName'] as String,
-                            child: Text(team['teamName']),
-                          );
-                        }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        selectedTeam = value;
-                      });
-                    },
-                  ),
-                ],
+
+            const SizedBox(height: 30.0),
+
+            ElevatedButton(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const StadiumSearchPage(),
+                ),
               ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+              ),
+              child: const Text("경기장 찾기"),
             ),
+
+            const SizedBox(height: 10.0),
+
             ListView.builder(
               shrinkWrap: true,
               physics: NeverScrollableScrollPhysics(),
-              padding: const EdgeInsets.only(bottom: 10.0),
               itemCount: filterMatchCards.length,
               itemBuilder: (context, index) {
                 final data = filterMatchCards[index];
@@ -279,51 +239,11 @@ class _MatchpageState extends State<Matchpage> {
                   child: Padding(
                     padding: EdgeInsets.only(top: index == 0 ? 0 : 16.0),
                     child: Matchingcard(
-                      matchId: data.matchId,
                       teamImg: data.teamImage,
                       teamName: data.teamName,
                       rating: data.rating,
                       region: getShortRegion(data.matchRegion),
                       matchDay: data.matchDay,
-                      onTap: () {
-                        if (selectedTeam == null) {
-                          ScaffoldMessenger.of(
-                            context,
-                          ).showSnackBar(SnackBar(content: Text("팀을 선택해주세요.")));
-                          return;
-                        }
-
-                        final teamData = teamSports.firstWhere(
-                          (team) => team['teamName'] == selectedTeam,
-                          orElse: () => {},
-                        );
-
-                        final selectedEvent = teamData['event'];
-                        final matchEvent = data.matchType;
-
-                        if (selectedTeam == data.teamName) {
-                          // 팀 이름이 같으면 매칭 불가
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text("자기 팀과는 매칭할 수 없습니다.")),
-                          );
-                          return;
-                        }
-
-                        if (selectedEvent == matchEvent) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (context) =>
-                                      MatchingDetailPage(matchId: data.matchId),
-                            ),
-                          );
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text("종목이 일치하지 않습니다")),
-                          );
-                        }
-                      },
                     ),
                   ),
                 );
@@ -334,4 +254,4 @@ class _MatchpageState extends State<Matchpage> {
       ),
     );
   }
-}
+} // TODO: 팀 조회해서 매칭 등록 요청을 읽어서 -> 매칭카드 생성

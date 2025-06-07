@@ -168,7 +168,6 @@ class TeamService {
         if (teamCase != null) 'teamCase': teamCase,
         if (teamName != null && teamName.isNotEmpty) 'teamName': teamName,
       };
-
       final res = await _dio.get(
         '${ApiConstants.baseUrl}/teams',
         queryParameters: query.isNotEmpty ? query : null,
@@ -179,6 +178,7 @@ class TeamService {
 
       print(res.data.toString());
       if (res.statusCode == 200 && res.data is List) {
+        print("✅요것이 상세조회여 ~~~${res.data}");
         return res.data as List<dynamic>;
       } else {
         print("팀 목록 불러오기 실패: ${res.statusCode}");
