@@ -14,7 +14,6 @@ import 'package:project/utils/token_storage.dart';
 import 'package:project/widgets/login_button.dart';
 import 'package:http/http.dart' as http;
 
-
 class Login extends StatefulWidget {
   static String id = "/login";
 
@@ -41,7 +40,7 @@ class _LoginState extends State<Login> {
       print('Response data : ${response.data}');
       if (response.statusCode == 200) {
         String token =
-        response.data['accessToken']; //백엔드에서 받을 토큰 data['token']에서 token은
+            response.data['accessToken']; //백엔드에서 받을 토큰 data['token']에서 token은
         //스프링에서 토큰을 저장한 변수명과 일치해야함
         print('로그인 성공 $token');
         await TokenStorage.saveTokens(token);
@@ -183,7 +182,7 @@ class _LoginState extends State<Login> {
                           Navigator.of(context).pushNamedAndRemoveUntil(
                             //특정화면으로 이동하면서 이전 모든 화면을 스택에서 제거 (새 화면을 띄우고 뒤로가기 버튼을 눌러도 이전 화면으로 돌아갈 수 없음)
                             Sign.id, //이동할 경로의 이름
-                                (route) => false, //스택의 모든 화면 제거
+                            (route) => false, //스택의 모든 화면 제거
                           );
                         },
                         child: Text("회원가입"),
@@ -239,8 +238,8 @@ class _LoginState extends State<Login> {
                         if (loginAuth) {
                           navigateToMainPage();
                         }
-                        // navigateToMainPage();
                       }
+                      // navigateToMainPage();
                     },
 
                     child: Text(
@@ -319,14 +318,14 @@ class _LoginState extends State<Login> {
   }
 
   Future<void> sendDataToServer(
-      String refreshToken,
-      String email,
-      String nickname,
-      String profileimage,
-      String gender,
-      String birthyear,
-      String tel,
-      ) async {
+    String refreshToken,
+    String email,
+    String nickname,
+    String profileimage,
+    String gender,
+    String birthyear,
+    String tel,
+  ) async {
     final url = Uri.parse("${ApiConstants.baseUrl}/users/kakao/login");
     final response = await http.post(
       url,
@@ -338,7 +337,7 @@ class _LoginState extends State<Login> {
         "gender": gender,
         "birthYear": birthyear,
         "profileImage": profileimage,
-        "tel" : tel,
+        "tel": tel,
       }),
     );
     if (response.statusCode == 200) {
@@ -346,7 +345,7 @@ class _LoginState extends State<Login> {
       final Map<String, dynamic> data = jsonDecode(response.body);
 
       final jwt = data['accessToken'];
-      if(jwt != null) {
+      if (jwt != null) {
         print("저장 jwt : $jwt");
         await TokenStorage.saveTokens(jwt);
       } else {
@@ -393,13 +392,13 @@ class _LoginState extends State<Login> {
       print("email : " + email);
       // 서버로 사용자 데이터 전송
       await sendDataToServer(
-          refreshToken,
-          email,
-          nickname,
-          profileImage,
-          gender,
-          birthYear,
-          tel
+        refreshToken,
+        email,
+        nickname,
+        profileImage,
+        gender,
+        birthYear,
+        tel,
       );
 
       // 메인 페이지 이동
