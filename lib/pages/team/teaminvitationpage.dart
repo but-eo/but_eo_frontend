@@ -1,142 +1,169 @@
 import 'package:flutter/material.dart';
-import 'package:project/widgets/image_slider_widgets.dart';
+import 'package:project/appStyle/app_colors.dart';
+import 'package:project/data/time_formatter.dart';
+import 'package:project/service/teamInvitaionService.dart';
 
-class Teaminvitationpage extends StatelessWidget {
-  const Teaminvitationpage({super.key});
+class Teaminvitationpage extends StatefulWidget {
+  final String teamId;
+
+  const Teaminvitationpage({super.key, required this.teamId});
+
+  @override
+  State<Teaminvitationpage> createState() => _TeaminvitationpageState();
+}
+
+class _TeaminvitationpageState extends State<Teaminvitationpage> {
+  List<Map<String, dynamic>> requests = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadJoinRequests();
+  }
+
+  Future<void> _loadJoinRequests() async {
+    try {
+      final result = await TeamInvitaionService.getJoinRequests(widget.teamId);
+      setState(() {
+        requests = result;
+        isLoading = false;
+      });
+    } catch (e) {
+      print("\u274c 팀 가입 요청 불러오기 실패: $e");
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          children: [
-            Expanded(
-              child: Padding(padding: EdgeInsets.all(15), child: _buildList()),
-            ),
-          ],
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.pop(context, true); // 뒤로가기 시 변경 여부 전달
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.baseGrey10Color,
+        appBar: AppBar(
+          title: const Text("팀 가입 요청 목록", style: TextStyle(color: AppColors.textPrimary)),
+          centerTitle: true,
+          backgroundColor: AppColors.baseWhiteColor,
+          elevation: 1,
+          iconTheme: const IconThemeData(color: AppColors.textPrimary),
+        ),
+        body: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : requests.isEmpty
+            ? const Center(child: Text("가입 요청이 없습니다."))
+            : ListView.builder(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          itemCount: requests.length,
+          itemBuilder: (context, index) {
+            final request = requests[index];
+            return _buildRow(
+              username: request['userName'] ?? '알 수 없음',
+              userId: request['userId'] ?? '',
+              invitationId: request['invitationId'] ?? '',
+              profileImg: request['profileImg'],
+              date: formatRelativeTime(request['requestedAt'] ?? ''),
+            );
+          },
         ),
       ),
     );
   }
 
-  Widget _buildList() => ListView(
-    children: [
-      _tile("안녕하세요", "반갑습니다", "2025-04-08"),
-      _tile("안녕하세요1", "반갑습니다", "2025-04-08"),
-      _tile("안녕하세요2", "반갑습니다", "2025-04-08"),
-      _tile("안녕하세요3", "반갑습니다", "2025-04-08"),
-      _tile("안녕하세요4", "반갑습니다", "2025-04-08"),
-      _tile("안녕하세요5", "반갑습니다", "2025-04-08"),
-      _tile("안녕하세요2", "반갑습니다", "2025-04-08"),
-      _tile("안녕하세요3", "반갑습니다", "2025-04-08"),
-      _tile("안녕하세요4", "반갑습니다", "2025-04-08"),
-      _tile("안녕하세요5", "반갑습니다", "2025-04-08"),
-      _tile("안녕하세요2", "반갑습니다", "2025-04-08"),
-      _tile("안녕하세요3", "반갑습니다", "2025-04-08"),
-      _tile("안녕하세요4", "반갑습니다", "2025-04-08"),
-      _tile("안녕하세요5", "반갑습니다", "2025-04-08"),
-    ],
-  );
-
-  Widget _tile(String title, String subtitle, String createdAt) {
-    return Card(
-      margin: EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 팀 로고
-            ClipRRect(
-              borderRadius: BorderRadius.circular(100),
-              child: Image.asset(
+  Widget _buildRow({
+    required String username,
+    required String userId,
+    required String invitationId,
+    required String? profileImg,
+    required String date,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Row(
+        children: [
+          ClipOval(
+            child: profileImg != null && profileImg.isNotEmpty
+                ? Image.network(
+              profileImg,
+              width: 44,
+              height: 44,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Image.asset(
                 "assets/images/whitedog.png",
-                width: 48,
-                height: 48,
+                width: 44,
+                height: 44,
                 fit: BoxFit.cover,
               ),
+            )
+                : Image.asset(
+              "assets/images/whitedog.png",
+              width: 44,
+              height: 44,
+              fit: BoxFit.cover,
             ),
-            SizedBox(width: 12),
-            // 텍스트 및 버튼
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  /// ✅ 타이틀 + 날짜를 한 줄로
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                RichText(
+                  text: TextSpan(
+                    style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
                     children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        createdAt,
-                        style: TextStyle(color: Colors.grey, fontSize: 12),
-                      ),
+                      TextSpan(
+                          text: username,
+                          style: const TextStyle(fontWeight: FontWeight.bold)),
+                      const TextSpan(text: "님이 팀 가입을 요청했습니다."),
                     ],
                   ),
-                  SizedBox(height: 4),
-                  Text(subtitle),
-                  SizedBox(height: 8),
-                  Row(
-                    children: [
-                      SizedBox(
-                        width: 80,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            print("수락 누름");
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFF20fc24),
-                            foregroundColor: Colors.black,
-                            padding: EdgeInsets.symmetric(horizontal: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.zero,
-                            ),
-                          ),
-                          child: Icon(Icons.check, size: 30),
-                        ),
-                      ),
-                      SizedBox(width: 8),
-                      SizedBox(
-                        width: 80,
-                        child: OutlinedButton(
-                          onPressed: () {
-                            print("거절 누름");
-                          },
-                          style: OutlinedButton.styleFrom(
-                            backgroundColor: Color(0xFFfc2f2f),
-                            foregroundColor: Colors.black,
-                            side: BorderSide(color: Colors.red),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.zero,
-                            ),
-                          ),
-                          child: Icon(Icons.close, size: 30),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                ),
+                const SizedBox(height: 4),
+                Text(date, style: const TextStyle(fontSize: 12, color: AppColors.brandBlack)),
+              ],
+            ),
+          ),
+          Row(
+            children: [
+              TextButton(
+                onPressed: () async {
+                  await TeamInvitaionService.acceptJoinRequest(widget.teamId, userId);
+                  setState(() {
+                    requests.removeWhere((r) => r['userId'] == userId);
+                  });
+                },
+                style: TextButton.styleFrom(
+                  backgroundColor: AppColors.brandBlue,
+                  foregroundColor: AppColors.baseWhiteColor,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                ),
+                child: const Text("수락"),
               ),
-            ),
-          ],
-        ),
+              const SizedBox(width: 6),
+              TextButton(
+                onPressed: () async {
+                  await TeamInvitaionService.rejectJoinRequest(widget.teamId, userId);
+                  setState(() {
+                    requests.removeWhere((r) => r['userId'] == userId);
+                  });
+                },
+                style: TextButton.styleFrom(
+                  backgroundColor: AppColors.lightGrey,
+                  foregroundColor: AppColors.baseBlackColor,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  side: const BorderSide(color: AppColors.baseBlackColor, width: 0.7),
+                ),
+                child: const Text("거절"),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
-
-  // ListTile _tile(String title, String subtitle, String createdAt) => ListTile(
-  //   title: Text(title),
-  //   subtitle: Text(subtitle),
-  //   trailing: Text(createdAt), // 초대를 보낼때 그 시간 받아옴
-  //   leading: ClipRRect(
-  //     borderRadius: BorderRadius.circular(100),
-  //     child: Image.asset("assets/images/whitedog.png"),// 팀 초대를 보낸 팀의 로고 받아와야함(이건임시)
-  //   ),
-  // );
 }
