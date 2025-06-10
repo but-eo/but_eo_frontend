@@ -6,6 +6,7 @@ import 'package:project/pages/components/reusable_filter.dart';
 import 'package:project/pages/match/fetchMatch.dart';
 import 'package:project/pages/match/matching.dart';
 import 'package:project/pages/match/matching_data.dart';
+import 'package:project/pages/match/matching_detail.dart';
 import 'package:project/pages/stadium/stadiumSearchPage.dart';
 import 'package:project/utils/token_storage.dart';
 import 'package:project/widgets/matchingCard.dart';
@@ -13,8 +14,8 @@ import 'package:project/widgets/scroll_to_top_button.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class Matchpage extends StatefulWidget {
-  final Map<String, dynamic>? initialData;
-  const Matchpage({super.key, this.initialData});
+  final List<Map<String, dynamic>>? leaderTeam;
+  const Matchpage({super.key, required this.leaderTeam});
 
   @override
   State<Matchpage> createState() => _MatchpageState();
@@ -32,7 +33,7 @@ class _MatchpageState extends State<Matchpage> {
   final Color _chipLabelSelectedColor = Colors.white;
   final Color _chipLabelUnselectedColor = Colors.black54;
 
-  late List<Map<String, dynamic>> teamSports;
+  List<Map<String, dynamic>> teamSports = [];
   String? selectedTeam;
 
   late Future<List<MatchingData>> _matchDataFuture;
@@ -82,13 +83,19 @@ class _MatchpageState extends State<Matchpage> {
 
   void applyFilters() {
     setState(() {
-      filterMatchCards = allMatchCards.where((match) {
-        final matchesDate = _selectedDay == null || isSameDay(match.matchDay, _selectedDay!);
-        final matchesRegion = selectedRegion == "전체" || regionEnumMap[match.teamRegion] == selectedRegion;
-        final matchesSport = selectedSport == "전체" || match.matchType == selectedSport;
+      filterMatchCards =
+          allMatchCards.where((match) {
+            final matchesDate =
+                _selectedDay == null ||
+                    isSameDay(match.matchDay, _selectedDay!);
+            final matchesRegion =
+                selectedRegion == "전체" ||
+                    regionEnumMap[match.teamRegion] == selectedRegion;
+            final matchesSport =
+                selectedSport == "전체" || match.matchType == selectedSport;
 
-        return matchesDate && matchesRegion && matchesSport;
-      }).toList();
+            return matchesDate && matchesRegion && matchesSport;
+          }).toList();
     });
   }
 
@@ -114,49 +121,115 @@ class _MatchpageState extends State<Matchpage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text("필터 설정", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: _primaryTextColor)),
-                      IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(ctx)),
+                      Text(
+                        "필터 설정",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: _primaryTextColor,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
                     ],
                   ),
                   const Divider(height: 24),
-                  Text("지역 선택", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: _secondaryTextColor)),
+                  Text(
+                    "지역 선택",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: _secondaryTextColor,
+                    ),
+                  ),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8.0,
                     runSpacing: 4.0,
-                    children: regions.map((region) {
+                    children:
+                    regions.map((region) {
                       return ChoiceChip(
-                        label: Text(region, style: TextStyle(fontSize: 13, color: tempSelectedRegion == region ? _chipLabelSelectedColor : _primaryTextColor.withOpacity(0.8))),
+                        label: Text(
+                          region,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color:
+                            tempSelectedRegion == region
+                                ? _chipLabelSelectedColor
+                                : _primaryTextColor.withOpacity(0.8),
+                          ),
+                        ),
                         selected: tempSelectedRegion == region,
-                        onSelected: (selected) => modalSetState(() => tempSelectedRegion = region),
+                        onSelected:
+                            (selected) => modalSetState(
+                              () => tempSelectedRegion = region,
+                        ),
                         selectedColor: _chipSelectedColor,
                         backgroundColor: _chipBackgroundColor,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
-                          side: BorderSide(color: tempSelectedRegion == region ? _chipSelectedColor : Colors.grey.shade300),
+                          side: BorderSide(
+                            color:
+                            tempSelectedRegion == region
+                                ? _chipSelectedColor
+                                : Colors.grey.shade300,
+                          ),
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
                       );
                     }).toList(),
                   ),
                   const SizedBox(height: 20),
-                  Text("종목 선택", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: _secondaryTextColor)),
+                  Text(
+                    "종목 선택",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: _secondaryTextColor,
+                    ),
+                  ),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8.0,
                     runSpacing: 4.0,
-                    children: sports.map((sport) {
+                    children:
+                    sports.map((sport) {
                       return ChoiceChip(
-                        label: Text(sport, style: TextStyle(fontSize: 13, color: tempSelectedSport == sport ? _chipLabelSelectedColor : _primaryTextColor.withOpacity(0.8))),
+                        label: Text(
+                          sport,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color:
+                            tempSelectedSport == sport
+                                ? _chipLabelSelectedColor
+                                : _primaryTextColor.withOpacity(0.8),
+                          ),
+                        ),
                         selected: tempSelectedSport == sport,
-                        onSelected: (selected) => modalSetState(() => tempSelectedSport = sport),
+                        onSelected:
+                            (selected) => modalSetState(
+                              () => tempSelectedSport = sport,
+                        ),
                         selectedColor: _chipSelectedColor,
                         backgroundColor: _chipBackgroundColor,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
-                          side: BorderSide(color: tempSelectedSport == sport ? _chipSelectedColor : Colors.grey.shade300),
+                          side: BorderSide(
+                            color:
+                            tempSelectedSport == sport
+                                ? _chipSelectedColor
+                                : Colors.grey.shade300,
+                          ),
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
                       );
                     }).toList(),
                   ),
@@ -175,9 +248,15 @@ class _MatchpageState extends State<Matchpage> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _accentColor,
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        textStyle: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                      child: const Text("필터 적용", style: TextStyle(color: Colors.white)),
+                      child: const Text(
+                        "필터 적용",
+                        style: TextStyle(color: Colors.white),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -203,7 +282,10 @@ class _MatchpageState extends State<Matchpage> {
       final data = await fetchMatchCardsFromServer();
       setState(() {
         allMatchCards = data;
-        filterMatchCards = data.where((match) => isSameDay(match.matchDay, DateTime.now())).toList();
+        filterMatchCards =
+            data
+                .where((match) => isSameDay(match.matchDay, DateTime.now()))
+                .toList();
         applyFilters();
       });
     } catch (e) {
@@ -242,7 +324,10 @@ class _MatchpageState extends State<Matchpage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: _showButton ? ScrollToTopButton(scrollController: _scrollController) : null,
+      floatingActionButton:
+      _showButton
+          ? ScrollToTopButton(scrollController: _scrollController)
+          : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: ListView(
         controller: _scrollController,
@@ -252,19 +337,33 @@ class _MatchpageState extends State<Matchpage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text("매칭 찾기", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              IconButton(icon: Icon(Icons.filter_list_rounded, color: _primaryTextColor), tooltip: "필터", onPressed: () => _showFilterModal(context)),
+              const Text(
+                "매칭 찾기",
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              IconButton(
+                icon: Icon(Icons.filter_list_rounded, color: _primaryTextColor),
+                tooltip: "필터",
+                onPressed: () => _showFilterModal(context),
+              ),
             ],
           ),
           const Divider(),
           TableCalendar(
-            headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true),
+            headerStyle: const HeaderStyle(
+              formatButtonVisible: false,
+              titleCentered: true,
+            ),
             firstDay: DateTime.utc(2025, 1, 1),
             lastDay: DateTime.utc(2099, 12, 31),
             focusedDay: _focusedDay,
             calendarFormat: _calendarFormat,
             selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-            calendarStyle: const CalendarStyle(defaultTextStyle: TextStyle(color: Colors.black), outsideTextStyle: TextStyle(color: Colors.grey), outsideDaysVisible: true),
+            calendarStyle: const CalendarStyle(
+              defaultTextStyle: TextStyle(color: Colors.black),
+              outsideTextStyle: TextStyle(color: Colors.grey),
+              outsideDaysVisible: true,
+            ),
             onDaySelected: _onDaySelected,
             onPageChanged: (focusedDay) => _focusedDay = focusedDay,
           ),
@@ -275,24 +374,56 @@ class _MatchpageState extends State<Matchpage> {
               ElevatedButton(
                 onPressed: () async {
                   final myTeam = await fetchUserTeam();
-                  await Navigator.push(context, MaterialPageRoute(builder: (context) => Matching(userTeam: myTeam)));
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Matching(userTeam: myTeam),
+                    ),
+                  );
                   fetchMatchCards();
                 },
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 0),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                ),
                 child: const Text("매칭 등록", style: TextStyle(fontSize: 18)),
               ),
               const SizedBox(width: 10.0),
               ElevatedButton(
                 onPressed: () {},
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.lightBlue, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 0),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.lightBlue,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                ),
                 child: const Text("자동 매칭", style: TextStyle(fontSize: 18)),
               ),
             ],
           ),
           const SizedBox(height: 10.0),
           ElevatedButton(
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const StadiumSearchPage())),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: Colors.black, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 0),
+            onPressed:
+                () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const StadiumSearchPage(),
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.black,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 0,
+            ),
             child: const Text("경기장 찾기", style: TextStyle(fontSize: 18)),
           ),
           const SizedBox(height: 10.0),
@@ -300,10 +431,19 @@ class _MatchpageState extends State<Matchpage> {
           DropdownButton<String>(
             isExpanded: true,
             hint: const Text("팀을 선택하세요"),
-            value: selectedTeam,
-            items: teamSports.map((team) {
-              return DropdownMenuItem(value: team['teamName'] as String, child: Text(team['teamName']));
-            }).toList(),
+            value: selectedTeam, // selectedTeam이 null이면 hint가 보임
+            items:
+            teamSports
+                .map((team) {
+              final teamName = team['teamName'] as String?;
+              if (teamName == null) return null;
+              return DropdownMenuItem<String>(
+                value: teamName,
+                child: Text(teamName),
+              );
+            })
+                .whereType<DropdownMenuItem<String>>()
+                .toList(), // null 제거
             onChanged: (value) {
               setState(() {
                 selectedTeam = value;
@@ -330,20 +470,36 @@ class _MatchpageState extends State<Matchpage> {
                     matchDay: data.matchDay,
                     onTap: () {
                       if (selectedTeam == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("팀을 선택해주세요.")));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("팀을 선택해주세요.")),
+                        );
                         return;
                       }
-                      final teamData = teamSports.firstWhere((team) => team['teamName'] == selectedTeam, orElse: () => {});
+                      final teamData = teamSports.firstWhere(
+                            (team) => team['teamName'] == selectedTeam,
+                        orElse: () => <String, dynamic>{}, // 명시적 Map 타입
+                      );
                       final selectedEvent = teamData['event'];
                       final matchEvent = data.matchType;
                       if (selectedTeam == data.teamName) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("자기 팀과는 매칭할 수 없습니다.")));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("자기 팀과는 매칭할 수 없습니다.")),
+                        );
                         return;
                       }
                       if (selectedEvent == matchEvent) {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => MatchingDetailPage(matchId: data.matchId)));
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) =>
+                                MatchingDetailPage(matchId: data.matchId),
+                          ),
+                        );
                       } else {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("종목이 일치하지 않습니다")));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("종목이 일치하지 않습니다")),
+                        );
                       }
                     },
                   ),
