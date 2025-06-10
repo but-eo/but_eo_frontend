@@ -9,6 +9,7 @@ class BoardPage extends StatefulWidget {
   final String event;
   final String category;
 
+
   const BoardPage({super.key, required this.event, required this.category});
 
   @override
@@ -17,6 +18,10 @@ class BoardPage extends StatefulWidget {
 
 class _BoardPageState extends State<BoardPage> {
   late Future<List<Board>> boardFuture;
+
+  int currentPage = 0;
+  int totalPages = 1;
+  final int pageSize = 10;
 
   final Color _scaffoldBgColor = Colors.grey.shade200;
   final Color _appBarBgColor = Colors.white;
@@ -28,21 +33,30 @@ class _BoardPageState extends State<BoardPage> {
   @override
   void initState() {
     super.initState();
-    boardFuture = _fetchBoardList();
+    boardFuture = _fetchBoardList(currentPage);
   }
 
-  Future<List<Board>> _fetchBoardList() {
+  Future<List<Board>> _fetchBoardList(int page) async {
     final eventEnumString = _convertSportToEventEnum(widget.event);
     final categoryEnumString = _convertCategoryToEnum(widget.category);
-    return fetchBoards(eventEnumString, categoryEnumString);
+    final result = await fetchBoards(eventEnumString, categoryEnumString, page: currentPage, size: pageSize);
+    totalPages = result['totalPages']; // 이건 클래스 내 변수라고 가정
+    return result['boards'];
   }
 
   Future<void> _refreshBoardList() async {
     if (mounted) {
       setState(() {
-        boardFuture = _fetchBoardList();
+        boardFuture = _fetchBoardList(currentPage);
       });
     }
+  }
+
+  void _goToPage(int page) {
+    setState(() {
+      currentPage = page;
+      boardFuture = _fetchBoardList(page);
+    });
   }
 
   @override
@@ -50,13 +64,51 @@ class _BoardPageState extends State<BoardPage> {
     return Scaffold(
       backgroundColor: _scaffoldBgColor,
       appBar: AppBar(
-        title: Text('${widget.event} - ${widget.category}', style: TextStyle(color: _primaryTextColor, fontWeight: FontWeight.bold, fontSize: 18)),
         backgroundColor: _appBarBgColor,
         elevation: 1.0,
         iconTheme: IconThemeData(color: _primaryTextColor),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
           onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              '${widget.event} - ${widget.category}',
+              style: TextStyle(
+                color: _primaryTextColor,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
+            TextButton.icon(
+              onPressed: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CreateBoardPage(
+                      initialEvent: widget.event,
+                      initialCategory: widget.category,
+                    ),
+                  ),
+                );
+                if (result == true && mounted) {
+                  _refreshBoardList(); // 게시글 새로고침
+                }
+              },
+              style: TextButton.styleFrom(
+                backgroundColor: _accentColor,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              icon: const Icon(Icons.edit_square, size: 18, color: Colors.white),
+              label: const Text(
+                '새 글 작성',
+                style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
         ),
       ),
       body: FutureBuilder<List<Board>>(
@@ -77,37 +129,27 @@ class _BoardPageState extends State<BoardPage> {
             onRefresh: _refreshBoardList,
             color: _accentColor,
             backgroundColor: _cardBgColor,
-            child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(12.0, 12.0, 12.0, 80.0),
-              itemCount: boards.length,
-              itemBuilder: (context, index) {
-                final board = boards[index];
-                return _buildBoardListItem(context, board);
-              },
+            child: Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(12.0, 12.0, 12.0, 8.0),
+                    itemCount: boards.length,
+                    itemBuilder: (context, index) {
+                      final board = boards[index];
+                      return _buildBoardListItem(context, board);
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 1),
+                  child: _buildPaginationButtons(), // 여기서 페이지 버튼 위치
+                ),
+              ],
             ),
           );
+
         },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => CreateBoardPage(
-                initialEvent: widget.event,
-                initialCategory: widget.category,
-              ),
-            ),
-          );
-          if (result == true && mounted) {
-            _refreshBoardList();
-          }
-        },
-        backgroundColor: _accentColor,
-        icon: const Icon(Icons.edit_square, color: Colors.white, size: 20),
-        label: const Text('새 글 작성', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
-        elevation: 2.0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
     );
   }
@@ -245,6 +287,54 @@ class _BoardPageState extends State<BoardPage> {
         )
     );
   }
+
+  Widget _buildPaginationButtons() {
+    int currentGroup = currentPage ~/ 10;
+    int startPage = currentGroup * 10;
+    int endPage = (startPage + 10 < totalPages) ? startPage + 10 : totalPages;
+
+    List<Widget> buttons = [];
+
+    if (startPage > 0) {
+      buttons.add(IconButton(
+        icon: Icon(Icons.arrow_back),
+        onPressed: () => _goToPage(startPage - 1),
+      ));
+    }
+
+    for (int i = startPage; i < endPage; i++) {
+      buttons.add(
+        TextButton(
+          onPressed: () => _goToPage(i),
+          child: Text(
+            '${i + 1}',
+            style: TextStyle(
+              fontWeight: currentPage == i ? FontWeight.bold : FontWeight.normal,
+              color: currentPage == i ? _accentColor : _primaryTextColor,
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (endPage < totalPages) {
+      buttons.add(IconButton(
+        icon: Icon(Icons.arrow_forward),
+        onPressed: () => _goToPage(endPage),
+      ));
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Center(
+        child: Wrap(
+          spacing: 4,
+          children: buttons,
+        ),
+      ),
+    );
+  }
+
 }
 
 // API Enum 변환 함수 (실제 API 명세에 맞게 Enum 값 확인 및 수정 필요)
