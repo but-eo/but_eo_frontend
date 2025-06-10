@@ -8,7 +8,7 @@ import 'package:project/contants/api_contants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // 게시판 리스트 조회
-Future<List<Board>> fetchBoards(String event, String category, {int page = 0, int size = 10}) async {
+Future<Map<String, dynamic>> fetchBoards(String event, String category, {int page = 0, int size = 10}) async {
   final uri = Uri.parse(
     '${ApiConstants.baseUrl}/boards?event=$event&category=$category&page=$page&size=$size',
   );
@@ -17,11 +17,17 @@ Future<List<Board>> fetchBoards(String event, String category, {int page = 0, in
 
   if (response.statusCode == 200) {
     final decoded = utf8.decode(response.bodyBytes);
-    final List<dynamic> data = json.decode(decoded);
-    print(data);
-    return data.map((item) => Board.fromJson(item)).toList();
+    final Map<String, dynamic> data = json.decode(decoded);
+
+    final int totalPages = data['totalPages'];
+    final List content = data['content'];
+
+    return {
+      'boards': content.map((item) => Board.fromJson(item)).toList(),
+      'totalPages': totalPages,
+    };
   } else {
-    throw Exception('Failed to load boards');
+    throw Exception('게시글 불러오기 실패');
   }
 }
 
