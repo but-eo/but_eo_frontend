@@ -10,7 +10,7 @@ import 'package:project/pages/match/matching_detail.dart';
 import 'package:project/pages/stadium/stadiumSearchPage.dart';
 import 'package:project/utils/token_storage.dart';
 import 'package:project/widgets/matchingCard.dart';
-import 'package:project/widgets/scroll_to_top_button.dart';
+import 'package.project/widgets/scroll_to_top_button.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class Matchpage extends StatefulWidget {
@@ -165,7 +165,7 @@ class _MatchpageState extends State<Matchpage> {
                             onSelected:
                                 (selected) => modalSetState(
                                     () => tempSelectedRegion = region,
-                                  ),
+                                ),
                             selectedColor: _chipSelectedColor,
                             backgroundColor: _chipBackgroundColor,
                             shape: RoundedRectangleBorder(
@@ -214,7 +214,7 @@ class _MatchpageState extends State<Matchpage> {
                             onSelected:
                                 (selected) => modalSetState(
                                     () => tempSelectedSport = sport,
-                                  ),
+                                ),
                             selectedColor: _chipSelectedColor,
                             backgroundColor: _chipBackgroundColor,
                             shape: RoundedRectangleBorder(
@@ -411,11 +411,11 @@ class _MatchpageState extends State<Matchpage> {
           ElevatedButton(
             onPressed:
                 () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const StadiumSearchPage(),
-                  ),
-                ),
+              context,
+              MaterialPageRoute(
+                builder: (context) => const StadiumSearchPage(),
+              ),
+            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
               foregroundColor: Colors.black,
@@ -506,9 +506,9 @@ class _MatchpageState extends State<Matchpage> {
                           MaterialPageRoute(
                             builder:
                                 (context) => MatchingDetailPage(
-                                    matchId: data.matchId,
-                                    challengerTeamId: selectedTeamId, // <<< 여기에 전달!
-                                  ),
+                                  matchId: data.matchId,
+                                  challengerTeamId: selectedTeamId, // <<< 여기에 전달!
+                                ),
                           ),
                         );
                       } else {

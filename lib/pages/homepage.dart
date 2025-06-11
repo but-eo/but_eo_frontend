@@ -22,7 +22,7 @@ class Homepage extends StatefulWidget {
 class _HomepageState extends State<Homepage> {
   Future<Map<String, dynamic>?>? _upcomingMatchFuture;
   Future<List<dynamic>>? _myTeamsFuture;
-  Future<List<Board>>? _latestPostsFuture;
+  Future<Map<String, dynamic>>? _latestPostsFuture;
 
   // ✨ 다른 페이지와 색감 통일을 위한 색상 변수 정의
   final Color _scaffoldBgColor = Colors.grey.shade100;
@@ -200,7 +200,7 @@ class _HomepageState extends State<Homepage> {
   Widget _buildLatestPostsSection(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: FutureBuilder<List<Board>>(
+      child: FutureBuilder<Map<String, dynamic>>(
         future: _latestPostsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -217,6 +217,7 @@ class _HomepageState extends State<Homepage> {
             );
           }
           final posts = snapshot.data!;
+          final List<Board> boards = posts['boards'];
           return Container(
             decoration: BoxDecoration(
                 color: _cardBgColor,

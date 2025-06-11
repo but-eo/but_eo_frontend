@@ -3,11 +3,11 @@ import 'package:project/service/matchService.dart';
 
 class MatchingDetailPage extends StatefulWidget {
   final String matchId;
-  final String challengerTeamId; // <-- Add this new final variable
+  final String challengerTeamId; // <-- develop 브랜치에서 추가된 변수
 
   const MatchingDetailPage({
     required this.matchId,
-    required this.challengerTeamId, // <-- Add to the constructor
+    required this.challengerTeamId, // <-- 생성자에 추가된 변수
     Key? key,
   }) : super(key: key);
 
@@ -106,9 +106,9 @@ class _MatchingDetailPageState extends State<MatchingDetailPage> {
                             child: ElevatedButton.icon(
                               onPressed: () async {
                                 try {
-                                  // Pass the challengerTeamId to the challengeMatch method
+                                  // develop 브랜치의 로직을 적용하여 challengerTeamId를 전달
                                   final success = await Matchservice().challengeMatch(
-                                      widget.matchId, widget.challengerTeamId); // <-- Pass it here
+                                      widget.matchId, widget.challengerTeamId);
                                   if (success) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
