@@ -10,7 +10,7 @@ import 'package:project/pages/match/matching_detail.dart';
 import 'package:project/pages/stadium/stadiumSearchPage.dart';
 import 'package:project/utils/token_storage.dart';
 import 'package:project/widgets/matchingCard.dart';
-import 'package:project/widgets/scroll_to_top_button.dart';
+import 'package.project/widgets/scroll_to_top_button.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class Matchpage extends StatefulWidget {
@@ -87,10 +87,10 @@ class _MatchpageState extends State<Matchpage> {
           allMatchCards.where((match) {
             final matchesDate =
                 _selectedDay == null ||
-                    isSameDay(match.matchDay, _selectedDay!);
+                isSameDay(match.matchDay, _selectedDay!);
             final matchesRegion =
                 selectedRegion == "전체" ||
-                    regionEnumMap[match.teamRegion] == selectedRegion;
+                regionEnumMap[match.teamRegion] == selectedRegion;
             final matchesSport =
                 selectedSport == "전체" || match.matchType == selectedSport;
 
@@ -149,40 +149,40 @@ class _MatchpageState extends State<Matchpage> {
                     spacing: 8.0,
                     runSpacing: 4.0,
                     children:
-                    regions.map((region) {
-                      return ChoiceChip(
-                        label: Text(
-                          region,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color:
-                            tempSelectedRegion == region
-                                ? _chipLabelSelectedColor
-                                : _primaryTextColor.withOpacity(0.8),
-                          ),
-                        ),
-                        selected: tempSelectedRegion == region,
-                        onSelected:
-                            (selected) => modalSetState(
-                              () => tempSelectedRegion = region,
-                        ),
-                        selectedColor: _chipSelectedColor,
-                        backgroundColor: _chipBackgroundColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          side: BorderSide(
-                            color:
-                            tempSelectedRegion == region
-                                ? _chipSelectedColor
-                                : Colors.grey.shade300,
-                          ),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                      );
-                    }).toList(),
+                        regions.map((region) {
+                          return ChoiceChip(
+                            label: Text(
+                              region,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color:
+                                    tempSelectedRegion == region
+                                        ? _chipLabelSelectedColor
+                                        : _primaryTextColor.withOpacity(0.8),
+                              ),
+                            ),
+                            selected: tempSelectedRegion == region,
+                            onSelected:
+                                (selected) => modalSetState(
+                                    () => tempSelectedRegion = region,
+                                ),
+                            selectedColor: _chipSelectedColor,
+                            backgroundColor: _chipBackgroundColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              side: BorderSide(
+                                color:
+                                    tempSelectedRegion == region
+                                        ? _chipSelectedColor
+                                        : Colors.grey.shade300,
+                              ),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
+                          );
+                        }).toList(),
                   ),
                   const SizedBox(height: 20),
                   Text(
@@ -198,40 +198,40 @@ class _MatchpageState extends State<Matchpage> {
                     spacing: 8.0,
                     runSpacing: 4.0,
                     children:
-                    sports.map((sport) {
-                      return ChoiceChip(
-                        label: Text(
-                          sport,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color:
-                            tempSelectedSport == sport
-                                ? _chipLabelSelectedColor
-                                : _primaryTextColor.withOpacity(0.8),
-                          ),
-                        ),
-                        selected: tempSelectedSport == sport,
-                        onSelected:
-                            (selected) => modalSetState(
-                              () => tempSelectedSport = sport,
-                        ),
-                        selectedColor: _chipSelectedColor,
-                        backgroundColor: _chipBackgroundColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          side: BorderSide(
-                            color:
-                            tempSelectedSport == sport
-                                ? _chipSelectedColor
-                                : Colors.grey.shade300,
-                          ),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                      );
-                    }).toList(),
+                        sports.map((sport) {
+                          return ChoiceChip(
+                            label: Text(
+                              sport,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color:
+                                    tempSelectedSport == sport
+                                        ? _chipLabelSelectedColor
+                                        : _primaryTextColor.withOpacity(0.8),
+                              ),
+                            ),
+                            selected: tempSelectedSport == sport,
+                            onSelected:
+                                (selected) => modalSetState(
+                                    () => tempSelectedSport = sport,
+                                ),
+                            selectedColor: _chipSelectedColor,
+                            backgroundColor: _chipBackgroundColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              side: BorderSide(
+                                color:
+                                    tempSelectedSport == sport
+                                        ? _chipSelectedColor
+                                        : Colors.grey.shade300,
+                              ),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
+                          );
+                        }).toList(),
                   ),
                   const Spacer(),
                   SizedBox(
@@ -325,9 +325,9 @@ class _MatchpageState extends State<Matchpage> {
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton:
-      _showButton
-          ? ScrollToTopButton(scrollController: _scrollController)
-          : null,
+          _showButton
+              ? ScrollToTopButton(scrollController: _scrollController)
+              : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: ListView(
         controller: _scrollController,
@@ -433,17 +433,17 @@ class _MatchpageState extends State<Matchpage> {
             hint: const Text("팀을 선택하세요"),
             value: selectedTeam, // selectedTeam이 null이면 hint가 보임
             items:
-            teamSports
-                .map((team) {
-              final teamName = team['teamName'] as String?;
-              if (teamName == null) return null;
-              return DropdownMenuItem<String>(
-                value: teamName,
-                child: Text(teamName),
-              );
-            })
-                .whereType<DropdownMenuItem<String>>()
-                .toList(), // null 제거
+                teamSports
+                    .map((team) {
+                      final teamName = team['teamName'] as String?;
+                      if (teamName == null) return null;
+                      return DropdownMenuItem<String>(
+                        value: teamName,
+                        child: Text(teamName),
+                      );
+                    })
+                    .whereType<DropdownMenuItem<String>>()
+                    .toList(), // null 제거
             onChanged: (value) {
               setState(() {
                 selectedTeam = value;
@@ -476,9 +476,22 @@ class _MatchpageState extends State<Matchpage> {
                         return;
                       }
                       final teamData = teamSports.firstWhere(
-                            (team) => team['teamName'] == selectedTeam,
+                        (team) => team['teamName'] == selectedTeam,
                         orElse: () => <String, dynamic>{}, // 명시적 Map 타입
                       );
+
+                      // 여기서 selectedTeamId를 추출합니다.
+                      final String? selectedTeamId = teamData['teamId'] as String?; // <<< 이 부분
+
+                      if (selectedTeamId == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("선택된 팀의 ID를 찾을 수 없습니다."),
+                          ),
+                        );
+                        return;
+                      }
+
                       final selectedEvent = teamData['event'];
                       final matchEvent = data.matchType;
                       if (selectedTeam == data.teamName) {
@@ -492,8 +505,10 @@ class _MatchpageState extends State<Matchpage> {
                           context,
                           MaterialPageRoute(
                             builder:
-                                (context) =>
-                                MatchingDetailPage(matchId: data.matchId),
+                                (context) => MatchingDetailPage(
+                                  matchId: data.matchId,
+                                  challengerTeamId: selectedTeamId, // <<< 여기에 전달!
+                                ),
                           ),
                         );
                       } else {
