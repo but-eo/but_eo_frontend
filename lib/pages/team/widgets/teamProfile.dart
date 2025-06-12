@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project/pages/team/teamReviewPage.dart';
 import 'package:project/service/teamService.dart';
 
 class TeamProfile extends StatelessWidget {
@@ -37,13 +38,41 @@ class TeamProfile extends StatelessWidget {
           children: [
             const Icon(Icons.star, size: 16, color: Colors.amber),
             const SizedBox(width: 4),
-            Text("평점: $rating점", style: const TextStyle(fontSize: 13, color: Colors.black87)),
+            Text("현재 점수: $rating점", style: const TextStyle(fontSize: 13, color: Colors.black87)),
             const SizedBox(width: 12),
-            const Icon(Icons.rate_review_outlined, size: 16, color: Colors.grey),
-            const SizedBox(width: 4),
-            Text("리뷰 $totalReview건", style: const TextStyle(fontSize: 13, color: Colors.black54)),
+            InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => TeamReviewPage(teamId: team['teamId'].toString()),
+                  ),
+                );
+              },
+              child: Padding( // 탭 영역을 조금 더 넓히기 위해 Padding 추가
+                padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 2.0),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.rate_review_outlined, size: 16, color: Colors.grey),
+                    const SizedBox(width: 4),
+                    Text(
+                      "리뷰 $totalReview건",
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Colors.black54,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+
           ],
-        ),
+        )
+
       ],
     );
   }
