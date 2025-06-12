@@ -83,12 +83,12 @@ class _ChatPageState extends State<ChatPage> {
             return ListTile(
               leading: CircleAvatar(
                 backgroundImage:
-                    room['chatImg'] != null && room['chatImg'] != ''
-                        ? NetworkImage(
-                            "${ApiConstants.webSocketConnectUrl}/chatRoom/${room['chatImg']}",
-                          )
-                        : const AssetImage('assets/images/butteoLogo.png')
-                            as ImageProvider,
+                room['chatImg'] != null && room['chatImg'] != ''
+                    ? NetworkImage(
+                  "${ApiConstants.webSocketConnectUrl}/chatRoom/${room['chatImg']}",
+                )
+                    : const AssetImage('assets/images/butteoLogo.png')
+                as ImageProvider,
               ),
               title: Text(room['roomName'] ?? '채팅방'),
               subtitle: Column(
@@ -186,13 +186,13 @@ class _ChatPageState extends State<ChatPage> {
                           final userId = user['userHashId'].toString();
                           return ListTile(
                             leading:
-                                user['profile'] != null && user['profile'].isNotEmpty // null 또는 빈 문자열 체크
-                                    ? CircleAvatar(
-                                        backgroundImage: NetworkImage(
-                                          user['profile'],
-                                        ),
-                                      )
-                                    : CircleAvatar(child: Icon(Icons.person)),
+                            user['profile'] != null && user['profile'].isNotEmpty // null 또는 빈 문자열 체크
+                                ? CircleAvatar(
+                              backgroundImage: NetworkImage(
+                                user['profile'],
+                              ),
+                            )
+                                : CircleAvatar(child: Icon(Icons.person)),
                             title: Text(user['name'] ?? '알 수 없는 사용자'), // null 체크
                             trailing: Checkbox(
                               value: localSelectedUsers[userId] ?? false,
@@ -214,10 +214,10 @@ class _ChatPageState extends State<ChatPage> {
                 TextButton(
                   onPressed: () async {
                     final selected =
-                        localSearchResults.where((user) {
+                    localSearchResults.where((user) {
                       return localSelectedUsers[
-                                  user['userHashId'].toString()] ==
-                              true;
+                      user['userHashId'].toString()] ==
+                          true;
                     }).toList();
 
                     print(

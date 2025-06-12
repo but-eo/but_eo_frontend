@@ -112,10 +112,10 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
   }
 
   Future<void> sendMessage(
-    String chatroomId,
-    String senderHashId,
-    String text,
-  ) async {
+      String chatroomId,
+      String senderHashId,
+      String text,
+      ) async {
     if (stompClient != null && stompClient!.connected) {
       final localMsg = {
         "chatroomId": chatroomId,
@@ -126,7 +126,7 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
       stompClient!.send(
         destination: '/app/chat/message',
         body:
-            '{"chatroomId" : "$chatroomId" , "sender" : "$senderHashId", "message": "$text"}',
+        '{"chatroomId" : "$chatroomId" , "sender" : "$senderHashId", "message": "$text"}',
         headers: {'content-type': 'application/json'},
       );
       messageController.clear();
@@ -207,11 +207,11 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
             Builder(
               builder:
                   (context) => IconButton(
-                    onPressed: () {
-                      Scaffold.of(context).openEndDrawer();
-                    },
-                    icon: const Icon(Icons.menu),
-                  ),
+                onPressed: () {
+                  Scaffold.of(context).openEndDrawer();
+                },
+                icon: const Icon(Icons.menu),
+              ),
             ),
           ],
         ),
@@ -231,23 +231,23 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
                     final String name =
                         participant['nickName'] ?? '유저'; // 이름이 없을 경우 기본값 설정
                     final String? profileImageUrl =
-                        participant['profile']; // 프로필 이미지 URL (nullable)
+                    participant['profile']; // 프로필 이미지 URL (nullable)
                     return ListTile(
                       leading: CircleAvatar(
                         // profileImageUrl이 존재하면 NetworkImage를 사용하고,
                         // 없으면 기본 아이콘이나 Asset 이미지를 사용합니다.
                         backgroundImage:
-                            profileImageUrl != null &&
-                                    profileImageUrl.isNotEmpty
-                                ? NetworkImage(profileImageUrl)
-                                    as ImageProvider<Object>?
-                                : null, // profileImageUrl이 없으면 null로 설정
+                        profileImageUrl != null &&
+                            profileImageUrl.isNotEmpty
+                            ? NetworkImage(profileImageUrl)
+                        as ImageProvider<Object>?
+                            : null, // profileImageUrl이 없으면 null로 설정
                         child:
-                            profileImageUrl == null || profileImageUrl.isEmpty
-                                ? const Icon(
-                                  Icons.person,
-                                ) // 프로필 이미지가 없으면 기본 아이콘
-                                : null, // 이미지가 있으면 child는 null
+                        profileImageUrl == null || profileImageUrl.isEmpty
+                            ? const Icon(
+                          Icons.person,
+                        ) // 프로필 이미지가 없으면 기본 아이콘
+                            : null, // 이미지가 있으면 child는 null
                       ),
                       // title: 참여자의 이름을 표시합니다.
                       title: Text(name),
@@ -293,10 +293,10 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
                   );
                   return Align(
                     alignment:
-                        isMine
-                            ? Alignment.centerRight
-                            : Alignment
-                                .centerLeft, //내가 보낸 메세지면 오른쪽 배치, 아니면 왼쪽 배치
+                    isMine
+                        ? Alignment.centerRight
+                        : Alignment
+                        .centerLeft, //내가 보낸 메세지면 오른쪽 배치, 아니면 왼쪽 배치
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         vertical: 8,
@@ -312,9 +312,9 @@ class _ChatDetailpageState extends State<ChatDetailpage> {
                       ),
                       child: Column(
                         crossAxisAlignment:
-                            isMine
-                                ? CrossAxisAlignment.end
-                                : CrossAxisAlignment.start,
+                        isMine
+                            ? CrossAxisAlignment.end
+                            : CrossAxisAlignment.start,
                         children: [
                           Text(
                             message['nickName'] ?? "알 수 없음",

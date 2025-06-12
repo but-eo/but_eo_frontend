@@ -98,7 +98,7 @@ class _MainState extends State<Main> {
   Widget build(BuildContext context) {
     final List<Widget> _pages = [
       Homepage(),
-      Matchpage(),
+      Matchpage(leaderTeam: leaderTeam),
       ChatPage(),
       Board(),
       TeamSearchPage(),

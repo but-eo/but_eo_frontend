@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:project/pages/stadium/stadiumFormPage.dart';
+import 'package:project/service/stadiumService.dart'; // StadiumService 임포트
 
 class StadiumDetailPage extends StatefulWidget {
   final Map<String, dynamic> stadium; // 상세 정보를 표시할 경기장 데이터
@@ -11,7 +12,6 @@ class StadiumDetailPage extends StatefulWidget {
 }
 
 class _StadiumDetailPageState extends State<StadiumDetailPage> {
-  // TODO : API를 통해 다시 불러오는 로직이 필요
   late Map<String, dynamic> _currentStadiumData;
 
   @override
@@ -20,10 +20,33 @@ class _StadiumDetailPageState extends State<StadiumDetailPage> {
     _currentStadiumData = Map<String, dynamic>.from(widget.stadium);
   }
 
-  // TODO : 백엔드에서 이미지 가져오는거 수정하면 작업
+  // 경기장 이미지 URL을 구성하는 헬퍼 함수
+  // TODO: 백엔드에서 이미지 가져오는 실제 URL 로직으로 수정 필요
   String _getFullStadiumImageUrl(String? path) {
-    if (path == null || path.isEmpty) return "";
-    return "assets/images/butteoLogo.png"; // 임시 이미지
+    if (path == null || path.isEmpty) {
+      // 이미지 URL이 없을 때 기본 로고 또는 플레이스홀더 사용
+      return "assets/images/butteoLogo.png";
+    }
+    // TODO: 실제 이미지 서버의 URL과 path를 조합하여 반환하도록 수정 필요
+    // 예: return "${ApiConstants.imageUrlBaseUrl}/$path";
+    return path; // 현재는 path가 이미 완전한 URL이라고 가정
+  }
+
+  // 경기장 데이터를 새로고침하는 함수
+  Future<void> _refreshStadiumData() async {
+    final String? stadiumId = _currentStadiumData['stadiumId'];
+    if (stadiumId != null) {
+      final updatedData = await StadiumService.getStadium(stadiumId);
+      if (updatedData != null && mounted) {
+        setState(() {
+          _currentStadiumData = updatedData;
+        });
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('경기장 정보를 불러오는데 실패했습니다.')),
+        );
+      }
+    }
   }
 
   void _navigateToEditPage() async {
@@ -37,11 +60,8 @@ class _StadiumDetailPageState extends State<StadiumDetailPage> {
 
     // 수정 완료 후 'updated'와 같은 결과가 돌아오면 데이터를 갱신
     if (result == 'updated') {
-      // TODO: 실제 경기장 ID를 이용하여 최신 데이터 다시 불러오기
-      setState(() {
-        print("경기장 정보가 업데이트됨: 다시 불러오기 필요");
-      });
-      if (mounted) Navigator.pop(context, 'updated');
+      await _refreshStadiumData(); // 최신 데이터 다시 불러오기
+      if (mounted) Navigator.pop(context, 'updated'); // 이전 페이지로 업데이트 신호 전달
     }
   }
 
@@ -65,10 +85,23 @@ class _StadiumDetailPageState extends State<StadiumDetailPage> {
     );
 
     if (confirm == true) {
-      // TODO: 경기장 삭제 API 호출
-      print("경기장 삭제 완료: ${_currentStadiumData['stadiumName']}");
-      if (mounted) {
-        Navigator.pop(context, 'deleted'); // 삭제 완료 신호를 이전 페이지로 전달
+      final String? stadiumId = _currentStadiumData['stadiumId'];
+      if (stadiumId != null) {
+        final String? response = await StadiumService.deleteStadium(stadiumId);
+        if (response != null && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("경기장이 성공적으로 삭제되었습니다: $response")),
+          );
+          Navigator.pop(context, 'deleted'); // 삭제 완료 신호를 이전 페이지로 전달
+        } else if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("경기장 삭제에 실패했습니다.")),
+          );
+        }
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("삭제할 경기장 ID를 찾을 수 없습니다.")),
+        );
       }
     }
   }
@@ -117,8 +150,9 @@ class _StadiumDetailPageState extends State<StadiumDetailPage> {
               child: CircleAvatar(
                 radius: 60,
                 backgroundColor: Colors.grey.shade300,
+                // `_getFullStadiumImageUrl`을 사용하여 이미지 표시
                 backgroundImage: _currentStadiumData['imageUrl'] != null && _currentStadiumData['imageUrl'].isNotEmpty
-                    ? NetworkImage(_getFullStadiumImageUrl(_currentStadiumData['imageUrl']))
+                    ? NetworkImage(_getFullStadiumImageUrl(_currentStadiumData['imageUrl'])) as ImageProvider<Object>?
                     : null,
                 child: _currentStadiumData['imageUrl'] == null || _currentStadiumData['imageUrl'].isEmpty
                     ? const Icon(Icons.sports_soccer, size: 50, color: Colors.grey) // 기본 아이콘
@@ -149,7 +183,6 @@ class _StadiumDetailPageState extends State<StadiumDetailPage> {
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             const SizedBox(height: 24),
-            // TODO: 여기에 예약, 후기, 사진 갤러리 등의 추가 정보 섹션
             Center(
               child: ElevatedButton(
                 onPressed: () {
