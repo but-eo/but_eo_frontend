@@ -40,7 +40,7 @@ class _LoginState extends State<Login> {
       print('Response data : ${response.data}');
       if (response.statusCode == 200) {
         String token =
-            response.data['accessToken']; //백엔드에서 받을 토큰 data['token']에서 token은
+        response.data['accessToken']; //백엔드에서 받을 토큰 data['token']에서 token은
         //스프링에서 토큰을 저장한 변수명과 일치해야함
         print('로그인 성공 $token');
         await TokenStorage.saveTokens(token);
@@ -182,7 +182,7 @@ class _LoginState extends State<Login> {
                           Navigator.of(context).pushNamedAndRemoveUntil(
                             //특정화면으로 이동하면서 이전 모든 화면을 스택에서 제거 (새 화면을 띄우고 뒤로가기 버튼을 눌러도 이전 화면으로 돌아갈 수 없음)
                             Sign.id, //이동할 경로의 이름
-                            (route) => false, //스택의 모든 화면 제거
+                                (route) => false, //스택의 모든 화면 제거
                           );
                         },
                         child: Text("회원가입"),
@@ -318,14 +318,14 @@ class _LoginState extends State<Login> {
   }
 
   Future<void> sendDataToServer(
-    String refreshToken,
-    String email,
-    String nickname,
-    String profileimage,
-    String gender,
-    String birthyear,
-    String tel,
-  ) async {
+      String refreshToken,
+      String email,
+      String nickname,
+      String profileimage,
+      String gender,
+      String birthyear,
+      String tel,
+      ) async {
     final url = Uri.parse("${ApiConstants.baseUrl}/users/kakao/login");
     final response = await http.post(
       url,
