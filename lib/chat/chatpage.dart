@@ -68,7 +68,7 @@ class _ChatPageState extends State<ChatPage> {
               onPressed: () {
                 _showCreateChatDialog(context);
 
-                searchAll();
+                // searchAll(); // 이 함수는 현재 _showCreateChatDialog 내에서 호출되지 않으므로 필요에 따라 위치를 조정하거나 제거하세요.
               },
               icon: const Icon(Icons.add_comment),
               //person_add_alt_1_rounded
@@ -85,12 +85,12 @@ class _ChatPageState extends State<ChatPage> {
                 backgroundImage:
                     room['chatImg'] != null && room['chatImg'] != ''
                         ? NetworkImage(
-                          "${ApiConstants.webSocketConnectUrl}/chatRoom/${room['chatImg']}",
-                        )
+                            "${ApiConstants.webSocketConnectUrl}/chatRoom/${room['chatImg']}",
+                          )
                         : const AssetImage('assets/images/butteoLogo.png')
                             as ImageProvider,
               ),
-              title: Text(room['chatRoomName'] ?? '채팅방'),
+              title: Text(room['roomName'] ?? '채팅방'),
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -112,7 +112,7 @@ class _ChatPageState extends State<ChatPage> {
                   ),
                 ],
               ),
-              onTap: () async{
+              onTap: () async {
                 print(room['lastMessageTime']);
                 final result = await Navigator.push(
                   context,
@@ -120,7 +120,7 @@ class _ChatPageState extends State<ChatPage> {
                     builder: (context) => ChatDetailpage(chatRoom: room),
                   ),
                 );
-                if(result == 'refresh'){
+                if (result == 'refresh') {
                   await loadChatRooms();
                 }
                 print("현재 접속 채팅방 :  ${room}");
@@ -135,6 +135,10 @@ class _ChatPageState extends State<ChatPage> {
   // 채팅방 생성 다이얼로그
   void _showCreateChatDialog(BuildContext context) {
     TextEditingController _controller = TextEditingController();
+
+    // 다이얼로그가 열릴 때 초기 친구 목록을 로드하도록 searchAll() 호출
+    // 다이얼로그의 StatefulBuilder 내부에서 setState를 통해 localSearchResults를 업데이트해야 합니다.
+    searchAllForDialog(); // 다이얼로그가 열릴 때 초기 검색 결과를 로드
 
     showDialog(
       context: context,
@@ -162,6 +166,7 @@ class _ChatPageState extends State<ChatPage> {
                             final results = await searchUser(_controller.text);
                             setState(() {
                               localSearchResults = results;
+                              // 검색 결과가 바뀔 때마다 기존 선택 상태 초기화
                               localSelectedUsers.clear();
                               for (var user in localSearchResults) {
                                 var userId = user['userHashId'].toString();
@@ -173,8 +178,7 @@ class _ChatPageState extends State<ChatPage> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    SizedBox(
-                      height: 250, //
+                    Expanded(
                       child: ListView.builder(
                         itemCount: localSearchResults.length,
                         itemBuilder: (context, index) {
@@ -182,14 +186,14 @@ class _ChatPageState extends State<ChatPage> {
                           final userId = user['userHashId'].toString();
                           return ListTile(
                             leading:
-                                user['profile'] != null
+                                user['profile'] != null && user['profile'].isNotEmpty // null 또는 빈 문자열 체크
                                     ? CircleAvatar(
-                                      backgroundImage: NetworkImage(
-                                        user['profile'],
-                                      ),
-                                    )
+                                        backgroundImage: NetworkImage(
+                                          user['profile'],
+                                        ),
+                                      )
                                     : CircleAvatar(child: Icon(Icons.person)),
-                            title: Text(user['name']),
+                            title: Text(user['name'] ?? '알 수 없는 사용자'), // null 체크
                             trailing: Checkbox(
                               value: localSelectedUsers[userId] ?? false,
                               onChanged: (bool? value) {
@@ -202,7 +206,7 @@ class _ChatPageState extends State<ChatPage> {
                           );
                         },
                       ),
-                    ),
+                    )
                   ],
                 ),
               ),
@@ -211,10 +215,10 @@ class _ChatPageState extends State<ChatPage> {
                   onPressed: () async {
                     final selected =
                         localSearchResults.where((user) {
-                          return localSelectedUsers[user['userHashId']
-                                  .toString()] ==
+                      return localSelectedUsers[
+                                  user['userHashId'].toString()] ==
                               true;
-                        }).toList();
+                    }).toList();
 
                     print(
                       '선택된 유저들: ${selected.map((e) => e['name']).toList()}',
@@ -224,22 +228,43 @@ class _ChatPageState extends State<ChatPage> {
                     );
 
                     if (selected.isNotEmpty) {
+                      // 💡 채팅방 이름 생성 로직
+                      String chatRoomName;
+                      if (selected.length == 1) {
+                        chatRoomName = selected[0]['name'] ?? '새 채팅방';
+                      } else if (selected.length > 1) {
+                        final firstTwoNames = selected
+                            .take(2)
+                            .map((user) => user['name'] ?? '이름 없음')
+                            .toList();
+                        final remainingCount = selected.length - 2;
+                        chatRoomName = '${firstTwoNames.join(', ')}';
+                        if (remainingCount > 0) {
+                          chatRoomName += ' 외 $remainingCount명';
+                        }
+                      } else {
+                        chatRoomName = '새 채팅방';
+                      }
+
+
                       final room = await createChatRoom(
                         selected.map((e) => e['userHashId']).toList(),
+                        chatRoomName, // ✅ 생성된 이름 전달
                       );
                       if (room != null) {
-                        setState(() {
-                          chatRooms.add(room); // ✅ 리스트에 추가!
+                        // 메인 _ChatPageState의 setState를 호출하여 chatRooms 업데이트
+                        setState(() { // _ChatPageState의 setState
+                          chatRooms.add(room);
                         });
-                        Navigator.pop(context);
+                        Navigator.pop(context); // 다이얼로그 닫기
+
                         final result = await Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder:
-                                (context) => ChatDetailpage(chatRoom: room),
+                            builder: (context) => ChatDetailpage(chatRoom: room),
                           ),
                         );
-                        if(result =='refresh'){
+                        if (result == 'refresh') {
                           await loadChatRooms();
                         }
                       }
@@ -249,7 +274,8 @@ class _ChatPageState extends State<ChatPage> {
                 ),
                 TextButton(
                   onPressed: () {
-                    setState(() {
+                    // 다이얼로그 닫기 전에 상태 초기화 (선택 사항)
+                    setState(() { // _showCreateChatDialog 내부의 setState
                       localSearchResults.clear();
                       localSelectedUsers.clear();
                     });
@@ -264,13 +290,43 @@ class _ChatPageState extends State<ChatPage> {
       },
     );
   }
+
+  // 다이얼로그가 열릴 때 전체 친구 목록을 로드하는 함수 (다이얼로그의 setState를 사용)
+  Future<void> searchAllForDialog() async {
+    final dio = Dio();
+    String? token = await TokenStorage.getAccessToken(); // 토큰 필요할 수 있음
+    try {
+      final response = await dio.get(
+        "${ApiConstants.baseUrl}/users/searchAll",
+        options: Options(headers: {'Authorization': 'Bearer $token'}), // 토큰 필요시 추가
+      );
+      if (response.statusCode == 200 && response.data is List) {
+        // StatefulBuilder의 setState를 통해 localSearchResults 업데이트
+        if (mounted) { // 위젯이 마운트된 상태인지 확인
+          (context as Element).markNeedsBuild(); // StatefulBuilder의 setState를 직접 호출하는 대신 build를 강제
+          // 대안: 다이얼로그 builder 내에서 StatefulWidget을 분리하거나,
+          // StatefulBuilder의 setState 콜백을 명시적으로 사용해야 합니다.
+          // 여기서는 setState가 다이얼로그의 build context에 바인딩되어 있으므로 직접 사용 가능
+          setState(() { // 이 setState는 AlertDialog의 StatefulBuilder에 속함
+            localSearchResults = List<Map<String, dynamic>>.from(response.data);
+            localSelectedUsers.clear(); // 초기화
+            for (var user in localSearchResults) {
+              var userId = user['userHashId'].toString();
+              localSelectedUsers[userId] = false;
+            }
+          });
+          print('전체 친구 목록 로드됨: ${localSearchResults.length}명');
+        }
+      }
+    } catch (e) {
+      print('전체 친구 목록 로드 실패 : $e');
+    }
+  }
 }
 
-//자기 자신 제외한 유저 검색
+// 자기 자신 제외한 유저 검색 (수정 없음)
 Future<List<Map<String, dynamic>>> searchUser(String nickname) async {
   final dio = Dio();
-  List<Map<String, dynamic>> searchResults = [];
-  Map<String, bool> selectedUsers = {};
   String? token = await TokenStorage.getAccessToken();
   try {
     final response = await dio.get(
@@ -288,6 +344,8 @@ Future<List<Map<String, dynamic>>> searchUser(String nickname) async {
   return [];
 }
 
+// 전체 친구 목록 검색 (다이얼로그에서 사용되지 않음 - 제거 또는 용도 변경 필요)
+// 이 함수는 더 이상 _showCreateChatDialog 내에서 호출되지 않으므로 필요에 따라 제거하거나 용도를 변경하세요.
 Future<void> searchAll() async {
   final dio = Dio();
   try {
@@ -301,14 +359,16 @@ Future<void> searchAll() async {
   }
 }
 
-Future<Map<String, dynamic>?> createChatRoom(List<dynamic> userIds) async {
+// 채팅방 생성 (chatRoomName 매개변수 추가)
+Future<Map<String, dynamic>?> createChatRoom(
+    List<dynamic> userIds, String chatRoomName) async { // ✅ chatRoomName 매개변수 추가
   final dio = Dio();
   String? token = await TokenStorage.getAccessToken();
   try {
-    print('채팅방 생성 요청: $userIds');
+    print('채팅방 생성 요청: $userIds, 이름: $chatRoomName');
     final response = await dio.post(
       "${ApiConstants.webSocketConnectUrl}/chatrooms",
-      data: {"userHashId": userIds, "chatRoomName": "채팅방"},
+      data: {"userHashId": userIds, "chatRoomName": chatRoomName}, // ✅ 이름 전달
       options: Options(headers: {'Authorization': 'Bearer $token'}),
     );
     if (response.statusCode == 200 || response.statusCode == 201) {

@@ -10,7 +10,7 @@ import 'package:project/pages/match/matching_detail.dart';
 import 'package:project/pages/stadium/stadiumSearchPage.dart';
 import 'package:project/utils/token_storage.dart';
 import 'package:project/widgets/matchingCard.dart';
-import 'package.project/widgets/scroll_to_top_button.dart';
+import 'package:project/widgets/scroll_to_top_button.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class Matchpage extends StatefulWidget {
@@ -40,6 +40,8 @@ class _MatchpageState extends State<Matchpage> {
   List<MatchingData> allMatchCards = [];
   List<MatchingData> filterMatchCards = [];
   CalendarFormat _calendarFormat = CalendarFormat.month;
+  final Map<DateTime, List<MatchingData>> _events = {};
+
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   final List<String> regions = ["전체", ...regionEnumMap.values];
@@ -164,7 +166,7 @@ class _MatchpageState extends State<Matchpage> {
                             selected: tempSelectedRegion == region,
                             onSelected:
                                 (selected) => modalSetState(
-                                    () => tempSelectedRegion = region,
+                                  () => tempSelectedRegion = region,
                                 ),
                             selectedColor: _chipSelectedColor,
                             backgroundColor: _chipBackgroundColor,
@@ -213,7 +215,7 @@ class _MatchpageState extends State<Matchpage> {
                             selected: tempSelectedSport == sport,
                             onSelected:
                                 (selected) => modalSetState(
-                                    () => tempSelectedSport = sport,
+                                  () => tempSelectedSport = sport,
                                 ),
                             selectedColor: _chipSelectedColor,
                             backgroundColor: _chipBackgroundColor,
@@ -288,9 +290,24 @@ class _MatchpageState extends State<Matchpage> {
                 .toList();
         applyFilters();
       });
+      for (var match in allMatchCards) {
+        final date = DateTime.utc(
+          match.matchDay.year,
+          match.matchDay.month,
+          match.matchDay.day,
+        );
+        _events.putIfAbsent(date, () => []);
+        _events[date]!.add(match); //해당 날짜 매칭 정보를 이벤트에 추가
+      }
     } catch (e) {
       print("에러: $e");
     }
+  }
+
+  //특정 날짜의 이벤트 가져오는 헬퍼 함수
+  List<MatchingData> _getEventsForDay(DateTime day) {
+    final utcDay = DateTime.utc(day.year, day.month, day.day);
+    return _events[utcDay] ?? [];
   }
 
   Future<List<Map<String, dynamic>>> fetchUserTeam() async {
@@ -319,6 +336,27 @@ class _MatchpageState extends State<Matchpage> {
       return '${parts[1]} ${parts[3]} ${parts[4]}';
     }
     return fullAddress;
+  }
+
+  // _MatchpageState 클래스 내부에 추가
+  Widget _buildEventMarker(int count) {
+    return Container(
+      width: 16.0,
+      height: 16.0,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.green[400], // 매칭이 있는 날짜의 마커 색상 (원하는 색상으로 변경)
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        '$count',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 10.0,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
   }
 
   @override
@@ -366,6 +404,71 @@ class _MatchpageState extends State<Matchpage> {
             ),
             onDaySelected: _onDaySelected,
             onPageChanged: (focusedDay) => _focusedDay = focusedDay,
+            eventLoader: _getEventsForDay,
+
+            calendarBuilders: CalendarBuilders(
+              defaultBuilder: (context, day, focusedDay) {
+                if (!isSameDay(day, _selectedDay) &&
+                    !isSameDay(day, DateTime.now())) {
+                  return Center(
+                    child: Text(
+                      '${day.day}',
+                      style: TextStyle(color: Colors.black, fontSize: 16.0),
+                    ),
+                  );
+                }
+                return null;
+              },
+              todayBuilder: (context, day, focuesdDay) {
+                return Container(
+                  margin: const EdgeInsets.all(6.0),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.shade100,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${day.day}',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                );
+              },
+              selectedBuilder: (context, day, focusedDay) {
+                return Container(
+                  margin: const EdgeInsets.all(6.0),
+                  decoration: BoxDecoration(
+                    color: Colors.blueAccent,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${day.day}',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                );
+              },
+              // MARK: - markerBuilder 추가 (이벤트 마커)
+              markerBuilder: (context, day, events) {
+                final List<MatchingData> dayMatches = _getEventsForDay(day);
+
+                if (dayMatches.isNotEmpty) {
+                  return Positioned(
+                    right: 1, // 날짜 셀의 오른쪽 아래에 배치
+                    bottom: 1,
+                    child: _buildEventMarker(dayMatches.length), // 매칭 개수에 따른 마커
+                  );
+                }
+                return null; // 매칭이 없으면 마커 없음
+              },
+            ),
           ),
           const SizedBox(height: 10.0),
           Row(
@@ -411,11 +514,11 @@ class _MatchpageState extends State<Matchpage> {
           ElevatedButton(
             onPressed:
                 () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const StadiumSearchPage(),
-              ),
-            ),
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const StadiumSearchPage(),
+                  ),
+                ),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
               foregroundColor: Colors.black,
@@ -481,7 +584,8 @@ class _MatchpageState extends State<Matchpage> {
                       );
 
                       // 여기서 selectedTeamId를 추출합니다.
-                      final String? selectedTeamId = teamData['teamId'] as String?; // <<< 이 부분
+                      final String? selectedTeamId =
+                          teamData['teamId'] as String?; // <<< 이 부분
 
                       if (selectedTeamId == null) {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -507,7 +611,8 @@ class _MatchpageState extends State<Matchpage> {
                             builder:
                                 (context) => MatchingDetailPage(
                                   matchId: data.matchId,
-                                  challengerTeamId: selectedTeamId, // <<< 여기에 전달!
+                                  challengerTeamId:
+                                      selectedTeamId, // <<< 여기에 전달!
                                 ),
                           ),
                         );
