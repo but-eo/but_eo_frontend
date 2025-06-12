@@ -80,12 +80,12 @@ class _MainState extends State<Main> {
         setState(() {
           userName = response.data['name'] ?? "이름 없음";
           profileImageUrl =
-              (profile != null && profile.toString().isNotEmpty)
-                  ? (profile.toString().startsWith("http")
-                          ? profile.toString()
-                          : "${ApiConstants.imageBaseUrl}$profile") +
-                      "?v=$timestamp"
-                  : "${ApiConstants.imageBaseUrl}/uploads/profiles/default_profile.png?v=$timestamp";
+          (profile != null && profile.toString().isNotEmpty)
+              ? (profile.toString().startsWith("http")
+              ? profile.toString()
+              : "${ApiConstants.imageBaseUrl}$profile") +
+              "?v=$timestamp"
+              : "${ApiConstants.imageBaseUrl}/uploads/profiles/default_profile.png?v=$timestamp";
           isLoading = false;
         });
       }
@@ -98,7 +98,7 @@ class _MainState extends State<Main> {
   Widget build(BuildContext context) {
     final List<Widget> _pages = [
       Homepage(),
-      Matchpage(leaderTeam: leaderTeam),
+      Matchpage(),
       ChatPage(),
       Board(),
       TeamSearchPage(),
@@ -109,90 +109,90 @@ class _MainState extends State<Main> {
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         appBar:
-            _selectedIndex == 2
-                ? null
-                : AppBar(
-                  title: Text(
-                    "BUTTEO",
-                    style: TextStyle(
-                      fontSize: 26.0,
-                      color: AppColors.baseBlackColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  actions: [
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(Icons.search),
-                    ),
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(Icons.notifications_none),
-                    ),
-                    IconButton(
-                      onPressed: () async {
-                        await fetchUserInfo(); // ✅ 메뉴 열기 전에 사용자 정보 최신화
+        _selectedIndex == 2
+            ? null
+            : AppBar(
+          title: Text(
+            "BUTTEO",
+            style: TextStyle(
+              fontSize: 26.0,
+              color: AppColors.baseBlackColor,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          actions: [
+            IconButton(
+              onPressed: () {},
+              icon: const Icon(Icons.search),
+            ),
+            IconButton(
+              onPressed: () {},
+              icon: const Icon(Icons.notifications_none),
+            ),
+            IconButton(
+              onPressed: () async {
+                await fetchUserInfo(); // ✅ 메뉴 열기 전에 사용자 정보 최신화
 
-                        showMenu(
-                          context: context,
-                          position: RelativeRect.fromLTRB(20, 20, 0, 0),
-                          items: <PopupMenuEntry<dynamic>>[
-                            PopupMenuItem<int>(
-                              value: 1,
-                              child: ListTile(
-                                leading:
-                                    profileImageUrl.isNotEmpty
-                                        ? CircleAvatar(
-                                          backgroundImage: NetworkImage(
-                                            profileImageUrl,
-                                          ),
-                                          key: ValueKey(
-                                            profileImageUrl,
-                                          ), // 강제 리렌더링
-                                        )
-                                        : CircleAvatar(
-                                          backgroundColor: Colors.grey,
-                                          child: Icon(
-                                            Icons.person,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                title: Text(userName),
-                              ),
-                            ),
-                            PopupMenuItem<int>(value: 2, child: Text('내 정보')),
-                            PopupMenuItem<int>(
-                              value: 3,
-                              child: Text('My Team'),
-                              onTap: () {
-                                Navigator.of(context).pushNamed('/myteam');
-                              },
-                            ),
-                            PopupMenuItem<int>(value: 4, child: Text('경기 일정')),
-                            PopupMenuItem<int>(value: 5, child: Text('설정')),
-                            const PopupMenuDivider(),
-                            PopupMenuItem<int>(
-                              value: 6,
-                              onTap: () {
-                                logout();
-                                Navigator.of(context).pushNamedAndRemoveUntil(
-                                  Login.id,
-                                  (route) => false,
-                                );
-                              },
-                              child: Text('로그아웃'),
-                            ),
-                          ],
-                        ).then((value) {
-                          if (value != null) {
-                            print("선택된 값: $value");
-                          }
-                        });
+                showMenu(
+                  context: context,
+                  position: RelativeRect.fromLTRB(20, 20, 0, 0),
+                  items: <PopupMenuEntry<dynamic>>[
+                    PopupMenuItem<int>(
+                      value: 1,
+                      child: ListTile(
+                        leading:
+                        profileImageUrl.isNotEmpty
+                            ? CircleAvatar(
+                          backgroundImage: NetworkImage(
+                            profileImageUrl,
+                          ),
+                          key: ValueKey(
+                            profileImageUrl,
+                          ), // 강제 리렌더링
+                        )
+                            : CircleAvatar(
+                          backgroundColor: Colors.grey,
+                          child: Icon(
+                            Icons.person,
+                            color: Colors.black,
+                          ),
+                        ),
+                        title: Text(userName),
+                      ),
+                    ),
+                    PopupMenuItem<int>(value: 2, child: Text('내 정보')),
+                    PopupMenuItem<int>(
+                      value: 3,
+                      child: Text('My Team'),
+                      onTap: () {
+                        Navigator.of(context).pushNamed('/myteam');
                       },
-                      icon: const Icon(Icons.menu),
+                    ),
+                    PopupMenuItem<int>(value: 4, child: Text('경기 일정')),
+                    PopupMenuItem<int>(value: 5, child: Text('설정')),
+                    const PopupMenuDivider(),
+                    PopupMenuItem<int>(
+                      value: 6,
+                      onTap: () {
+                        logout();
+                        Navigator.of(context).pushNamedAndRemoveUntil(
+                          Login.id,
+                              (route) => false,
+                        );
+                      },
+                      child: Text('로그아웃'),
                     ),
                   ],
-                ),
+                ).then((value) {
+                  if (value != null) {
+                    print("선택된 값: $value");
+                  }
+                });
+              },
+              icon: const Icon(Icons.menu),
+            ),
+          ],
+        ),
         body: _pages[_selectedIndex],
         bottomNavigationBar: CustomBottomNavBar(
           selectedIndex: _selectedIndex,

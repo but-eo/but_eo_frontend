@@ -6,6 +6,7 @@ import 'package:project/pages/components/reusable_filter.dart';
 import 'package:project/pages/match/fetchMatch.dart';
 import 'package:project/pages/match/matching.dart';
 import 'package:project/pages/match/matching_data.dart';
+import 'package:project/pages/match/matching_detail.dart';
 import 'package:project/pages/stadium/stadiumSearchPage.dart';
 import 'package:project/utils/token_storage.dart';
 import 'package:project/widgets/matchingCard.dart';
