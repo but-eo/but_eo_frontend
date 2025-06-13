@@ -55,22 +55,22 @@ class TeamService {
         return null;
       } else {
         final msg =
-            response.data is Map
-                ? response.data["message"] ??
-                    response.data["error"] ??
-                    "팀 생성 실패"
-                : "팀 생성 실패: ${response.statusCode}";
+        response.data is Map
+            ? response.data["message"] ??
+            response.data["error"] ??
+            "팀 생성 실패"
+            : "팀 생성 실패: ${response.statusCode}";
         print("팀 생성 실패: $msg");
         return msg;
       }
     } catch (e) {
       if (e is DioException) {
         final msg =
-            e.response?.data is Map
-                ? e.response?.data["message"] ??
-                    e.response?.data["error"] ??
-                    "서버 오류 발생 (${e.response?.statusCode})"
-                : "서버 오류: ${e.response?.statusCode}";
+        e.response?.data is Map
+            ? e.response?.data["message"] ??
+            e.response?.data["error"] ??
+            "서버 오류 발생 (${e.response?.statusCode})"
+            : "서버 오류: ${e.response?.statusCode}";
         print("DioException 발생 (팀 생성): $msg");
         return msg;
       } else {
@@ -108,10 +108,10 @@ class TeamService {
     required FormData formData,
   }) async {
     formData.fields.forEach(
-      (f) => print('formData field: ${f.key}: ${f.value}'),
+          (f) => print('formData field: ${f.key}: ${f.value}'),
     );
     formData.files.forEach(
-      (f) => print('formData file: ${f.key} = ${f.value.filename}'),
+          (f) => print('formData file: ${f.key} = ${f.value.filename}'),
     );
 
     try {
@@ -138,11 +138,11 @@ class TeamService {
     } catch (e) {
       if (e is DioException) {
         final msg =
-            e.response?.data is Map
-                ? e.response?.data["message"] ??
-                    e.response?.data["error"] ??
-                    "서버 오류 발생 (${e.response?.statusCode})"
-                : "서버 오류: ${e.response?.statusCode}";
+        e.response?.data is Map
+            ? e.response?.data["message"] ??
+            e.response?.data["error"] ??
+            "서버 오류 발생 (${e.response?.statusCode})"
+            : "서버 오류: ${e.response?.statusCode}";
         return msg;
       } else {
         print("오류 발생 (팀 수정): ${e.toString()}");
@@ -244,52 +244,43 @@ class TeamService {
   }
 
   // ✅ 사용자가 리더로 있는 팀 목록 조회
-  static Future<List<dynamic>> getMyTeams() async {
+// TeamService.dart 내부
+  static Future<List<dynamic>> getMyAllTeams() async {
     final token = await TokenStorage.getAccessToken();
-    if (token == null) {
-      throw Exception('토큰이 없습니다. 로그인이 필요합니다.');
-    }
+    if (token == null) throw Exception('토큰이 없습니다. 로그인이 필요합니다.');
 
     try {
-      // TeamController.java 에 정의된 @GetMapping("/my-leader-teams") 사용
       final response = await _dio.get(
-        "${ApiConstants.baseUrl}/teams/my-leader-teams", // API 경로
+        "${ApiConstants.baseUrl}/teams/my-teams",
         options: Options(headers: {"Authorization": "Bearer $token"}),
       );
-
       if (response.statusCode == 200) {
         if (response.data is List) {
-          print("✅ 내 리더 팀 목록 조회 성공 (TeamService): ${response.data}");
+          print("✅ 내가 속한 팀 전체 목록 조회 성공 (TeamService): ${response.data}");
           return response.data as List<dynamic>;
         } else {
-          print(
-            "❗ getMyTeams (my-leader-teams) 응답 데이터가 List 형식이 아닙니다: ${response.data}",
-          );
+          print("❗ getMyAllTeams 응답이 List가 아님: ${response.data}");
           throw Exception('서버 응답 형식이 올바르지 않습니다.');
         }
       } else {
-        print(
-          "❌ 내 리더 팀 목록 가져오기 실패 (TeamService): ${response.statusCode} - ${response.statusMessage}",
-        );
-        throw Exception('내 리더 팀 목록을 불러오는데 실패했습니다. (${response.statusCode})');
+        print("❌ 내 팀 전체 목록 가져오기 실패: ${response.statusCode} - ${response.statusMessage}");
+        throw Exception('내가 속한 팀 목록을 불러오는데 실패했습니다. (${response.statusCode})');
       }
     } on DioException catch (e) {
-      print(
-        "❗ 내 리더 팀 목록 요청 중 DioException (TeamService): ${e.response?.statusCode} - ${e.message}",
-      );
-      String errorMessage = '팀 목록 요청 중 서버 오류가 발생했습니다.';
+      print("❗ 내가 속한 팀 목록 DioException: ${e.response?.statusCode} - ${e.message}");
+      String errorMessage = '내가 속한 팀 목록 서버 오류 발생';
       if (e.response?.data != null) {
         if (e.response!.data is Map && e.response!.data['message'] != null) {
           errorMessage = e.response!.data['message'];
         } else if (e.response!.data.toString().isNotEmpty) {
           errorMessage =
-              "서버 오류: ${e.response!.data.toString().substring(0, (e.response!.data.toString().length > 100 ? 100 : e.response!.data.toString().length))}";
+          "서버 오류: ${e.response!.data.toString().substring(0, (e.response!.data.toString().length > 100 ? 100 : e.response!.data.toString().length))}";
         }
       }
       throw Exception(errorMessage);
     } catch (e) {
-      print("❗ 내 리더 팀 목록 요청 중 알 수 없는 오류 (TeamService): $e");
-      throw Exception('팀 목록을 불러오는 중 알 수 없는 오류가 발생했습니다.');
+      print("❗ 내가 속한 팀 전체 목록 알 수 없는 오류: $e");
+      throw Exception('내가 속한 팀 전체 목록을 불러오는 중 알 수 없는 오류가 발생했습니다.');
     }
   }
 
@@ -300,7 +291,7 @@ class TeamService {
       // teamEnum.dart의 eventEnumMap 사용 (해당 파일이 TeamService.dart에 import 되어 있어야 함)
       return eventEnumMap[Event.values.firstWhere(
             (e) => e.name.toUpperCase() == eventKey.toUpperCase(),
-          )] ??
+      )] ??
           eventKey;
     } catch (e) {
       print("알 수 없는 Event 키 (TeamService): $eventKey");
@@ -315,7 +306,7 @@ class TeamService {
       // teamEnum.dart의 regionEnumMap 사용 (해당 파일이 TeamService.dart에 import 되어 있어야 함)
       return regionEnumMap[Region.values.firstWhere(
             (e) => e.name.toUpperCase() == regionKey.toUpperCase(),
-          )] ??
+      )] ??
           regionKey;
     } catch (e) {
       print("알 수 없는 Region 키 (TeamService): $regionKey");
@@ -323,3 +314,4 @@ class TeamService {
     }
   }
 }
+

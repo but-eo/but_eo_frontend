@@ -111,7 +111,7 @@ class _MyTeamPageState extends State<MyTeamPage> {
     if (!mounted) return;
     setState(() => _isLoadingMyLeaderTeams = true);
     try {
-      final teams = await TeamService.getMyTeams();
+      final teams = await TeamService.getMyAllTeams();
       if (mounted) {
         setState(() {
           _myLeaderTeams = teams;
@@ -192,7 +192,7 @@ class _MyTeamPageState extends State<MyTeamPage> {
       case 1:
         return "내가 남긴 리뷰";
       case 2:
-        return "내 팀 (리더)";
+        return "내 팀";
       default:
         return "My Page";
     }
