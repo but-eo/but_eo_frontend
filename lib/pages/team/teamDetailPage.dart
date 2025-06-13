@@ -13,8 +13,8 @@ import 'package:project/pages/team/widgets/teamProfile.dart';
 import 'package:project/utils/token_storage.dart';
 
 class TeamDetailPage extends StatefulWidget {
-  final Map<String, dynamic> team;
-  const TeamDetailPage({super.key, required this.team});
+  final Map<String, dynamic>? team;
+  const TeamDetailPage({super.key, this.team});
 
   @override
   State<TeamDetailPage> createState() => _TeamDetailPageState();
@@ -23,22 +23,26 @@ class TeamDetailPage extends StatefulWidget {
 class _TeamDetailPageState extends State<TeamDetailPage> {
   bool isLeader = false;
   bool isRequested = false;
-  late Map<String, dynamic> team;
+  Map<String, dynamic>? _team;
+  bool _leaderChecked = false;
 
   @override
   void initState() {
     super.initState();
-    team = Map<String, dynamic>.from(widget.team);
-    _checkTeamLeader();
+    _team = widget.team;
+    if (_team != null) {
+      _checkTeamLeader(_team!);
+    }
   }
 
-  Future<void> _checkTeamLeader() async {
+  void _checkTeamLeader(Map<String, dynamic> team) async {
     final teamId = team['teamId'].toString();
     try {
       final result = await TeamService.isTeamLeader(teamId);
       if (mounted) {
         setState(() {
           isLeader = result;
+          _leaderChecked = true;
         });
       }
     } catch (e) {
@@ -54,14 +58,10 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
             e.toString().split('.').last.toUpperCase() ==
             enumName.toUpperCase(),
       );
-      return enumMap[enumValue] ?? "알 수 없음";
-    } catch (_) {
-      return enumName ?? "알 수 없음";
     }
-  }
 
-  @override
-  Widget build(BuildContext context) {
+    final team = _team!;
+
     final String teamName = team['teamName'] ?? '팀 이름 없음';
     final String region = getEnumLabel(team['region'], regionEnumMap);
     final String teamCase = getEnumLabel(team['teamCase'], teamCaseEnumMap);
@@ -76,7 +76,7 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
     final List<dynamic> members = team['members'] ?? [];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: Colors.grey.shade100, // 마이페이지 느낌 배경
       appBar: AppBar(
         title: Text(teamName),
         actions:
@@ -146,12 +146,42 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
                 : null,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TeamProfile(team: team),
-            const SizedBox(height: 24),
-            _buildInfoCard(region, teamCase, age, event),
+            // 팀 프로필 카드 (마이페이지 참고)
+            Center(child: TeamProfile(team: team)),
+            const SizedBox(height: 18),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0,2))
+                ],
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text("지역: $region", style: TextStyle(fontWeight: FontWeight.w500)),
+                      Text("유형: $teamCase", style: TextStyle(fontWeight: FontWeight.w500)),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text("연령대: $age", style: TextStyle(fontWeight: FontWeight.w500)),
+                      Text("종목: $event", style: TextStyle(fontWeight: FontWeight.w500)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 24),
             // ✨ isLeader가 true일 때만 이 버튼을 렌더링합니다.
             Center(
@@ -248,15 +278,56 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
             const SizedBox(height: 24),
             _buildDescription(description, context),
             const SizedBox(height: 24),
-            _buildActionButtons(members),
+            // 팀원 목록/버튼 row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    const Text("팀원 목록", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(width: 6),
+                    Text("($memberCount명)", style: const TextStyle(fontSize: 14, color: Colors.grey)),
+                  ],
+                ),
+                if (isLeader)
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.people_outline),
+                    label: const Text("신청자 목록 보기"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.indigo,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      elevation: 1,
+                    ),
+                    onPressed: () async {
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => Teaminvitationpage(teamId: team['teamId'].toString()),
+                        ),
+                      );
+                      if (result == true) {
+                        final updatedTeam = await TeamService.getTeamById(team['teamId'].toString());
+                        if (mounted && updatedTeam != null) {
+                          setState(() {
+                            _team = updatedTeam;
+                          });
+                          _checkTeamLeader(_team!);
+                        }
+                      }
+                    },
+                  ),
+              ],
+            ),
             const SizedBox(height: 12),
+            // 팀원 리스트
             _buildMemberList(members),
           ],
         ),
       ),
     );
   }
-
   Widget _buildInfoCard(
     String region,
     String teamCase,
@@ -428,7 +499,6 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
       );
     }
 
-    // 리더 먼저, 그 다음 일반 멤버 정렬
     final sortedMembers = List<Map<String, dynamic>>.from(members)
       ..sort((a, b) {
         final aIsLeader = a['leader'] == true ? 0 : 1;
