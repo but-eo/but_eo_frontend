@@ -6,6 +6,7 @@ import 'CustomerServiceMainPage.dart';
 import 'EditProfilePage.dart';
 import 'NoticePage.dart';
 import 'asked_questions.dart';
+import 'my_posts_page.dart';
 import 'myteam.dart';
 
 class MyPageScreen extends StatefulWidget {
@@ -129,19 +130,30 @@ class _MyPageScreenState extends State<MyPageScreen> {
             context,
             title: '내 활동',
             children: [
-              _buildListTile(Icons.group_outlined, '마이 팀', context, onTap: () {
+              _buildListTile(Icons.accessibility, '내 정보', context, onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const MyTeamPage()),
                 );
               }),
-              _buildListTile(Icons.article_outlined, '내가 작성한 글 보기', context, onTap: () {
-                print('내가 작성한 글 보기 클릭');
-                // TODO: 내가 작성한 글 보기 페이지로 이동
-              }),
-              _buildListTile(Icons.mode_comment_outlined, '내가 남긴 댓글 보기', context, onTap: () {
-                print('내가 남긴 댓글 보기 클릭');
-                // TODO: 내가 남긴 댓글 보기 페이지로 이동
+              _buildListTile(
+                Icons.article_outlined,
+                '내가 작성한 글 보기',
+                context,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const MyPostsPage()),
+                  );
+                },
+              ),
+              _buildListTile(Icons.groups, '마이 팀', context, onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const MyTeamPage(initialTabIndex: 2),
+                  ),
+                );
               }),
             ],
           ),
