@@ -253,13 +253,13 @@ class TeamService {
     try {
       // TeamController.java 에 정의된 @GetMapping("/my-leader-teams") 사용
       final response = await _dio.get(
-        "${ApiConstants.baseUrl}/teams/my-leader-teams", // API 경로
+        "${ApiConstants.baseUrl}/teams/my-teams", // API 경로
         options: Options(headers: {"Authorization": "Bearer $token"}),
       );
 
       if (response.statusCode == 200) {
         if (response.data is List) {
-          print("✅ 내 리더 팀 목록 조회 성공 (TeamService): ${response.data}");
+          print("✅ 내 팀 목록 조회 성공 (TeamService): ${response.data}");
           return response.data as List<dynamic>;
         } else {
           print(
