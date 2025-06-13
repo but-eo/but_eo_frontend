@@ -420,7 +420,7 @@ class _MatchpageState extends State<Matchpage> {
                 }
                 return null;
               },
-                dowBuilder: (context, day) {
+              dowBuilder: (context, day) {
                 switch (day.weekday) {
                   case 1:
                     return Center(child: Text('월'));
@@ -439,7 +439,7 @@ class _MatchpageState extends State<Matchpage> {
                       child: Text('일', style: TextStyle(color: Colors.red)),
                     );
                 }
-                },
+              },
               todayBuilder: (context, day, focuesdDay) {
                 return Container(
                   margin: const EdgeInsets.all(6.0),

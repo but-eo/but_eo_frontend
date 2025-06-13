@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:project/model/board_model.dart'; // Board 모델 import
-import 'package:project/pages/match/matchpage.dart';
+import 'package.project/pages/match/matchpage.dart';
 import 'package:project/pages/team/teamDetailPage.dart';
 import 'package:project/pages/team/teamFormPage.dart';
 import 'package:project/widgets/loading_placeholder.dart';
@@ -117,7 +117,12 @@ class _HomepageState extends State<Homepage> {
     );
   }
 
-  Widget _buildSectionHeader(BuildContext context, {required String title, required IconData icon, VoidCallback? onMoreTap}) {
+  Widget _buildSectionHeader(
+    BuildContext context, {
+    required String title,
+    required IconData icon,
+    VoidCallback? onMoreTap,
+  }) {
     final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -137,12 +142,26 @@ class _HomepageState extends State<Homepage> {
               onTap: onMoreTap,
               borderRadius: BorderRadius.circular(8),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8.0,
+                  vertical: 4.0,
+                ),
                 child: Row(
                   children: [
-                    Text("더보기", style: TextStyle(color: _secondaryTextColor, fontSize: 13, fontWeight: FontWeight.w500)),
+                    Text(
+                      "더보기",
+                      style: TextStyle(
+                        color: _secondaryTextColor,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                     const SizedBox(width: 2),
-                    Icon(Icons.arrow_forward_ios, size: 12, color: _secondaryTextColor),
+                    Icon(
+                      Icons.arrow_forward_ios,
+                      size: 12,
+                      color: _secondaryTextColor,
+                    ),
                   ],
                 ),
               ),
@@ -196,7 +215,9 @@ class _HomepageState extends State<Homepage> {
               subtitle: "새로운 경기를 주최하거나 참여해보세요.",
               buttonText: "매칭 둘러보기",
               icon: Icons.calendar_today_outlined,
-              onPressed: () { /* TODO: 매칭 페이지로 이동 */ },
+              onPressed: () {
+                /* TODO: 매칭 페이지로 이동 */
+              },
             );
           }
           final match = snapshot.data!;
@@ -215,7 +236,9 @@ class _HomepageState extends State<Homepage> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return _buildPostsLoadingIndicator();
           }
-          if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+          if (snapshot.hasError ||
+              !snapshot.hasData ||
+              snapshot.data!.isEmpty) {
             return Container(
               padding: const EdgeInsets.symmetric(vertical: 40),
               decoration: BoxDecoration(color: _cardBgColor, borderRadius: BorderRadius.circular(12.0)),
@@ -223,7 +246,6 @@ class _HomepageState extends State<Homepage> {
             );
           }
           final postsData = snapshot.data!;
-          // 서버 응답이 Map<String, dynamic>이고 그 안에 'boards' 키로 리스트가 있다고 가정
           final List<Board> boards = (postsData['boards'] as List).map((p) => Board.fromJson(p)).toList();
           return Container(
             decoration: BoxDecoration(
@@ -245,8 +267,10 @@ class _HomepageState extends State<Homepage> {
   Widget _buildMyTeamCard(BuildContext context, Map<String, dynamic> team) {
     final String teamName = team['teamName'] ?? '이름 없음';
     final String? teamImagePath = team['teamImg'];
-    final String? teamImageUrl = (teamImagePath != null && teamImagePath.isNotEmpty)
-        ? TeamService.getFullTeamImageUrl(teamImagePath) : null;
+    final String? teamImageUrl =
+        (teamImagePath != null && teamImagePath.isNotEmpty)
+            ? TeamService.getFullTeamImageUrl(teamImagePath)
+            : null;
 
     return GestureDetector(
       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TeamDetailPage(team: team))),
@@ -263,8 +287,20 @@ class _HomepageState extends State<Homepage> {
             CircleAvatar(
               radius: 38,
               backgroundColor: Colors.grey.shade200,
-              backgroundImage: teamImageUrl != null ? NetworkImage("$teamImageUrl?v=${DateTime.now().millisecondsSinceEpoch}") : null,
-              child: teamImageUrl == null ? Icon(Icons.shield_outlined, size: 35, color: _secondaryTextColor) : null,
+              backgroundImage:
+                  teamImageUrl != null
+                      ? NetworkImage(
+                          "$teamImageUrl?v=${DateTime.now().millisecondsSinceEpoch}",
+                        )
+                      : null,
+              child:
+                  teamImageUrl == null
+                      ? Icon(
+                          Icons.shield_outlined,
+                          size: 35,
+                          color: _secondaryTextColor,
+                        )
+                      : null,
             ),
             const SizedBox(height: 12),
             Padding(
@@ -288,8 +324,13 @@ class _HomepageState extends State<Homepage> {
     if (matchDateStr.isNotEmpty) {
       try {
         final matchDate = DateTime.parse(matchDateStr);
-        formattedDate = DateFormat('M월 d일 (E) HH:mm', 'ko_KR').format(matchDate);
-      } catch(e) { /* 날짜 파싱 실패 */ }
+        formattedDate = DateFormat(
+          'M월 d일 (E) HH:mm',
+          'ko_KR',
+        ).format(matchDate);
+      } catch (e) {
+        /* 날짜 파싱 실패 */
+      }
     }
 
     return Container(
@@ -301,7 +342,9 @@ class _HomepageState extends State<Homepage> {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () { /* TODO: 매칭 상세 정보 페이지로 이동 */ },
+          onTap: () {
+            /* TODO: 매칭 상세 정보 페이지로 이동 */
+          },
           borderRadius: BorderRadius.circular(12.0),
           child: Padding(
             padding: const EdgeInsets.all(20.0),
@@ -313,9 +356,15 @@ class _HomepageState extends State<Homepage> {
                   Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade400)
                 ]),
                 const SizedBox(height: 16),
-                _buildMatchInfoRow(icon: Icons.calendar_today_outlined, text: formattedDate),
+                _buildMatchInfoRow(
+                  icon: Icons.calendar_today_outlined,
+                  text: formattedDate,
+                ),
                 const SizedBox(height: 10),
-                _buildMatchInfoRow(icon: Icons.location_on_outlined, text: stadiumName),
+                _buildMatchInfoRow(
+                  icon: Icons.location_on_outlined,
+                  text: stadiumName,
+                ),
               ],
             ),
           ),
@@ -375,7 +424,13 @@ class _HomepageState extends State<Homepage> {
             child: Icon(icon, size: 30, color: _accentColor),
           ),
           const SizedBox(height: 16),
-          Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: _primaryTextColor)),
+          Text(
+            title,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: _primaryTextColor,
+                ),
+          ),
           const SizedBox(height: 8),
           Text(subtitle, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: _secondaryTextColor), textAlign: TextAlign.center),
           const SizedBox(height: 24),
@@ -387,7 +442,9 @@ class _HomepageState extends State<Homepage> {
               backgroundColor: _accentColor, foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               textStyle: const TextStyle(fontWeight: FontWeight.bold),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
               elevation: 0,
             ),
           ),

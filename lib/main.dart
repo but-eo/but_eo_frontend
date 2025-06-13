@@ -13,7 +13,6 @@ import 'package:webview_flutter_android/webview_flutter_android.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   initializeDateFormatting().then((_) => runApp(MyApp()));
   // await Firebase.initializeApp();
   WebViewPlatform.instance = AndroidWebViewPlatform();
