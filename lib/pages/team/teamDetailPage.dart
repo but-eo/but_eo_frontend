@@ -8,7 +8,7 @@ import 'package:project/pages/team/teaminvitationpage.dart';
 import 'package:project/pages/team/widgets/teamMatchRequestPage.dart';
 import 'package:project/pages/team/widgets/teamMatches.dart';
 import 'package:project/service/teamInvitaionService.dart';
-import 'package.project/service/teamService.dart';
+import '../../service/teamService.dart';
 import 'package:project/pages/team/widgets/teamProfile.dart';
 
 class TeamDetailPage extends StatefulWidget {

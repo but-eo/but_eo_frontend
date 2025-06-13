@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:project/model/board_model.dart'; // Board 모델 import
-import 'package.project/pages/match/matchpage.dart';
+import 'match/matchpage.dart';
 import 'package:project/pages/team/teamDetailPage.dart';
 import 'package:project/pages/team/teamFormPage.dart';
 import 'package:project/widgets/loading_placeholder.dart';
@@ -39,7 +39,7 @@ class _HomepageState extends State<Homepage> {
 
   Future<void> _loadHomepageData() async {
     setState(() {
-      _upcomingMatchFuture = MatchingApiService.getUpcomingMatch();
+      _upcomingMatchFuture = MatchingApiService.getUpcomingMatch() as Future<Map<String, dynamic>?>?;
       _myTeamsFuture = TeamService.getMyAllTeams();
       _latestPostsFuture = BoardApiService.fetchBoards('FREE', 'FREE', page: 0, size: 5);
     });
