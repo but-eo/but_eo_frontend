@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:project/model/board_model.dart'; // Board 모델 import
+import 'package:project/pages/match/matchpage.dart';
 import 'package:project/pages/team/teamDetailPage.dart';
 import 'package:project/pages/team/teamFormPage.dart';
 import 'package:project/widgets/loading_placeholder.dart';
@@ -24,12 +25,11 @@ class _HomepageState extends State<Homepage> {
   Future<List<dynamic>>? _myTeamsFuture;
   Future<Map<String, dynamic>>? _latestPostsFuture;
 
-  // ✨ 다른 페이지와 색감 통일을 위한 색상 변수 정의
   final Color _scaffoldBgColor = Colors.grey.shade100;
   final Color _cardBgColor = Colors.white;
   final Color _primaryTextColor = Colors.black87;
   final Color _secondaryTextColor = Colors.grey.shade700;
-  final Color _accentColor = Colors.blue.shade700; // ✨ 파란색 계열 강조색 추가
+  final Color _accentColor = Colors.blue.shade700;
 
   @override
   void initState() {
@@ -56,7 +56,7 @@ class _HomepageState extends State<Homepage> {
       backgroundColor: _scaffoldBgColor,
       body: RefreshIndicator(
         onRefresh: _loadHomepageData,
-        color: _accentColor, // ✨ 강조색으로 변경
+        color: _accentColor,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,23 +64,46 @@ class _HomepageState extends State<Homepage> {
               ImageSliderWidgets(bannerUrlItems: bannerUrlItems),
               const SizedBox(height: 16),
 
-              // "나의 팀" 섹션
-              _buildSectionHeader(context, title: "나의 팀", icon: Icons.group_work_outlined, onMoreTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const MyTeamPage(initialTabIndex: 2)));
-              }),
-              const SizedBox(height: 12),
-              _buildMyTeamsSection(context),
-              const SizedBox(height: 32),
+              FutureBuilder<List<dynamic>>(
+                future: _myTeamsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionHeader(context, title: "나의 팀", icon: Icons.group_work_outlined),
+                        const SizedBox(height: 12),
+                        _buildMyTeamsLoadingIndicator(),
+                        const SizedBox(height: 32),
+                        _buildSectionHeader(context, title: "예정된 경기", icon: Icons.event_available_outlined),
+                      ],
+                    );
+                  }
 
-              // "예정된 경기" 섹션
-              _buildSectionHeader(context, title: "예정된 경기", icon: Icons.event_available_outlined, onMoreTap: () {
-                // TODO: 매칭 페이지로 이동
-              }),
+                  final myTeams = (snapshot.hasData && !snapshot.hasError) ? snapshot.data! : <dynamic>[];
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSectionHeader(context, title: "나의 팀", icon: Icons.group_work_outlined, onMoreTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const MyTeamPage(initialTabIndex: 2)));
+                      }),
+                      const SizedBox(height: 12),
+                      _buildMyTeamsSection(context, myTeams),
+                      const SizedBox(height: 32),
+                      _buildSectionHeader(context, title: "예정된 경기", icon: Icons.event_available_outlined, onMoreTap: () {
+                        // [수정] 데이터 타입을 List<Map<String, dynamic>>으로 명확하게 변환하여 전달
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => Matchpage(leaderTeam: List<Map<String, dynamic>>.from(myTeams))));
+                      }),
+                    ],
+                  );
+                },
+              ),
+
               const SizedBox(height: 12),
               _buildUpcomingMatchSection(context),
               const SizedBox(height: 32),
 
-              // "최신글" 섹션
               _buildSectionHeader(context, title: "최신글", icon: Icons.article_outlined, onMoreTap: () {
                 // TODO: 게시판 페이지로 이동
               }),
@@ -104,12 +127,9 @@ class _HomepageState extends State<Homepage> {
         children: [
           Row(
             children: [
-              Icon(icon, color: _accentColor, size: 22), // ✨ 강조색으로 변경
+              Icon(icon, color: _accentColor, size: 22),
               const SizedBox(width: 8),
-              Text(
-                title,
-                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 19, color: _primaryTextColor),
-              ),
+              Text(title, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 19, color: _primaryTextColor)),
             ],
           ),
           if (onMoreTap != null)
@@ -132,43 +152,32 @@ class _HomepageState extends State<Homepage> {
     );
   }
 
-  Widget _buildMyTeamsSection(BuildContext context) {
-    return FutureBuilder<List<dynamic>>(
-      future: _myTeamsFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return _buildMyTeamsLoadingIndicator();
-        }
-        if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: _buildEmptyStateCard(
-              title: "소속된 팀이 없어요!",
-              subtitle: "팀을 만들거나 가입하여 활동을 시작해보세요.",
-              buttonText: "팀 생성/가입하기",
-              icon: Icons.group_add_outlined,
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const TeamFormPage()));
-              },
-            ),
-          );
-        }
-        final myTeams = snapshot.data!;
-        return SizedBox(
-          height: 170,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            clipBehavior: Clip.none,
-            itemCount: myTeams.length,
-            itemBuilder: (context, index) {
-              final team = myTeams[index];
-              return _buildMyTeamCard(context, team);
-            },
-            separatorBuilder: (context, index) => const SizedBox(width: 12),
-          ),
-        );
-      },
+  Widget _buildMyTeamsSection(BuildContext context, List<dynamic> myTeams) {
+    if (myTeams.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: _buildEmptyStateCard(
+          title: "소속된 팀이 없어요!",
+          subtitle: "팀을 만들거나 가입하여 활동을 시작해보세요.",
+          buttonText: "팀 생성/가입하기",
+          icon: Icons.group_add_outlined,
+          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TeamFormPage())),
+        ),
+      );
+    }
+    return SizedBox(
+      height: 170,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        clipBehavior: Clip.none,
+        itemCount: myTeams.length,
+        itemBuilder: (context, index) {
+          final team = myTeams[index];
+          return _buildMyTeamCard(context, team);
+        },
+        separatorBuilder: (context, index) => const SizedBox(width: 12),
+      ),
     );
   }
 
@@ -209,26 +218,22 @@ class _HomepageState extends State<Homepage> {
           if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
             return Container(
               padding: const EdgeInsets.symmetric(vertical: 40),
-              decoration: BoxDecoration(
-                color: _cardBgColor,
-                borderRadius: BorderRadius.circular(12.0),
-              ),
+              decoration: BoxDecoration(color: _cardBgColor, borderRadius: BorderRadius.circular(12.0)),
               child: Center(child: Text("아직 게시글이 없어요.", style: TextStyle(color: _secondaryTextColor))),
             );
           }
-          final posts = snapshot.data!;
-          final List<Board> boards = posts['boards'];
+          final postsData = snapshot.data!;
+          // 서버 응답이 Map<String, dynamic>이고 그 안에 'boards' 키로 리스트가 있다고 가정
+          final List<Board> boards = (postsData['boards'] as List).map((p) => Board.fromJson(p)).toList();
           return Container(
             decoration: BoxDecoration(
                 color: _cardBgColor,
                 borderRadius: BorderRadius.circular(12.0),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 2))
-                ]
+                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 2))]
             ),
             child: Column(
-              children: List.generate(posts.length, (index) {
-                return _buildPostItem(context, posts[index], index == posts.length - 1);
+              children: List.generate(boards.length, (index) {
+                return _buildPostItem(context, boards[index], index == boards.length - 1);
               }),
             ),
           );
@@ -237,8 +242,6 @@ class _HomepageState extends State<Homepage> {
     );
   }
 
-  // --- 상세 위젯 빌더들 (디자인 통일) ---
-
   Widget _buildMyTeamCard(BuildContext context, Map<String, dynamic> team) {
     final String teamName = team['teamName'] ?? '이름 없음';
     final String? teamImagePath = team['teamImg'];
@@ -246,22 +249,13 @@ class _HomepageState extends State<Homepage> {
         ? TeamService.getFullTeamImageUrl(teamImagePath) : null;
 
     return GestureDetector(
-      onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (_) => TeamDetailPage(team: team)));
-      },
+      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TeamDetailPage(team: team))),
       child: Container(
         width: 150,
         decoration: BoxDecoration(
           color: _cardBgColor,
           borderRadius: BorderRadius.circular(12.0),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              spreadRadius: 1,
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), spreadRadius: 1, blurRadius: 10, offset: const Offset(0, 4))],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -275,21 +269,10 @@ class _HomepageState extends State<Homepage> {
             const SizedBox(height: 12),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Text(
-                teamName,
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: _primaryTextColor),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
+              child: Text(teamName, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: _primaryTextColor), textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
             ),
             const SizedBox(height: 4),
-            Text(
-              "${TeamService.getEventLabel(team['event']) ?? '미지정'}",
-              style: TextStyle(fontSize: 13, color: _secondaryTextColor),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
+            Text("${TeamService.getEventLabel(team['event']) ?? '미지정'}", style: TextStyle(fontSize: 13, color: _secondaryTextColor), maxLines: 1, overflow: TextOverflow.ellipsis),
           ],
         ),
       ),
@@ -313,9 +296,7 @@ class _HomepageState extends State<Homepage> {
       decoration: BoxDecoration(
         color: _cardBgColor,
         borderRadius: BorderRadius.circular(12.0),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 2))
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 2))],
       ),
       child: Material(
         color: Colors.transparent,
@@ -327,16 +308,10 @@ class _HomepageState extends State<Homepage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      teamName,
-                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: _primaryTextColor),
-                    ),
-                    Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade400)
-                  ],
-                ),
+                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                  Text(teamName, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: _primaryTextColor)),
+                  Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade400)
+                ]),
                 const SizedBox(height: 16),
                 _buildMatchInfoRow(icon: Icons.calendar_today_outlined, text: formattedDate),
                 const SizedBox(height: 10),
@@ -354,8 +329,7 @@ class _HomepageState extends State<Homepage> {
       children: [
         Icon(icon, size: 16, color: _secondaryTextColor),
         const SizedBox(width: 12),
-        Expanded(
-            child: Text(text, style: TextStyle(fontSize: 14.5, color: _primaryTextColor), overflow: TextOverflow.ellipsis)),
+        Expanded(child: Text(text, style: TextStyle(fontSize: 14.5, color: _primaryTextColor), overflow: TextOverflow.ellipsis)),
       ],
     );
   }
@@ -364,36 +338,19 @@ class _HomepageState extends State<Homepage> {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => BoardDetailPage(boardId: post.boardId)));
-        },
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => BoardDetailPage(boardId: post.boardId))),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-          decoration: BoxDecoration(
-            border: isLast ? null : Border(bottom: BorderSide(color: Colors.grey.shade200, width: 1)),
-          ),
+          decoration: BoxDecoration(border: isLast ? null : Border(bottom: BorderSide(color: Colors.grey.shade200, width: 1))),
           child: Row(
             children: [
-              Expanded(
-                child: Text(
-                  post.title,
-                  style: TextStyle(fontSize: 15, color: _primaryTextColor),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
+              Expanded(child: Text(post.title, style: TextStyle(fontSize: 15, color: _primaryTextColor), maxLines: 1, overflow: TextOverflow.ellipsis)),
               const SizedBox(width: 16),
-              Row(
-                children: [
-                  Icon(Icons.thumb_up_alt_outlined, size: 14, color: _secondaryTextColor),
-                  const SizedBox(width: 4),
-                  Text("${post.likeCount}", style: TextStyle(fontSize: 13, color: _secondaryTextColor)),
-                  const SizedBox(width: 12),
-                  Icon(Icons.chat_bubble_outline, size: 14, color: _secondaryTextColor),
-                  const SizedBox(width: 4),
-                  Text("${post.commentCount}", style: TextStyle(fontSize: 13, color: _secondaryTextColor)),
-                ],
-              ),
+              Row(children: [
+                Icon(Icons.thumb_up_alt_outlined, size: 14, color: _secondaryTextColor), const SizedBox(width: 4), Text("${post.likeCount}", style: TextStyle(fontSize: 13, color: _secondaryTextColor)),
+                const SizedBox(width: 12),
+                Icon(Icons.chat_bubble_outline, size: 14, color: _secondaryTextColor), const SizedBox(width: 4), Text("${post.commentCount}", style: TextStyle(fontSize: 13, color: _secondaryTextColor)),
+              ]),
             ],
           ),
         ),
@@ -401,46 +358,33 @@ class _HomepageState extends State<Homepage> {
     );
   }
 
-  Widget _buildEmptyStateCard({
-    required String title,
-    required String subtitle,
-    required String buttonText,
-    required IconData icon,
-    required VoidCallback onPressed,
-  }) {
+  Widget _buildEmptyStateCard({required String title, required String subtitle, required String buttonText, required IconData icon, required VoidCallback onPressed}) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
       decoration: BoxDecoration(
           color: _cardBgColor,
           borderRadius: BorderRadius.circular(12.0),
-          boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 2))
-          ]
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 2))]
       ),
       child: Column(
         children: [
           CircleAvatar(
             radius: 30,
-            backgroundColor: _accentColor.withOpacity(0.1), // ✨ 강조색으로 변경
-            child: Icon(icon, size: 30, color: _accentColor), // ✨ 강조색으로 변경
+            backgroundColor: _accentColor.withOpacity(0.1),
+            child: Icon(icon, size: 30, color: _accentColor),
           ),
           const SizedBox(height: 16),
           Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: _primaryTextColor)),
           const SizedBox(height: 8),
-          Text(
-            subtitle,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: _secondaryTextColor),
-            textAlign: TextAlign.center,
-          ),
+          Text(subtitle, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: _secondaryTextColor), textAlign: TextAlign.center),
           const SizedBox(height: 24),
           ElevatedButton.icon(
             onPressed: onPressed,
             icon: const Icon(Icons.add, size: 20),
             label: Text(buttonText),
             style: ElevatedButton.styleFrom(
-              backgroundColor: _accentColor, // ✨ 강조색으로 변경
-              foregroundColor: Colors.white,
+              backgroundColor: _accentColor, foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               textStyle: const TextStyle(fontWeight: FontWeight.bold),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
@@ -452,8 +396,6 @@ class _HomepageState extends State<Homepage> {
     );
   }
 
-  // --- 로딩 인디케이터 위젯들 (디자인 통일) ---
-
   Widget _buildMyTeamsLoadingIndicator() {
     return SizedBox(
       height: 170,
@@ -461,37 +403,21 @@ class _HomepageState extends State<Homepage> {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         itemCount: 3,
-        itemBuilder: (context, index) => LoadingPlaceholder(
-          width: 150,
-          height: 170,
-          borderRadius: 12.0,
-        ),
+        itemBuilder: (context, index) => LoadingPlaceholder(width: 150, height: 170, borderRadius: 12.0),
         separatorBuilder: (context, index) => const SizedBox(width: 12),
       ),
     );
   }
 
   Widget _buildMatchCardLoadingIndicator() {
-    return const LoadingPlaceholder(
-      height: 140,
-      borderRadius: 12.0,
-    );
+    return const LoadingPlaceholder(height: 140, borderRadius: 12.0);
   }
 
   Widget _buildPostsLoadingIndicator() {
     return Container(
-      decoration: BoxDecoration(
-        color: _cardBgColor,
-        borderRadius: BorderRadius.circular(12.0),
-      ),
+      decoration: BoxDecoration(color: _cardBgColor, borderRadius: BorderRadius.circular(12.0)),
       child: Column(
-        children: List.generate(5, (index)
-        => LoadingPlaceholder(
-          height: 55,
-          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          borderRadius: 8.0,
-        ),
-        ),
+        children: List.generate(5, (index) => LoadingPlaceholder(height: 55, margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4), borderRadius: 8.0)),
       ),
     );
   }

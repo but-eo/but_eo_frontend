@@ -1,6 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/date_symbol_data_file.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 import 'package:project/appStyle/app_style.dart';
 import 'package:project/contants/api_contants.dart';
@@ -14,6 +14,7 @@ import 'package:webview_flutter_android/webview_flutter_android.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  initializeDateFormatting().then((_) => runApp(MyApp()));
   // await Firebase.initializeApp();
   WebViewPlatform.instance = AndroidWebViewPlatform();
 

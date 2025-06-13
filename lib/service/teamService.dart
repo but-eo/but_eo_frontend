@@ -243,8 +243,7 @@ class TeamService {
     }
   }
 
-  // ✅ 사용자가 리더로 있는 팀 목록 조회
-// TeamService.dart 내부
+  // ✅ '내가 속한 모든 팀' 목록 조회 (이 함수 하나로 통일)
   static Future<List<dynamic>> getMyAllTeams() async {
     final token = await TokenStorage.getAccessToken();
     if (token == null) throw Exception('토큰이 없습니다. 로그인이 필요합니다.');
@@ -314,4 +313,3 @@ class TeamService {
     }
   }
 }
-

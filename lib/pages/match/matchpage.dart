@@ -393,6 +393,8 @@ class _MatchpageState extends State<Matchpage> {
             ),
             firstDay: DateTime.utc(2025, 1, 1),
             lastDay: DateTime.utc(2099, 12, 31),
+            locale: 'ko-KR',
+            daysOfWeekHeight: 30,
             focusedDay: _focusedDay,
             calendarFormat: _calendarFormat,
             selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
@@ -418,6 +420,26 @@ class _MatchpageState extends State<Matchpage> {
                 }
                 return null;
               },
+                dowBuilder: (context, day) {
+                switch (day.weekday) {
+                  case 1:
+                    return Center(child: Text('월'));
+                  case 2:
+                    return Center(child: Text('화'));
+                  case 3:
+                    return Center(child: Text('수'));
+                  case 4:
+                    return Center(child: Text('목'));
+                  case 5:
+                    return Center(child: Text('금'));
+                  case 6:
+                    return Center(child: Text('토'));
+                  case 7:
+                    return Center(
+                      child: Text('일', style: TextStyle(color: Colors.red)),
+                    );
+                }
+                },
               todayBuilder: (context, day, focuesdDay) {
                 return Container(
                   margin: const EdgeInsets.all(6.0),
