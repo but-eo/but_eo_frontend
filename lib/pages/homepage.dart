@@ -40,7 +40,7 @@ class _HomepageState extends State<Homepage> {
   Future<void> _loadHomepageData() async {
     setState(() {
       _upcomingMatchFuture = MatchingApiService.getUpcomingMatch();
-      _myTeamsFuture = TeamService.getMyTeams();
+      _myTeamsFuture = TeamService.getMyAllTeams();
       _latestPostsFuture = BoardApiService.fetchBoards('FREE', 'FREE', page: 0, size: 5);
     });
   }

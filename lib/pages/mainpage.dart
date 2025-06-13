@@ -41,7 +41,7 @@ class _MainState extends State<Main> {
   }
 
   Future<void> fetchLeaderTeam() async {
-    final myTeams = await TeamService.getMyTeams();
+    final myTeams = await TeamService.getMyAllTeams();
     if (myTeams != null && myTeams.isNotEmpty) {
       setState(() {
         leaderTeam = List<Map<String, dynamic>>.from(myTeams);
