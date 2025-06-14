@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:project/contants/api_contants.dart';
+import 'package:project/pages/team/match_result_registreation_page.dart';
 import 'package:project/utils/token_storage.dart';
 
 class Teammatchrequestpage extends StatefulWidget {
@@ -198,7 +199,7 @@ class _TeammatchrequestpageState extends State<Teammatchrequestpage> {
     }
   }
 
-  @override
+   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("매칭 요청 조회")),
@@ -218,7 +219,7 @@ class _TeammatchrequestpageState extends State<Teammatchrequestpage> {
                         ),
                         SizedBox(height: 20),
                         ElevatedButton(
-                          onPressed: fetchMatchRequests, // 함수명 변경
+                          onPressed: fetchMatchRequests,
                           child: Text("다시 시도"),
                         ),
                       ],
@@ -229,10 +230,11 @@ class _TeammatchrequestpageState extends State<Teammatchrequestpage> {
                   ? Center(child: Text("받은 매칭 요청이 없습니다."))
                   : ListView.builder(
                       padding: const EdgeInsets.all(8.0),
-                      itemCount: matchRequests.length, // 변수명 변경
+                      itemCount: matchRequests.length,
                       itemBuilder: (context, index) {
-                        final matchRequest = matchRequests[index]; // 변수명 변경
+                        final matchRequest = matchRequests[index];
 
+                        // 필요한 정보를 추출하여 변수에 저장
                         final String matchRequestId = matchRequest['matchRequestId'] ?? 'N/A';
                         final String requestingTeamName = matchRequest['requestingTeamName'] ?? 'N/A';
                         final String requestingTeamId = matchRequest['requestingTeamId'] ?? 'N/A';
@@ -240,66 +242,84 @@ class _TeammatchrequestpageState extends State<Teammatchrequestpage> {
                         final String targetMatchId = matchRequest['targetMatchId'] ?? 'N/A';
                         final String targetMatchDate = matchRequest['targetMatchDate'] ?? 'N/A';
 
-                        return Card(
-                          margin: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "요청 팀: $requestingTeamName", // ✨ 도전 팀 이름이 여기에 표시됩니다.
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                    color: Colors.blueAccent,
+                        return GestureDetector( // <--- 여기 Card를 GestureDetector로 감쌉니다.
+                          onTap: () {
+                            // 카드를 탭했을 때 결과 등록 페이지로 이동
+                            if (targetMatchId != 'N/A') {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => MatchResultRegistrationPage(
+                                    matchId: targetMatchId, // 매치 ID 전달
+                                    requestingTeamName: requestingTeamName, // 요청 팀 이름 전달 (표시용)
+                                    targetMatchName: targetMatchName, // 대상 매치 이름 전달 (표시용)
                                   ),
                                 ),
-                                Text("대상 매치: $targetMatchName"),
-                                SizedBox(height: 16),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    ElevatedButton(
-                                      onPressed: () {
-                                        if (targetMatchId != 'N/A' &&
-                                            requestingTeamId != 'N/A') {
-                                          acceptChallenge(
-                                            targetMatchId,
-                                            requestingTeamId,
-                                          );
-                                        } else {
-                                          _showSnackBar(
-                                              "매치 또는 요청 팀 ID를 찾을 수 없습니다.");
-                                        }
-                                      },
-                                      child: Text("수락"),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.green,
-                                      ),
+                              );
+                            } else {
+                              _showSnackBar("매치 ID를 찾을 수 없어 결과 등록 페이지로 이동할 수 없습니다.");
+                            }
+                          },
+                          child: Card(
+                            margin: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "요청 팀: $requestingTeamName",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      color: Colors.blueAccent,
                                     ),
-                                    SizedBox(width: 8),
-                                    ElevatedButton(
-                                      onPressed: () {
-                                        if (targetMatchId != 'N/A' &&
-                                            requestingTeamId != 'N/A') {
-                                          declineChallenge(
-                                            targetMatchId,
-                                            requestingTeamId,
-                                          );
-                                        } else {
-                                          _showSnackBar(
-                                              "매치 또는 요청 팀 ID를 찾을 수 없습니다.");
-                                        }
-                                      },
-                                      child: Text("거절"),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.red,
+                                  ),
+                                  Text("대상 매치: $targetMatchName"),
+                                  Text("매치 날짜: $targetMatchDate"), // 날짜 정보도 표시하면 좋을 것 같네요.
+                                  SizedBox(height: 16),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          if (targetMatchId != 'N/A' && requestingTeamId != 'N/A') {
+                                            acceptChallenge(
+                                              targetMatchId,
+                                              requestingTeamId,
+                                            );
+                                          } else {
+                                            _showSnackBar("매치 또는 요청 팀 ID를 찾을 수 없습니다.");
+                                          }
+                                        },
+                                        child: Text("수락"),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.green,
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                                      SizedBox(width: 8),
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          if (targetMatchId != 'N/A' && requestingTeamId != 'N/A') {
+                                            declineChallenge(
+                                              targetMatchId,
+                                              requestingTeamId,
+                                            );
+                                          (requestingTeamId);
+                                          } else {
+                                            _showSnackBar(
+                                                "매치 또는 요청 팀 ID를 찾을 수 없습니다.");
+                                          }
+                                        },
+                                        child: Text("거절"),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         );
