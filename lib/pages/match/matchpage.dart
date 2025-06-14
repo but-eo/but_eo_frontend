@@ -10,7 +10,7 @@ import 'package:project/pages/match/matching_detail.dart';
 import 'package:project/pages/stadium/stadiumSearchPage.dart';
 import 'package:project/utils/token_storage.dart';
 import 'package:project/widgets/matchingCard.dart';
-import 'package.project/widgets/scroll_to_top_button.dart';
+import 'package:project/widgets/scroll_to_top_button.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class Matchpage extends StatefulWidget {

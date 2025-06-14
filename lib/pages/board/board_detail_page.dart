@@ -44,13 +44,23 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
     super.initState();
     _loadBoardData();
     _loadUserId();
+
   }
 
-  void _loadBoardData() {
-    futureBoardDetail = fetchBoardDetail(widget.boardId).then((board) {
+  void _loadBoardData() async {
+    futureBoardDetail = fetchBoardDetail(widget.boardId);
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+
+    futureBoardDetail = fetchBoardDetail(widget.boardId).then((board) async {
+      bool liked = false;
+      if (token != null) {
+        liked = await fetchIsBoardLiked(widget.boardId, token);
+      }
+
       if (mounted) {
         setState(() {
-          _isBoardLiked = false;
+          _isBoardLiked = liked;
           _boardLikeCount = board.likeCount;
         });
       }
@@ -177,18 +187,28 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
     }
   }
 
-  void _toggleBoardLike() {
-    if(mounted) {
+  void _toggleBoardLike() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+    if (token == null) return;
+
+    try {
+      await toggleBoardLike(widget.boardId, token);
       setState(() {
         _isBoardLiked = !_isBoardLiked;
-        if (_isBoardLiked) {
-          _boardLikeCount++;
-        } else {
-          _boardLikeCount--;
-        }
+        _isBoardLiked ? _boardLikeCount++ : _boardLikeCount--;
       });
+
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(_isBoardLiked ? '게시글을 좋아합니다.' : '게시글 좋아요를 취소했습니다.'), duration: Duration(seconds: 1))
+        SnackBar(
+          content: Text(_isBoardLiked ? '게시글을 좋아합니다.' : '게시글 좋아요를 취소했습니다.'),
+          duration: const Duration(seconds: 1),
+        ),
+      );
+    } catch (e) {
+      print(e);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('좋아요 처리 중 오류 발생')),
       );
     }
   }
@@ -226,7 +246,7 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
         iconTheme: IconThemeData(color: _primaryTextColor),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 22),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Navigator.of(context).pop(true),
         ),
       ),
       body: Column(

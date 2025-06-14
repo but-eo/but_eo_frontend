@@ -216,13 +216,27 @@ class _BoardPageState extends State<BoardPage> {
                   ),
                   Row(
                     children: [
-                      Icon(Icons.thumb_up_alt_outlined, size: 14, color: Colors.red.shade300),
+                      Icon(
+                        board.isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                        size: 14,
+                        color: Colors.red.shade300,
+                      ),
                       const SizedBox(width: 4),
-                      Text(board.likeCount.toString(), style: TextStyle(fontSize: 13, color: _secondaryTextColor)),
+                      Text(
+                        board.likeCount.toString(),
+                        style: TextStyle(fontSize: 13, color: _secondaryTextColor),
+                      ),
                       const SizedBox(width: 12),
-                      Icon(Icons.chat_bubble_outline_rounded, size: 14, color: Colors.blue.shade300),
+                      Icon(
+                        Icons.chat_bubble_outline_rounded,
+                        size: 14,
+                        color: Colors.blue.shade300,
+                      ),
                       const SizedBox(width: 4),
-                      Text(board.commentCount.toString(), style: TextStyle(fontSize: 13, color: _secondaryTextColor)),
+                      Text(
+                        board.commentCount.toString(),
+                        style: TextStyle(fontSize: 13, color: _secondaryTextColor),
+                      ),
                     ],
                   ),
                 ],
