@@ -134,6 +134,22 @@ class _SignState extends State<Sign> {
         print('회원가입 성공');
       } else {
         print('회원가입 실패: ${response.data}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("회원가입에 실패했습니다"),
+            backgroundColor: Colors.red, // 이 부분을 추가하세요!
+            behavior: SnackBarBehavior.floating, // (선택 사항) 화면 하단에 둥둥 떠다니게 함
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ), // (선택 사항) 모서리를 둥글게 함
+            margin: EdgeInsets.only(
+              bottom: 30,
+              left: 16,
+              right: 16,
+            ), // (선택 사항) 여백 추가
+            duration: Duration(seconds: 3), // (선택 사항) 3초 후 사라짐
+          ),
+        );
       }
     } on DioException catch (e) {
       print('DioException 발생: ${e.response?.data ?? e.message}');

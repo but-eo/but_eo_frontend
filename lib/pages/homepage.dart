@@ -149,11 +149,11 @@ class _HomepageState extends State<Homepage> {
   }
 
   Widget _buildSectionHeader(
-    BuildContext context, {
-    required String title,
-    required IconData icon,
-    VoidCallback? onMoreTap,
-  }) {
+      BuildContext context, {
+        required String title,
+        required IconData icon,
+        VoidCallback? onMoreTap,
+      }) {
     final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -270,8 +270,10 @@ class _HomepageState extends State<Homepage> {
               subtitle: "새로운 경기를 주최하거나, 매칭을 둘러보세요.",
               buttonText: "매칭 둘러보기",
               icon:
+
                   Icons
                       .sports_soccer_outlined, // 또는 Icons.calendar_today_outlined
+
               onPressed: () {
                 Navigator.push(
                   context,
@@ -352,9 +354,9 @@ class _HomepageState extends State<Homepage> {
     final String teamName = team['teamName'] ?? '이름 없음';
     final String? teamImagePath = team['teamImg'];
     final String? teamImageUrl =
-        (teamImagePath != null && teamImagePath.isNotEmpty)
-            ? TeamService.getFullTeamImageUrl(teamImagePath)
-            : null;
+    (teamImagePath != null && teamImagePath.isNotEmpty)
+        ? TeamService.getFullTeamImageUrl(teamImagePath)
+        : null;
 
     return GestureDetector(
       onTap: () {
@@ -384,19 +386,19 @@ class _HomepageState extends State<Homepage> {
               radius: 38,
               backgroundColor: Colors.grey.shade200,
               backgroundImage:
-                  teamImageUrl != null
-                      ? NetworkImage(
-                        "$teamImageUrl?v=${DateTime.now().millisecondsSinceEpoch}",
-                      )
-                      : null,
+              teamImageUrl != null
+                  ? NetworkImage(
+                "$teamImageUrl?v=${DateTime.now().millisecondsSinceEpoch}",
+              )
+                  : null,
               child:
-                  teamImageUrl == null
-                      ? Icon(
-                        Icons.shield_outlined,
-                        size: 35,
-                        color: _secondaryTextColor,
-                      )
-                      : null,
+              teamImageUrl == null
+                  ? Icon(
+                Icons.shield_outlined,
+                size: 35,
+                color: _secondaryTextColor,
+              )
+                  : null,
             ),
             const SizedBox(height: 12),
             Padding(
@@ -540,11 +542,11 @@ class _HomepageState extends State<Homepage> {
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
           decoration: BoxDecoration(
             border:
-                isLast
-                    ? null
-                    : Border(
-                      bottom: BorderSide(color: Colors.grey.shade200, width: 1),
-                    ),
+            isLast
+                ? null
+                : Border(
+              bottom: BorderSide(color: Colors.grey.shade200, width: 1),
+            ),
           ),
           child: Row(
             children: [
@@ -665,7 +667,7 @@ class _HomepageState extends State<Homepage> {
         itemCount: 3,
         itemBuilder:
             (context, index) =>
-                LoadingPlaceholder(width: 150, height: 170, borderRadius: 12.0),
+            LoadingPlaceholder(width: 150, height: 170, borderRadius: 12.0),
         separatorBuilder: (context, index) => const SizedBox(width: 12),
       ),
     );
@@ -684,7 +686,7 @@ class _HomepageState extends State<Homepage> {
       child: Column(
         children: List.generate(
           5,
-          (index) => LoadingPlaceholder(
+              (index) => LoadingPlaceholder(
             height: 55,
             margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             borderRadius: 8.0,
