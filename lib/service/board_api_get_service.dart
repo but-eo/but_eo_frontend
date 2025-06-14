@@ -9,11 +9,20 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 // 게시판 리스트 조회
 Future<Map<String, dynamic>> fetchBoards(String event, String category, {int page = 0, int size = 10}) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('accessToken'); // JWT 토큰
+
   final uri = Uri.parse(
     '${ApiConstants.baseUrl}/boards?event=$event&category=$category&page=$page&size=$size',
   );
 
-  final response = await http.get(uri);
+  final response = await http.get(
+    uri,
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json', // 선택사항
+    },
+  );
 
   if (response.statusCode == 200) {
     final decoded = utf8.decode(response.bodyBytes);
@@ -31,10 +40,20 @@ Future<Map<String, dynamic>> fetchBoards(String event, String category, {int pag
   }
 }
 
+
 // 게시판 클릭시 상세 게시판 조회
 Future<BoardDetail> fetchBoardDetail(String boardId) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('accessToken'); // JWT 토큰
+
   final uri = Uri.parse('${ApiConstants.baseUrl}/boards/$boardId');
-  final response = await http.get(uri);
+  final response = await http.get(
+    uri,
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json', // 선택사항
+    },
+  );
 
   if (response.statusCode == 200) {
     final data = json.decode(utf8.decode(response.bodyBytes));
@@ -85,5 +104,18 @@ Future<bool> deleteComment(String commentId) async {
   } else {
     print('댓글 삭제 실패: ${response.statusCode} ${response.body}');
     return false;
+  }
+}
+
+Future<bool> fetchIsBoardLiked(String boardId, String token) async {
+  final uri = Uri.parse('${ApiConstants.baseUrl}/boards/$boardId/liked');
+  final response = await http.get(uri, headers: {
+    'Authorization': 'Bearer $token',
+  });
+
+  if (response.statusCode == 200) {
+    return json.decode(response.body) as bool;
+  } else {
+    throw Exception('좋아요 여부 확인 실패');
   }
 }

@@ -6,6 +6,7 @@ class Board {
   final int likeCount;
   final int commentCount;
   final DateTime createdAt;
+  final bool isLiked;
 
   Board({
     required this.boardId,
@@ -15,9 +16,12 @@ class Board {
     required this.likeCount,
     required this.commentCount,
     required this.createdAt,
+    required this.isLiked,
   });
 
   factory Board.fromJson(Map<String, dynamic> json) {
+    print(json['liked']);
+
     return Board(
       boardId: json['boardId'].toString(),
       title: json['title'] ?? '',
@@ -26,6 +30,7 @@ class Board {
       likeCount: json['likeCount'] ?? 0,
       commentCount: json['commentCount'] ?? 0,
       createdAt: DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now(),
+      isLiked: json['liked'] ?? false,
     );
   }
 }
