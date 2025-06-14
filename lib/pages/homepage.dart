@@ -270,8 +270,10 @@ class _HomepageState extends State<Homepage> {
               subtitle: "새로운 경기를 주최하거나, 매칭을 둘러보세요.",
               buttonText: "매칭 둘러보기",
               icon:
-              Icons
-                  .sports_soccer_outlined, // 또는 Icons.calendar_today_outlined
+
+                  Icons
+                      .sports_soccer_outlined, // 또는 Icons.calendar_today_outlined
+
               onPressed: () {
                 Navigator.push(
                   context,
@@ -430,9 +432,9 @@ class _HomepageState extends State<Homepage> {
     final theme = Theme.of(context);
     final Map<String, dynamic>? challengerTeam = match['challengerTeam'];
     final String teamName =
-    challengerTeam != null && challengerTeam.containsKey('teamName')
-        ? challengerTeam['teamName']
-        : '상대팀 정보 없음';
+        challengerTeam != null && challengerTeam.containsKey('teamName')
+            ? challengerTeam['teamName']
+            : '상대팀 정보 없음';
     final String matchRegion = match['matchRegion'] ?? '장소 미정';
     final String matchDateStr = match['matchDate'] ?? '';
     print("match : ${match}");
