@@ -261,20 +261,29 @@ class _HomepageState extends State<Homepage> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return _buildMatchCardLoadingIndicator();
           }
-          if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
+          if (snapshot.hasError ||
+              snapshot.data == null ||
+              snapshot.data!.isEmpty) {
+            print("예정된 경기 없음 / 로드 실패 시 UI 표시"); // 디버깅용
             return _buildEmptyStateCard(
-              title: "예정된 경기가 없어요!",
-              subtitle: "새로운 경기를 주최하거나 참여해보세요.",
+              title: "잡힌 경기 일정이 없습니다!",
+              subtitle: "새로운 경기를 주최하거나, 매칭을 둘러보세요.",
               buttonText: "매칭 둘러보기",
-              icon: Icons.calendar_today_outlined,
+              icon:
+                  Icons
+                      .sports_soccer_outlined, // 또는 Icons.calendar_today_outlined
               onPressed: () {
-                /* TODO: 매칭 페이지로 이동 */
-                Matchpage(leaderTeam: leaderTeam);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => Matchpage(leaderTeam: leaderTeam),
+                  ),
+                );
               },
             );
           }
           final match = snapshot.data!;
-          print("match Data :  ${snapshot.data}");
+          print("match Data :  ${match}");
           return _buildMatchCard(context, match);
         },
       ),
@@ -418,7 +427,11 @@ class _HomepageState extends State<Homepage> {
 
   Widget _buildMatchCard(BuildContext context, Map<String, dynamic> match) {
     final theme = Theme.of(context);
-    final String teamName = match['challengerTeam']['teamName'] ?? '팀 이름 없음';
+    final Map<String, dynamic>? challengerTeam = match['challengerTeam'];
+    final String teamName =
+        challengerTeam != null && challengerTeam.containsKey('teamName')
+            ? challengerTeam['teamName']
+            : '상대팀 정보 없음';
     final String matchRegion = match['matchRegion'] ?? '장소 미정';
     final String matchDateStr = match['matchDate'] ?? '';
     print("match : ${match}");
