@@ -4,6 +4,8 @@ import 'dart:ffi';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:kakao_flutter_sdk/kakao_flutter_sdk_template.dart';
+import 'package:project/pages/match/matchpage.dart';
 import 'package:project/utils/token_storage.dart';
 import '../../src/locations.dart' as locations;
 import 'package:http/http.dart' as http;
@@ -199,9 +201,14 @@ class _MatchingState extends State<Matching> {
         ),
       );
       print('Response data : ${response.data}');
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         print('매치 생성 성공');
-        Navigator.pop(context);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Matchpage(leaderTeam: widget.userTeam),
+          ),
+        );
       }
     } catch (e) {
       if (e is DioException) {
@@ -356,6 +363,7 @@ class _MatchingState extends State<Matching> {
 
                 //시간 선택
                 Text("장소 선택", style: TextStyle(fontWeight: FontWeight.bold)),
+                // if(isAndroid())
                 Row(
                   children: [
                     Flexible(
@@ -380,24 +388,25 @@ class _MatchingState extends State<Matching> {
                   ],
                 ),
                 SizedBox(height: 10.0),
-                SizedBox(
-                  width: size.width * 0.8,
-                  height: 300,
-                  child: Stack(
-                    children: [
-                      GoogleMap(
-                        onMapCreated: (controller) {
-                          mapController = controller;
-                        },
-                        initialCameraPosition: const CameraPosition(
-                          target: LatLng(35.8722, 128.6025),
-                          zoom: 15,
+                if (isAndroid())
+                  SizedBox(
+                    width: size.width * 0.8,
+                    height: 300,
+                    child: Stack(
+                      children: [
+                        GoogleMap(
+                          onMapCreated: (controller) {
+                            mapController = controller;
+                          },
+                          initialCameraPosition: const CameraPosition(
+                            target: LatLng(35.8722, 128.6025),
+                            zoom: 15,
+                          ),
+                          markers: _markers.values.toSet(),
                         ),
-                        markers: _markers.values.toSet(),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
 
                 SizedBox(height: 16),
 

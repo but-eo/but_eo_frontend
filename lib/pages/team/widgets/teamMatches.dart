@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // 날짜 포맷팅을 위해 추가
 import 'package:project/contants/api_contants.dart';
+import 'package:project/pages/team/match_result_registreation_page.dart';
 import 'package:project/utils/token_storage.dart';
 
 class Teammatches extends StatefulWidget {
@@ -159,97 +160,133 @@ class _TeammatchesState extends State<Teammatches> {
                 } catch (e) {
                   print("날짜 파싱 오류: $e");
                 }
+                final String requestingTeamName = match['teamName'] ?? '알 수 없음';
+                final String targetMatchName =
+                    (match['challengerTeam'] != null &&
+                            match['challengerTeam'] is Map)
+                        ? match['challengerTeam']['teamName'] ?? '상대팀 없음'
+                        : '상대팀 없음';
 
-                return Card(
-                  margin: const EdgeInsets.symmetric(vertical: 8.0),
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.calendar_today,
-                              size: 16,
-                              color: Colors.grey,
+                final String requestingTeamId =
+                    widget.teamId; // 우리 팀 ID는 Teammatches 위젯의 teamId를 사용
+                final String targetTeamId =
+                    (match['challengerTeam'] != null &&
+                            match['challengerTeam'] is Map)
+                        ? match['challengerTeam']['teamId'] ??
+                            '' // 여기 'challellerTeam' 오타를 'challengerTeam'으로 수정
+                        : '';
+
+                return InkWell(
+                  onTap: () {
+                    // Navigator를 사용하여 MatchResultRegistrationPage로 이동
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => MatchResultRegistrationPage(
+                              // match 맵에서 matchId 값을 전달합니다.
+                              matchId:
+                                  match['matchId'], // 'matchId'가 match 맵에 있다고 가정합니다.
+                              // 우리 팀 이름을 전달합니다. 'teamName'이 없으면 '알 수 없음'을 표시합니다.
+                              requestingTeamName: requestingTeamName,
+                              // 상대 팀 이름을 전달합니다. 'challengerTeam' 또는 'teamName'이 없으면 '상대팀 없음'을 표시합니다.
+                              targetMatchName: targetMatchName,
+                              requestingTeamId: requestingTeamId,
+                              targetTeamId: targetTeamId,
                             ),
-                            const SizedBox(width: 8),
-                            Text(
-                              formattedDate,
-                              style: const TextStyle(
-                                fontSize: 15,
-                                color: Colors.black87,
+                      ),
+                    );
+                  },
+                  child: Card(
+                    margin: const EdgeInsets.symmetric(vertical: 8.0),
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.calendar_today,
+                                size: 16,
+                                color: Colors.grey,
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.location_on,
-                              size: 16,
-                              color: Colors.grey,
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              // 긴 텍스트를 처리하기 위해 Expanded 추가
-                              child: Text(
-                                match['matchRegion'] ?? '주소 정보 없음',
+                              const SizedBox(width: 8),
+                              Text(
+                                formattedDate,
                                 style: const TextStyle(
                                   fontSize: 15,
                                   color: Colors.black87,
                                 ),
-                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 12),
-                        const Divider(),
-                        const SizedBox(height: 12),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "우리 팀: ${match['teamName'] ?? '알 수 없음'}",
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.location_on,
+                                size: 16,
+                                color: Colors.grey,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  match['matchRegion'] ?? '주소 정보 없음',
                                   style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
+                                    fontSize: 15,
+                                    color: Colors.black87,
                                   ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                const SizedBox(height: 4),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      "상대 팀: ${match['challengerTeam']['teamName'] ?? '상대팀 없음'}",
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          const Divider(),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "우리 팀: ${match['teamName'] ?? '알 수 없음'}",
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        "상대 팀: ${match['challengerTeam']['teamName'] ?? '상대팀 없음'}",
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
-                                    ),
-                                    Text(
-                                      "상대 팀 레이팅 : ${match['challengerTeam']['rating']}",
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            // 여기에 경기 결과 등 추가 정보가 있다면 표시
-                            // 예를 들어: Text("스코어: ${match['homeScore']} - ${match['awayScore'] ?? ''}")
-                          ],
-                        ),
-                      ],
+                                      Text(
+                                        "상대 팀 레이팅 : ${match['challengerTeam']['rating']}",
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              // 여기에 경기 결과 등 추가 정보가 있다면 표시
+                              // 예를 들어: Text("스코어: ${match['homeScore']} - ${match['awayScore'] ?? ''}")
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );

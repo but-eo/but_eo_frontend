@@ -79,14 +79,17 @@ class _MyTeamPageState extends State<MyTeamPage> {
         final timestamp = DateTime.now().millisecondsSinceEpoch;
         String? tempProfileFullUrl;
 
-        if (profilePathFromServer != null && profilePathFromServer.toString().isNotEmpty) {
+        if (profilePathFromServer != null &&
+            profilePathFromServer.toString().isNotEmpty) {
           if (profilePathFromServer.toString().startsWith("http")) {
             tempProfileFullUrl = "$profilePathFromServer?v=$timestamp";
           } else {
-            tempProfileFullUrl = "${ApiConstants.imageBaseUrl}$profilePathFromServer?v=$timestamp";
+            tempProfileFullUrl =
+                "${ApiConstants.imageBaseUrl}$profilePathFromServer?v=$timestamp";
           }
         } else {
-          tempProfileFullUrl = "${ApiConstants.imageBaseUrl}/uploads/profiles/DefaultProfileImage.png?v=$timestamp";
+          tempProfileFullUrl =
+              "${ApiConstants.imageBaseUrl}/uploads/profiles/DefaultProfileImage.png?v=$timestamp";
         }
         setState(() {
           _userInfo = data;
@@ -99,9 +102,9 @@ class _MyTeamPageState extends State<MyTeamPage> {
     } catch (e) {
       if (mounted) {
         print("사용자 정보 가져오기 실패 (MyTeamPage - 내 정보 탭): $e");
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('사용자 정보를 가져오는 데 실패했습니다.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('사용자 정보를 가져오는 데 실패했습니다.')));
         setState(() => _isLoadingUserInfo = false);
       }
     }
@@ -111,7 +114,7 @@ class _MyTeamPageState extends State<MyTeamPage> {
     if (!mounted) return;
     setState(() => _isLoadingMyLeaderTeams = true);
     try {
-      final teams = await TeamService.getMyAllTeams();
+      final teams = await TeamService.getMyLeaderTeams();
       if (mounted) {
         setState(() {
           _myLeaderTeams = teams;
@@ -137,8 +140,12 @@ class _MyTeamPageState extends State<MyTeamPage> {
       backgroundColor: Colors.grey.shade200,
       appBar: AppBar(
         title: Text(
-            _getAppBarTitle(),
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87)
+          _getAppBarTitle(),
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
         ),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black87,
@@ -147,24 +154,29 @@ class _MyTeamPageState extends State<MyTeamPage> {
         actions: [
           if (_tabIndex == 2) ...[
             IconButton(
-                icon: const Icon(Icons.search),
-                tooltip: "팀 검색",
-                onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => const TeamSearchPage()));
-                }),
+              icon: const Icon(Icons.search),
+              tooltip: "팀 검색",
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const TeamSearchPage()),
+                );
+              },
+            ),
             IconButton(
-                icon: const Icon(Icons.add_circle_outline),
-                tooltip: "새 팀 만들기",
-                onPressed: () async {
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const TeamFormPage()),
-                  );
-                  if (result == 'update' || result == true) {
-                    _fetchMyLeaderTeams();
-                  }
-                }),
-          ]
+              icon: const Icon(Icons.add_circle_outline),
+              tooltip: "새 팀 만들기",
+              onPressed: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const TeamFormPage()),
+                );
+                if (result == 'update' || result == true) {
+                  _fetchMyLeaderTeams();
+                }
+              },
+            ),
+          ],
         ],
       ),
       body: Column(
@@ -201,14 +213,14 @@ class _MyTeamPageState extends State<MyTeamPage> {
   Widget _tabBar(ThemeData theme) {
     return Container(
       decoration: BoxDecoration(
-          color: Colors.white, // AppBar와 동일한 배경색
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            )
-          ]
+        color: Colors.white, // AppBar와 동일한 배경색
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
       child: Row(
@@ -255,7 +267,10 @@ class _MyTeamPageState extends State<MyTeamPage> {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value, {
+  Widget _buildInfoRow(
+    IconData icon,
+    String label,
+    String value, {
     required Color iconColor,
     required Color labelColor,
     required Color valueColor,
@@ -270,21 +285,25 @@ class _MyTeamPageState extends State<MyTeamPage> {
           SizedBox(
             width: 80,
             child: Text(
-                label,
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: labelColor.withOpacity(0.9),
-                  fontSize: 14,
-                )
+              label,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: labelColor.withOpacity(0.9),
+                fontSize: 14,
+              ),
             ),
           ),
           const Text(": ", style: TextStyle(fontSize: 14, color: Colors.grey)),
           Expanded(
-              child: Text(
-                value,
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: valueColor),
-                overflow: TextOverflow.ellipsis,
-              )
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+                color: valueColor,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),
@@ -308,16 +327,26 @@ class _MyTeamPageState extends State<MyTeamPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.sentiment_dissatisfied_outlined, color: Colors.grey.shade400, size: 60),
+              Icon(
+                Icons.sentiment_dissatisfied_outlined,
+                color: Colors.grey.shade400,
+                size: 60,
+              ),
               const SizedBox(height: 16),
-              Text("사용자 정보를 불러올 수 없습니다.", style: TextStyle(fontSize: 16, color: secondaryTextColor)),
+              Text(
+                "사용자 정보를 불러올 수 없습니다.",
+                style: TextStyle(fontSize: 16, color: secondaryTextColor),
+              ),
               const SizedBox(height: 16),
               ElevatedButton.icon(
                 icon: const Icon(Icons.refresh),
                 label: const Text("다시 시도"),
                 onPressed: _fetchCurrentUserInfo,
-                style: ElevatedButton.styleFrom(backgroundColor: accentColor, foregroundColor: Colors.white),
-              )
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: accentColor,
+                  foregroundColor: Colors.white,
+                ),
+              ),
             ],
           ),
         ),
@@ -340,28 +369,42 @@ class _MyTeamPageState extends State<MyTeamPage> {
               CircleAvatar(
                 radius: 60,
                 backgroundColor: Colors.grey.shade200,
-                backgroundImage: _profileFullUrl != null && _profileFullUrl!.isNotEmpty
-                    ? NetworkImage(_profileFullUrl!)
-                    : null,
-                child: (_profileFullUrl == null || _profileFullUrl!.isEmpty)
-                    ? Icon(Icons.person_outline, size: 60, color: Colors.grey.shade400)
-                    : null,
+                backgroundImage:
+                    _profileFullUrl != null && _profileFullUrl!.isNotEmpty
+                        ? NetworkImage(_profileFullUrl!)
+                        : null,
+                child:
+                    (_profileFullUrl == null || _profileFullUrl!.isEmpty)
+                        ? Icon(
+                          Icons.person_outline,
+                          size: 60,
+                          color: Colors.grey.shade400,
+                        )
+                        : null,
               ),
               Container(
                 decoration: BoxDecoration(
-                    color: accentColor,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: cardBgColor, width: 2)
+                  color: accentColor,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: cardBgColor, width: 2),
                 ),
                 padding: const EdgeInsets.all(6),
-                child: const Icon(Icons.camera_alt_outlined, color: Colors.white, size: 18),
-              )
+                child: const Icon(
+                  Icons.camera_alt_outlined,
+                  color: Colors.white,
+                  size: 18,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 16),
           Text(
             getUserInfo('name'),
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: primaryTextColor),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 24,
+              color: primaryTextColor,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
@@ -372,41 +415,114 @@ class _MyTeamPageState extends State<MyTeamPage> {
           Container(
             padding: const EdgeInsets.all(16.0),
             decoration: BoxDecoration(
-                color: cardBgColor,
-                borderRadius: BorderRadius.circular(12.0),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 5, offset: const Offset(0, 2))
-                ]
+              color: cardBgColor,
+              borderRadius: BorderRadius.circular(12.0),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 5,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildInfoRow(Icons.email_outlined, "이메일", getUserInfo('email'), iconColor: secondaryTextColor, labelColor: secondaryTextColor, valueColor: primaryTextColor),
-                Divider(thickness: 0.5, color: Colors.grey.shade200), // ✅ const 제거
-                _buildInfoRow(Icons.phone_android_outlined, "전화번호", getUserInfo('tel'), iconColor: secondaryTextColor, labelColor: secondaryTextColor, valueColor: primaryTextColor),
-                Divider(thickness: 0.5, color: Colors.grey.shade200), // ✅ const 제거
-                _buildInfoRow(Icons.map_outlined, "지역", getUserInfo('region'), iconColor: secondaryTextColor, labelColor: secondaryTextColor, valueColor: primaryTextColor),
-                Divider(thickness: 0.5, color: Colors.grey.shade200), // ✅ const 제거
-                _buildInfoRow(Icons.sports_kabaddi_outlined, "선호 종목", getUserInfo('preferSports'), iconColor: secondaryTextColor, labelColor: secondaryTextColor, valueColor: primaryTextColor),
-                Divider(thickness: 0.5, color: Colors.grey.shade200), // ✅ const 제거
-                _buildInfoRow(Icons.transgender_outlined, "성별", getUserInfo('gender'), iconColor: secondaryTextColor, labelColor: secondaryTextColor, valueColor: primaryTextColor),
-                Divider(thickness: 0.5, color: Colors.grey.shade200), // ✅ const 제거
-                _buildInfoRow(Icons.celebration_outlined, "출생년도", getUserInfo('birth'), iconColor: secondaryTextColor, labelColor: secondaryTextColor, valueColor: primaryTextColor),
+                _buildInfoRow(
+                  Icons.email_outlined,
+                  "이메일",
+                  getUserInfo('email'),
+                  iconColor: secondaryTextColor,
+                  labelColor: secondaryTextColor,
+                  valueColor: primaryTextColor,
+                ),
+                Divider(
+                  thickness: 0.5,
+                  color: Colors.grey.shade200,
+                ), // ✅ const 제거
+                _buildInfoRow(
+                  Icons.phone_android_outlined,
+                  "전화번호",
+                  getUserInfo('tel'),
+                  iconColor: secondaryTextColor,
+                  labelColor: secondaryTextColor,
+                  valueColor: primaryTextColor,
+                ),
+                Divider(
+                  thickness: 0.5,
+                  color: Colors.grey.shade200,
+                ), // ✅ const 제거
+                _buildInfoRow(
+                  Icons.map_outlined,
+                  "지역",
+                  getUserInfo('region'),
+                  iconColor: secondaryTextColor,
+                  labelColor: secondaryTextColor,
+                  valueColor: primaryTextColor,
+                ),
+                Divider(
+                  thickness: 0.5,
+                  color: Colors.grey.shade200,
+                ), // ✅ const 제거
+                _buildInfoRow(
+                  Icons.sports_kabaddi_outlined,
+                  "선호 종목",
+                  getUserInfo('preferSports'),
+                  iconColor: secondaryTextColor,
+                  labelColor: secondaryTextColor,
+                  valueColor: primaryTextColor,
+                ),
+                Divider(
+                  thickness: 0.5,
+                  color: Colors.grey.shade200,
+                ), // ✅ const 제거
+                _buildInfoRow(
+                  Icons.transgender_outlined,
+                  "성별",
+                  getUserInfo('gender'),
+                  iconColor: secondaryTextColor,
+                  labelColor: secondaryTextColor,
+                  valueColor: primaryTextColor,
+                ),
+                Divider(
+                  thickness: 0.5,
+                  color: Colors.grey.shade200,
+                ), // ✅ const 제거
+                _buildInfoRow(
+                  Icons.celebration_outlined,
+                  "출생년도",
+                  getUserInfo('birth'),
+                  iconColor: secondaryTextColor,
+                  labelColor: secondaryTextColor,
+                  valueColor: primaryTextColor,
+                ),
               ],
             ),
           ),
           const SizedBox(height: 28),
           ElevatedButton.icon(
-            icon: const Icon(Icons.manage_accounts_outlined, size: 20, color: Colors.white),
-            label: const Text("프로필 정보 관리", style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white)),
+            icon: const Icon(
+              Icons.manage_accounts_outlined,
+              size: 20,
+              color: Colors.white,
+            ),
+            label: const Text(
+              "프로필 정보 관리",
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
             onPressed: () async {
               final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => EditProfilePage(
-                    initialProfileImageUrl: _profileFullUrl,
-                    userInfo: _userInfo,
-                  ),
+                  builder:
+                      (_) => EditProfilePage(
+                        initialProfileImageUrl: _profileFullUrl,
+                        userInfo: _userInfo,
+                      ),
                 ),
               );
               if (result == true && mounted) {
@@ -418,9 +534,11 @@ class _MyTeamPageState extends State<MyTeamPage> {
               backgroundColor: accentColor,
               foregroundColor: Colors.white,
               elevation: 2.0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
-          )
+          ),
         ],
       ),
     );
@@ -433,12 +551,25 @@ class _MyTeamPageState extends State<MyTeamPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.speaker_notes_off_outlined, size: 60, color: Colors.grey.shade400),
+            Icon(
+              Icons.speaker_notes_off_outlined,
+              size: 60,
+              color: Colors.grey.shade400,
+            ),
             const SizedBox(height: 16),
-            Text("내가 남긴 리뷰", style: theme.textTheme.titleLarge?.copyWith(fontSize: 18, color: Colors.black87)),
+            Text(
+              "내가 남긴 리뷰",
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontSize: 18,
+                color: Colors.black87,
+              ),
+            ),
             const SizedBox(height: 12),
-            Text("이 기능은 현재 준비 중입니다.\n(백엔드 API 추가 필요)",
-              style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey.shade700),
+            Text(
+              "이 기능은 현재 준비 중입니다.\n(백엔드 API 추가 필요)",
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: Colors.grey.shade700,
+              ),
               textAlign: TextAlign.center,
             ),
           ],
@@ -459,13 +590,28 @@ class _MyTeamPageState extends State<MyTeamPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.groups_2_outlined, size: 70, color: Colors.grey.shade400),
+              Icon(
+                Icons.groups_2_outlined,
+                size: 70,
+                color: Colors.grey.shade400,
+              ),
               const SizedBox(height: 20),
-              Text("리더로 있는 팀이 없습니다", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
+              Text(
+                "리더로 있는 팀이 없습니다",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
               const SizedBox(height: 10),
               Text(
                 "새로운 팀을 만들어 리더가 되거나\n다른 팀을 검색하여 활동해보세요!",
-                style: TextStyle(fontSize: 15, color: Colors.grey.shade600, height: 1.5),
+                style: TextStyle(
+                  fontSize: 15,
+                  color: Colors.grey.shade600,
+                  height: 1.5,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 28),
@@ -482,8 +628,12 @@ class _MyTeamPageState extends State<MyTeamPage> {
                   }
                 },
                 style: theme.elevatedButtonTheme.style?.copyWith(
-                  padding: MaterialStateProperty.all(const EdgeInsets.symmetric(horizontal: 24, vertical: 12)),
-                  textStyle: MaterialStateProperty.all(const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                  padding: MaterialStateProperty.all(
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  ),
+                  textStyle: MaterialStateProperty.all(
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
                 ),
               ),
             ],
@@ -506,33 +656,72 @@ class _MyTeamPageState extends State<MyTeamPage> {
           if (teamPath != null && teamPath.isNotEmpty) {
             teamImageUrl = TeamService.getFullTeamImageUrl(teamPath);
           }
-          final String teamEvent = TeamService.getEventLabel(team['event']) ?? '종목 미정';
-          final String teamRegion = TeamService.getRegionLabel(team['region']) ?? '지역 미정';
+          final String teamEvent =
+              TeamService.getEventLabel(team['event']) ?? '종목 미정';
+          final String teamRegion =
+              TeamService.getRegionLabel(team['region']) ?? '지역 미정';
 
           return Card(
             margin: const EdgeInsets.only(bottom: 12.0),
             elevation: 2,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
             child: ListTile(
               leading: CircleAvatar(
                 radius: 28,
-                backgroundImage: teamImageUrl != null ? NetworkImage("$teamImageUrl?v=${DateTime.now().millisecondsSinceEpoch}") : null,
+                backgroundImage:
+                    teamImageUrl != null
+                        ? NetworkImage(
+                          "$teamImageUrl?v=${DateTime.now().millisecondsSinceEpoch}",
+                        )
+                        : null,
                 backgroundColor: Colors.grey.shade200,
-                child: teamImageUrl == null ? Icon(Icons.shield_outlined, color: Colors.grey.shade500, size: 28,) : null,
+                child:
+                    teamImageUrl == null
+                        ? Icon(
+                          Icons.shield_outlined,
+                          color: Colors.grey.shade500,
+                          size: 28,
+                        )
+                        : null,
               ),
-              title: Text(teamName, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: Colors.black87)),
-              subtitle: Text("$teamEvent · $teamRegion", style: TextStyle(color: Colors.grey.shade700, fontSize: 13)),
-              trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade400),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              title: Text(
+                teamName,
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+              subtitle: Text(
+                "$teamEvent · $teamRegion",
+                style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
+              ),
+              trailing: Icon(
+                Icons.arrow_forward_ios,
+                size: 16,
+                color: Colors.grey.shade400,
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 10,
+              ),
               onTap: () async {
                 print("✅ [MyTeamPage] 팀 클릭, team 값: $team"); // 이 줄 추가!
                 final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => TeamDetailPage(team: Map<String, dynamic>.from(team)),
+                    builder:
+                        (_) => TeamDetailPage(
+                          team: Map<String, dynamic>.from(team),
+                        ),
                   ),
                 );
-                if (result == 'updated' || result == 'update' || result == 'deleted' || result == 'left') {
+                if (result == 'updated' ||
+                    result == 'update' ||
+                    result == 'deleted' ||
+                    result == 'left') {
                   _fetchMyLeaderTeams();
                 }
               },

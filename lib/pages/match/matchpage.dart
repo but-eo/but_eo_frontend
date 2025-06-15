@@ -440,7 +440,6 @@ class _MatchpageState extends State<Matchpage> {
                     );
                 }
               },
-
               todayBuilder: (context, day, focuesdDay) {
                 return Container(
                   margin: const EdgeInsets.all(6.0),

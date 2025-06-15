@@ -14,6 +14,7 @@ import 'package:project/pages/login/login.dart';
 import 'package:project/widgets/login_button.dart';
 import 'package:project/formatter/phoneformatter.dart';
 import 'package:http/http.dart' as http;
+import 'package:project/widgets/scroll_to_top_button.dart';
 
 class Sign extends StatefulWidget {
   static String id = "/signup";
@@ -55,46 +56,8 @@ class _SignState extends State<Sign> {
   String _confirmPassword = '';
   String _nickName = '';
 
-  //유저 정보 전송(dio 활용)
-  // Future<void> registerUser(
-  //   String email,
-  //   String password,
-  //   String nickname,
-  //   String tel,
-  //   String sex,
-  //   String prefer,
-  //   String division,
-  //   String year,
-  //   String region,
-  // ) async {
-  //   final dio = Dio();
-  //   try {
-  //     final response = await dio.post(
-  //       "${ApiConstants.baseUrl}/users/register",
-
-  //       data: {
-  //         'email': email,
-  //         'password': password,
-  //         'name': nickname,
-  //         'tel': tel,
-  //         'gender': sex,
-  //         'preferSports': prefer,
-  //         'division': division,
-  //         'birthYear': year,
-  //         'region': region,
-  //       },
-  //     );
-  //     print('Response data : ${response.data}');
-  //     if (response.statusCode == 200) {
-  //       // String token =
-  //       //     response.data['accesstoken']; //백엔드에서 받을 토큰 data['token']에서 token은
-  //       //스프링에서 토큰을 저장한 변수명과 일치해야함
-  //       print('회원가입 성공');
-  //     }
-  //   } catch (e) {
-  //     print('회원가입 실패 : ${e}');
-  //   }
-  // }
+  final ScrollController _scrollController = ScrollController();
+  bool _showButton = false;
 
   Future<void> registerUser(
     String email,
@@ -134,6 +97,22 @@ class _SignState extends State<Sign> {
         print('회원가입 성공');
       } else {
         print('회원가입 실패: ${response.data}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("회원가입에 실패했습니다"),
+            backgroundColor: Colors.red, // 이 부분을 추가하세요!
+            behavior: SnackBarBehavior.floating, // (선택 사항) 화면 하단에 둥둥 떠다니게 함
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ), // (선택 사항) 모서리를 둥글게 함
+            margin: EdgeInsets.only(
+              bottom: 30,
+              left: 16,
+              right: 16,
+            ), // (선택 사항) 여백 추가
+            duration: Duration(seconds: 3), // (선택 사항) 3초 후 사라짐
+          ),
+        );
       }
     } on DioException catch (e) {
       print('DioException 발생: ${e.response?.data ?? e.message}');
@@ -252,6 +231,24 @@ class _SignState extends State<Sign> {
     _selectedYear = _years[0];
     _selectedRegions = _regions[0];
     _selectedDivision = _divisions[0];
+
+    _scrollController.addListener(() {
+      if (_scrollController.offset > 50) {
+        if (!_showButton) {
+          setState(() => _showButton = true);
+        }
+      } else {
+        if (_showButton) {
+          setState(() => _showButton = false);
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -259,7 +256,12 @@ class _SignState extends State<Sign> {
     Size size = MediaQuery.of(context).size;
 
     return Scaffold(
+      floatingActionButton:
+          _showButton
+              ? ScrollToTopButton(scrollController: _scrollController)
+              : null,
       body: SingleChildScrollView(
+        controller: _scrollController,
         child: SafeArea(
           //로고 영역
           child: Padding(
@@ -268,6 +270,7 @@ class _SignState extends State<Sign> {
               vertical: size.height * 0.035, //^v
             ),
             child: Column(
+              
               children: [
                 Align(
                   alignment: Alignment.topLeft,

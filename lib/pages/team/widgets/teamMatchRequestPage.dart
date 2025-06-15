@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:project/contants/api_contants.dart';
+import 'package:project/pages/team/match_result_registreation_page.dart';
 import 'package:project/utils/token_storage.dart';
 
 class Teammatchrequestpage extends StatefulWidget {
@@ -14,9 +15,7 @@ class Teammatchrequestpage extends StatefulWidget {
 class _TeammatchrequestpageState extends State<Teammatchrequestpage> {
   bool _isLoading = true;
   String? _errorMessage;
-  // 이제 matches 리스트는 '매치 요청' 자체를 의미하는 맵의 리스트가 됩니다.
-  List<Map<String, dynamic>> matchRequests =
-      []; // ✨ 변수명 변경 (matches -> matchRequests)
+  List<Map<String, dynamic>> matchRequests = []; // ✨ 변수명 변경
 
   @override
   void initState() {
@@ -25,7 +24,6 @@ class _TeammatchrequestpageState extends State<Teammatchrequestpage> {
     print("Team ID: ${widget.teamId}");
   }
 
-  // MARK: - 매치 신청 데이터 조회
   Future<void> fetchMatchRequests() async {
     // ✨ 함수명 변경
     setState(() {
@@ -49,8 +47,6 @@ class _TeammatchrequestpageState extends State<Teammatchrequestpage> {
       return;
     }
     try {
-      // MARK: - 엔드포인트는 여전히 /matchings/team/{teamId} 를 사용한다고 가정
-      // 이 엔드포인트가 '내가 만든 매치들'을 반환하고, 그 안에 'challengerTeams'가 있다고 가정
       final response = await dio.get(
         "${ApiConstants.baseUrl}/matchings/team/${widget.teamId}",
         options: Options(headers: {'Authorization': 'Bearer $token'}),
@@ -61,16 +57,12 @@ class _TeammatchrequestpageState extends State<Teammatchrequestpage> {
           final List<Map<String, dynamic>> fetchedMatches =
               List<Map<String, dynamic>>.from(response.data);
 
-          // MARK: - 데이터를 '매치 요청' 형태로 변환하는 로직 추가
           List<Map<String, dynamic>> tempMatchRequests = [];
           for (var match in fetchedMatches) {
             final List<dynamic>? challengerTeams = match['challengerTeams'];
             if (challengerTeams != null && challengerTeams.isNotEmpty) {
               for (var challengerTeam in challengerTeams) {
-                // 각 도전팀을 하나의 '매치 요청'으로 간주하여 필요한 정보들을 조합
                 tempMatchRequests.add({
-                  // 'matchRequestId'는 서버에서 별도로 제공해야 정확하지만, 여기서는 임시로 조합합니다.
-                  // 예시: match['matchId'] + '_' + challengerTeam['teamId']
                   'matchRequestId':
                       '${match['matchId'] ?? 'N/A'}_${challengerTeam['teamId'] ?? 'N/A'}',
                   'requestingTeamName':
@@ -81,7 +73,6 @@ class _TeammatchrequestpageState extends State<Teammatchrequestpage> {
                       match['matchType'] ?? 'N/A', // 매치 종류를 대상 매치 이름으로 사용
                   'targetMatchId': match['matchId'] ?? 'N/A', // 실제 매치의 ID
                   'targetMatchDate': match['matchDate'] ?? 'N/A', // 매치 날짜
-                  // 필요한 경우 다른 challengerTeam 및 match 정보 추가
                 });
               }
             }
@@ -132,8 +123,6 @@ class _TeammatchrequestpageState extends State<Teammatchrequestpage> {
     }
   }
 
-  // MARK: - 매칭 요청 수락 (matchRequestId 대신 targetMatchId와 requestingTeamId 사용)
-  // 백엔드 컨트롤러에 따르면 '/matchId/accept/{challengerTeamId}'
   Future<void> acceptChallenge(
     String targetMatchId,
     String requestingTeamId,
@@ -146,14 +135,13 @@ class _TeammatchrequestpageState extends State<Teammatchrequestpage> {
     }
     try {
       final response = await dio.patch(
-        // PatchMapping 이므로 patch 사용
         "${ApiConstants.baseUrl}/matchings/$targetMatchId/accept/$requestingTeamId",
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
       if (response.statusCode == 200) {
         print("매치 $targetMatchId에 대한 도전 $requestingTeamId 수락 성공");
         _showSnackBar("도전이 수락되었습니다.");
-        fetchMatchRequests(); // 수락 후 목록 갱신
+        fetchMatchRequests();
       } else {
         _showSnackBar("도전 수락 실패: ${response.statusCode}");
         print("도전 수락 실패: ${response.statusCode} - ${response.data}");
@@ -170,6 +158,7 @@ class _TeammatchrequestpageState extends State<Teammatchrequestpage> {
       print("도전 수락 알 수 없는 에러: $e");
     }
   }
+
   Future<void> declineChallenge(
     String targetMatchId,
     String requestingTeamId,
@@ -182,14 +171,13 @@ class _TeammatchrequestpageState extends State<Teammatchrequestpage> {
     }
     try {
       final response = await dio.delete(
-        // DeleteMapping 이므로 delete 사용
         "${ApiConstants.baseUrl}/matchings/$targetMatchId/decline/$requestingTeamId",
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
       if (response.statusCode == 200) {
         print("매치 $targetMatchId에 대한 도전 $requestingTeamId 거절 성공");
         _showSnackBar("도전이 거절되었습니다.");
-        fetchMatchRequests(); // 거절 후 목록 갱신
+        fetchMatchRequests();
       } else {
         _showSnackBar("도전 거절 실패: ${response.statusCode}");
         print("도전 거절 실패: ${response.statusCode} - ${response.data}");
@@ -207,9 +195,6 @@ class _TeammatchrequestpageState extends State<Teammatchrequestpage> {
     }
   }
 
-  
-
-  // SnackBar를 표시하는 헬퍼 함수
   void _showSnackBar(String message) {
     if (mounted) {
       ScaffoldMessenger.of(
@@ -239,25 +224,24 @@ class _TeammatchrequestpageState extends State<Teammatchrequestpage> {
                       ),
                       SizedBox(height: 20),
                       ElevatedButton(
-                        onPressed: fetchMatchRequests, // 함수명 변경
+                        onPressed: fetchMatchRequests,
                         child: Text("다시 시도"),
                       ),
                     ],
                   ),
                 ),
               )
-              : matchRequests
-                  .isEmpty // 변수명 변경
+              : matchRequests.isEmpty
               ? Center(child: Text("받은 매칭 요청이 없습니다."))
               : ListView.builder(
                 padding: const EdgeInsets.all(8.0),
-                itemCount: matchRequests.length, // 변수명 변경
+                itemCount: matchRequests.length,
                 itemBuilder: (context, index) {
-                  final matchRequest = matchRequests[index]; // 변수명 변경
+                  final matchRequest = matchRequests[index];
 
-                  // 이 matchRequest는 이제 하나의 '도전 팀' 정보를 담고 있다고 가정합니다.
+                  // 필요한 정보를 추출하여 변수에 저장
                   final String matchRequestId =
-                      matchRequest['matchRequestId'] ?? 'N/A'; // 임시로 조합된 ID
+                      matchRequest['matchRequestId'] ?? 'N/A';
                   final String requestingTeamName =
                       matchRequest['requestingTeamName'] ?? 'N/A';
                   final String requestingTeamId =
@@ -269,65 +253,98 @@ class _TeammatchrequestpageState extends State<Teammatchrequestpage> {
                   final String targetMatchDate =
                       matchRequest['targetMatchDate'] ?? 'N/A';
 
-                  return Card(
-                    margin: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "요청 팀: $requestingTeamName", // ✨ 도전 팀 이름이 여기에 표시됩니다.
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: Colors.blueAccent,
+                  return GestureDetector(
+                    // <--- 여기 Card를 GestureDetector로 감쌉니다.
+                    onTap: () {
+                      // 카드를 탭했을 때 결과 등록 페이지로 이동
+                      if (targetMatchId != 'N/A') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) => MatchResultRegistrationPage(
+                                  matchId: targetMatchId, // 매치 ID 전달
+                                  requestingTeamName:
+                                      requestingTeamName, // 요청 팀 이름 전달 (표시용)
+                                  targetMatchName:
+                                      targetMatchName, // 대상 매치 이름 전달 (표시용)
+                                  requestingTeamId:
+                                      requestingTeamId, // <-- 우리 팀 ID 추가 (match 맵에 teamId가 있다고 가정)
+                                  targetTeamId: matchRequestId,
+                                ),
+                          ),
+                        );
+                      } else {
+                        _showSnackBar("매치 ID를 찾을 수 없어 결과 등록 페이지로 이동할 수 없습니다.");
+                      }
+                    },
+                    child: Card(
+                      margin: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "요청 팀: $requestingTeamName",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: Colors.blueAccent,
+                              ),
                             ),
-                          ),
-                          Text("대상 매치: $targetMatchName"),
-                          // 필요한 다른 정보들을 추가 (예: 도전 팀의 레이팅, 지역 등)
-                          SizedBox(height: 16),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              ElevatedButton(
-                                onPressed: () {
-                                  if (targetMatchId != 'N/A' &&
-                                      requestingTeamId != 'N/A') {
-                                    acceptChallenge(
-                                      targetMatchId,
-                                      requestingTeamId,
-                                    );
-                                  } else {
-                                    _showSnackBar("매치 또는 요청 팀 ID를 찾을 수 없습니다.");
-                                  }
-                                },
-                                child: Text("수락"),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.green,
+                            Text("대상 매치: $targetMatchName"),
+                            Text(
+                              "매치 날짜: $targetMatchDate",
+                            ), // 날짜 정보도 표시하면 좋을 것 같네요.
+                            SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                ElevatedButton(
+                                  onPressed: () {
+                                    if (targetMatchId != 'N/A' &&
+                                        requestingTeamId != 'N/A') {
+                                      acceptChallenge(
+                                        targetMatchId,
+                                        requestingTeamId,
+                                      );
+                                    } else {
+                                      _showSnackBar(
+                                        "매치 또는 요청 팀 ID를 찾을 수 없습니다.",
+                                      );
+                                    }
+                                  },
+                                  child: Text("수락"),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.green,
+                                  ),
                                 ),
-                              ),
-                              SizedBox(width: 8),
-                              ElevatedButton(
-                                onPressed: () {
-                                  if (targetMatchId != 'N/A' &&
-                                      requestingTeamId != 'N/A') {
-                                    declineChallenge(
-                                      targetMatchId,
-                                      requestingTeamId,
-                                    );
-                                  } else {
-                                    _showSnackBar("매치 또는 요청 팀 ID를 찾을 수 없습니다.");
-                                  }
-                                },
-                                child: Text("거절"),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.red,
+                                SizedBox(width: 8),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    if (targetMatchId != 'N/A' &&
+                                        requestingTeamId != 'N/A') {
+                                      declineChallenge(
+                                        targetMatchId,
+                                        requestingTeamId,
+                                      );
+                                      (requestingTeamId);
+                                    } else {
+                                      _showSnackBar(
+                                        "매치 또는 요청 팀 ID를 찾을 수 없습니다.",
+                                      );
+                                    }
+                                  },
+                                  child: Text("거절"),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.red,
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ],
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   );
