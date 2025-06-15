@@ -160,15 +160,25 @@ class _MainState extends State<Main> {
                                 title: Text(userName),
                               ),
                             ),
-                            PopupMenuItem<int>(value: 2, child: Text('내 정보')),
+                            PopupMenuItem<int>(
+                              value: 2,
+                              child: Text('마이페이지'),
+                              onTap: () {
+                                Navigator.of(context).pushNamed("/mypage");
+                              },
+                            ),
                             PopupMenuItem<int>(
                               value: 3,
-                              child: Text('My Team'),
+                              child: Text('프로필'),
                               onTap: () {
                                 Navigator.of(context).pushNamed('/myteam');
                               },
                             ),
-                            PopupMenuItem<int>(value: 4, child: Text('경기 일정')),
+                            PopupMenuItem<int>(
+                              value: 4,
+                              child: Text('경기 일정'),
+                              onTap: () {},
+                            ),
                             PopupMenuItem<int>(value: 5, child: Text('설정')),
                             const PopupMenuDivider(),
                             PopupMenuItem<int>(
