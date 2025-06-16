@@ -4,6 +4,7 @@ import 'package:project/pages/stadium/stadiumFormPage.dart';
 import 'package:project/pages/stadium/stadiumDetailPage.dart';
 import 'package:project/service/stadiumService.dart';
 import 'package:project/appStyle/app_colors.dart';
+import 'package:project/contants/api_contants.dart';
 
 class StadiumSearchPage extends StatefulWidget {
   const StadiumSearchPage({super.key});
@@ -13,14 +14,15 @@ class StadiumSearchPage extends StatefulWidget {
 }
 
 class _StadiumSearchPageState extends State<StadiumSearchPage> {
-  String selectedRegion = "전체";
-  String selectedStadiumType = "전체";
+  String _selectedRegion = '전체';
+  String _selectedSport = '전체';
+
   List<dynamic> allStadiums = [];
   List<dynamic> filteredStadiums = [];
   bool isLoading = false;
 
   final List<String> regions = ['전체', '서울', '경기', '강원', '충청', '전라', '경상', '제주'];
-  final List<String> stadiumTypes = ['전체', '풋살장', '축구장', '농구장', '테니스장'];
+  final List<String> eventTypes = ['전체', '풋살장', '축구장', '농구장', '테니스장', '탁구장', '볼링장'];
 
   @override
   void initState() {
@@ -29,9 +31,7 @@ class _StadiumSearchPageState extends State<StadiumSearchPage> {
   }
 
   Future<void> _fetchStadiums() async {
-    setState(() {
-      isLoading = true;
-    });
+    setState(() => isLoading = true);
     try {
       final List<dynamic>? stadiums = await StadiumService.getAllStadiums();
       if (stadiums != null && mounted) {
@@ -39,10 +39,6 @@ class _StadiumSearchPageState extends State<StadiumSearchPage> {
           allStadiums = stadiums;
           _applyFilters();
         });
-      } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('경기장 목록을 불러오는데 실패했습니다.')),
-        );
       }
     } catch (e) {
       if (mounted) {
@@ -51,26 +47,45 @@ class _StadiumSearchPageState extends State<StadiumSearchPage> {
         );
       }
     } finally {
-      setState(() {
-        isLoading = false;
-      });
+      setState(() => isLoading = false);
     }
   }
 
   void _applyFilters() {
     setState(() {
       filteredStadiums = allStadiums.where((stadium) {
-        final regionMatch = selectedRegion == "전체" || stadium['stadiumRegion'] == selectedRegion;
-        final typeMatch = selectedStadiumType == "전체" || stadium['stadiumType'] == selectedStadiumType;
-        return regionMatch && typeMatch;
+        final regionMatch = _selectedRegion == '전체' || stadium['stadiumRegion'] == _selectedRegion;
+        final stadiumEventsList = (stadium['stadiumEvents'] as String? ?? '')
+            .split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toSet();
+        final eventMatch = _selectedSport == '전체' || stadiumEventsList.contains(_selectedSport);
+        return regionMatch && eventMatch;
       }).toList();
     });
   }
 
-  String _getFullStadiumImageUrl(String? path) {
-    return "assets/images/butteoLogo.png";
+  String _getFullStadiumImageUrl(List<dynamic>? imageUrls) {
+    if (imageUrls != null && imageUrls.isNotEmpty && imageUrls[0] is String && imageUrls[0].isNotEmpty) {
+      return "${ApiConstants.baseUrl}/${imageUrls[0]}";
+    }
+    return "assets/images/default_stadium_image.png";
   }
 
+  void _showFilterDialog() {
+    ReusableFilter.show(
+      context: context,
+      regions: regions,
+      sports: eventTypes,
+      selectedRegion: _selectedRegion,
+      selectedSport: _selectedSport,
+      onApply: (String region, String sport) {
+        setState(() {
+          _selectedRegion = region;
+          _selectedSport = sport;
+        });
+        _applyFilters();
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -78,54 +93,26 @@ class _StadiumSearchPageState extends State<StadiumSearchPage> {
       appBar: AppBar(
         title: const Text('전체 경기장'),
         centerTitle: true,
-        backgroundColor: AppColors.brandBlue,
+        backgroundColor: AppColors.primaryBlue,
         foregroundColor: AppColors.baseWhiteColor,
+        actions: [
+          ElevatedButton.icon(
+            onPressed: _showFilterDialog,
+            icon: const Icon(Icons.filter_list, size: 20, color: AppColors.baseWhiteColor),
+            label: const Text('필터', style: TextStyle(color: AppColors.baseWhiteColor)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("지역: $selectedRegion", style: TextStyle(fontSize: 14, color: AppColors.textSubtle)),
-                      Text("종목: $selectedStadiumType", style: TextStyle(fontSize: 14, color: AppColors.textSubtle)),
-                    ],
-                  ),
-                ),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    ReusableFilter.show(
-                      context: context,
-                      regions: regions,
-                      sports: stadiumTypes,
-                      selectedRegion: selectedRegion,
-                      selectedSport: selectedStadiumType,
-                      onApply: (region, sport) {
-                        setState(() {
-                          selectedRegion = region;
-                          selectedStadiumType = sport;
-                        });
-                        _applyFilters();
-                      },
-                    );
-                  },
-                  icon: const Icon(Icons.filter_list, size: 20, color: AppColors.baseWhiteColor),
-                  label: const Text('필터', style: TextStyle(color: AppColors.baseWhiteColor)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.brandBlue,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  ),
-                ),
-              ],
-            ),
-          ),
           const Divider(height: 1),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
@@ -147,7 +134,7 @@ class _StadiumSearchPageState extends State<StadiumSearchPage> {
                   icon: const Icon(Icons.add, color: AppColors.baseWhiteColor),
                   label: const Text('경기장 등록', style: TextStyle(color: AppColors.baseWhiteColor)),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.brandBlue,
+                    backgroundColor: AppColors.primaryBlue,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
                 ),
@@ -156,18 +143,14 @@ class _StadiumSearchPageState extends State<StadiumSearchPage> {
           ),
           Expanded(
             child: isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? const Center(child: CircularProgressIndicator(color: AppColors.primaryBlue))
                 : filteredStadiums.isEmpty
-                ? Center(
-              child: Text("검색된 경기장이 없습니다.",
-                  style: TextStyle(color: AppColors.textSecondary)),
-            )
+                ? Center(child: Text("검색된 경기장이 없습니다.", style: TextStyle(color: AppColors.textSecondary)))
                 : ListView.builder(
               itemCount: filteredStadiums.length,
               itemBuilder: (context, index) {
                 final stadium = filteredStadiums[index];
-                final String imageUrl = _getFullStadiumImageUrl(stadium['stadiumImg']);
-
+                final String imageUrl = _getFullStadiumImageUrl(stadium['imageUrls'] as List<dynamic>?);
                 return Card(
                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   elevation: 2,
@@ -179,7 +162,6 @@ class _StadiumSearchPageState extends State<StadiumSearchPage> {
                         MaterialPageRoute(
                           builder: (context) => StadiumDetailPage(
                             stadium: stadium,
-                            isLeader: false,
                           ),
                         ),
                       );
@@ -201,8 +183,8 @@ class _StadiumSearchPageState extends State<StadiumSearchPage> {
                               errorBuilder: (context, error, stackTrace) => Container(
                                 width: 80,
                                 height: 80,
-                                color: AppColors.lightGrey,
-                                child: const Icon(Icons.broken_image, color: Colors.grey),
+                                color: AppColors.baseGrey10Color,
+                                child: Icon(Icons.broken_image, color: AppColors.textSubtle),
                               ),
                             ),
                           ),
@@ -221,7 +203,7 @@ class _StadiumSearchPageState extends State<StadiumSearchPage> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  '${stadium['stadiumRegion'] ?? ''} | ${stadium['stadiumType'] ?? ''}',
+                                  '${stadium['stadiumRegion'] ?? ''} | ${stadium['stadiumEvents'] ?? '종목 없음'}',
                                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: AppColors.textSecondary,
                                   ),
@@ -232,6 +214,13 @@ class _StadiumSearchPageState extends State<StadiumSearchPage> {
                                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.textPrimary,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '운영 시간: ${stadium['availableHours'] ?? '정보 없음'}',
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppColors.textSecondary,
                                   ),
                                 ),
                               ],
