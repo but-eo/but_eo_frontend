@@ -13,6 +13,7 @@ import 'package:project/pages/login/Sign.dart';
 import 'package:project/pages/mainpage.dart';
 import 'package:project/utils/token_storage.dart';
 import 'package:project/widgets/login_button.dart';
+import 'package:project/widgets/scroll_to_top_button.dart';
 import 'package:http/http.dart' as http;
 
 class Login extends StatefulWidget {
@@ -231,10 +232,6 @@ class _LoginState extends State<Login> {
                     child: Image.asset(logoImage, height: size.height * 0.1),
                   ),
                   SizedBox(height: size.height * 0.023),
-                  // Text(
-                  //   "Welcome",
-                  //   style: Theme.of(context).textTheme.titleLarge,
-                  // ),
                   SizedBox(height: size.height * 0.018),
                   Text(
                     "Sign Up in to Continue",
@@ -266,9 +263,12 @@ class _LoginState extends State<Login> {
                             if (!RegExp(
                               r'^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z0-9-.]+$',
                             ).hasMatch(email!)) {
-                              return "이메일의 형태가 올바르지 않습니다";
-                            } else {
-                              return null;
+                              // ScaffoldMessenger.of(context).showSnackBar(
+                              //   const SnackBar(
+                              //     content: Text('이메일의 형태가 올바르지 않습니다.'),
+                              //   ),
+                              // );
+                              return "이메일의 형태가 올바르지 않습니다.";
                             }
                           },
                           onSaved: (value) {
@@ -284,13 +284,18 @@ class _LoginState extends State<Login> {
                             hintText: "비밀번호를 입력하세요",
                             prefixIcon: IconButton(
                               onPressed: null,
-                              icon: SvgPicture.asset(userIcon),
+                              icon: Icon(Icons.password_sharp),
                             ),
                           ),
                           validator: (String? value) {
                             password = value!;
                             if (value?.isEmpty ?? true) return '패스워드를 입력하세요';
                             if (value.length < 6) {
+                              // ScaffoldMessenger.of(context).showSnackBar(
+                              //   const SnackBar(
+                              //     content: Text('비밀번호를 6자리 이상 입력해주세요.'),
+                              //   ),
+                              // );
                               return "비밀번호 6자리 이상 입력해주세요.";
                             } else {
                               return null;
@@ -375,22 +380,21 @@ class _LoginState extends State<Login> {
                     ),
                   ),
                   SizedBox(height: size.height * 0.03),
-                  if(isAndroid())
-                  Row(
-                    children: [
-                      const Expanded(child: Divider(color: kLightTextColor)),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        child: Text(
-                          "or Signin in with Others",
-                          style: Theme.of(context).textTheme.titleSmall,
+                  if (isAndroid())
+                    Row(
+                      children: [
+                        const Expanded(child: Divider(color: kLightTextColor)),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          child: Text(
+                            "or Signin in with Others",
+                            style: Theme.of(context).textTheme.titleSmall,
+                          ),
                         ),
-                      ),
-                      const Expanded(child: Divider(color: kLightTextColor)),
-                    ],
-                  ),
-                  if(isAndroid())
-                  SizedBox(height: 20),
+                        const Expanded(child: Divider(color: kLightTextColor)),
+                      ],
+                    ),
+                  if (isAndroid()) SizedBox(height: 20),
                   Column(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -409,7 +413,7 @@ class _LoginState extends State<Login> {
                       SizedBox(height: size.height * 0.01),
 
                       // 카카오 로그인 버튼: 웹 환경에서 숨기기
-                      if (isAndroid()) 
+                      if (isAndroid())
                         GestureDetector(
                           onTap: () {
                             signInWithKakao();
