@@ -89,10 +89,10 @@ class StadiumService {
     try {
       final options = await _getAuthHeaderOnly();
       final response = await _dio.get('', options: options);
-      print("📡 요청 URL: ${response.requestOptions.uri}");
 
       if (response.statusCode == 200) {
         final data = response.data;
+        print("❌ 경기장 내용 data: ${data}");
         if (data is List) {
           return data.map((e) => Map<String, dynamic>.from(e)).toList();
         }

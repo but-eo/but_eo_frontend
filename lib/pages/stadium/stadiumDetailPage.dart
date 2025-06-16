@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:project/pages/stadium/stadiumFormPage.dart';
-import 'package:project/service/stadiumService.dart'; // StadiumService 임포트
+import 'package:project/service/stadiumService.dart';
+import 'package:project/contants/api_contants.dart';
+import 'package:project/utils/token_storage.dart';
 
 class StadiumDetailPage extends StatefulWidget {
-  final Map<String, dynamic> stadium; // 상세 정보를 표시할 경기장 데이터
-  final bool isLeader; // 현재 사용자가 이 경기장의 관리자(리더)인지 여부
-  const StadiumDetailPage({super.key, required this.stadium, this.isLeader = false});
+  final Map<String, dynamic> stadium;
+  const StadiumDetailPage({super.key, required this.stadium});
 
   @override
   State<StadiumDetailPage> createState() => _StadiumDetailPageState();
@@ -13,26 +14,34 @@ class StadiumDetailPage extends StatefulWidget {
 
 class _StadiumDetailPageState extends State<StadiumDetailPage> {
   late Map<String, dynamic> _currentStadiumData;
+  bool isOwner = false;
 
   @override
   void initState() {
     super.initState();
     _currentStadiumData = Map<String, dynamic>.from(widget.stadium);
+    _checkOwnership();
+    _refreshStadiumData();
   }
 
-  // 경기장 이미지 URL을 구성하는 헬퍼 함수
-  // TODO: 백엔드에서 이미지 가져오는 실제 URL 로직으로 수정 필요
+  Future<void> _checkOwnership() async {
+    final nickname = await TokenStorage.getUserNickname(); 
+    final ownerNickname = _currentStadiumData['ownerNickname'];
+
+    if (nickname != null && ownerNickname != null && nickname == ownerNickname) {
+      setState(() {
+        isOwner = true;
+      });
+    }
+  }
+
   String _getFullStadiumImageUrl(String? path) {
     if (path == null || path.isEmpty) {
-      // 이미지 URL이 없을 때 기본 로고 또는 플레이스홀더 사용
       return "assets/images/butteoLogo.png";
     }
-    // TODO: 실제 이미지 서버의 URL과 path를 조합하여 반환하도록 수정 필요
-    // 예: return "${ApiConstants.imageUrlBaseUrl}/$path";
-    return path; // 현재는 path가 이미 완전한 URL이라고 가정
+    return "${ApiConstants.baseUrl}$path";
   }
 
-  // 경기장 데이터를 새로고침하는 함수
   Future<void> _refreshStadiumData() async {
     final String? stadiumId = _currentStadiumData['stadiumId'];
     if (stadiumId != null) {
@@ -41,6 +50,7 @@ class _StadiumDetailPageState extends State<StadiumDetailPage> {
         setState(() {
           _currentStadiumData = updatedData;
         });
+        await _checkOwnership();
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('경기장 정보를 불러오는데 실패했습니다.')),
@@ -50,7 +60,6 @@ class _StadiumDetailPageState extends State<StadiumDetailPage> {
   }
 
   void _navigateToEditPage() async {
-    // 수정 페이지로 이동하고, 결과값을 기다립니다.
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -58,10 +67,9 @@ class _StadiumDetailPageState extends State<StadiumDetailPage> {
       ),
     );
 
-    // 수정 완료 후 'updated'와 같은 결과가 돌아오면 데이터를 갱신
     if (result == 'updated') {
-      await _refreshStadiumData(); // 최신 데이터 다시 불러오기
-      if (mounted) Navigator.pop(context, 'updated'); // 이전 페이지로 업데이트 신호 전달
+      await _refreshStadiumData();
+      if (mounted) Navigator.pop(context, 'updated');
     }
   }
 
@@ -87,15 +95,15 @@ class _StadiumDetailPageState extends State<StadiumDetailPage> {
     if (confirm == true) {
       final String? stadiumId = _currentStadiumData['stadiumId'];
       if (stadiumId != null) {
-        final String? response = await StadiumService.deleteStadium(stadiumId);
-        if (response != null && mounted) {
+        final String? errorMessage = await StadiumService.deleteStadium(stadiumId);
+        if (errorMessage == null && mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("경기장이 성공적으로 삭제되었습니다: $response")),
+            const SnackBar(content: Text("경기장이 성공적으로 삭제되었습니다.")),
           );
-          Navigator.pop(context, 'deleted'); // 삭제 완료 신호를 이전 페이지로 전달
+          Navigator.pop(context, 'deleted');
         } else if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("경기장 삭제에 실패했습니다.")),
+            SnackBar(content: Text("경기장 삭제에 실패했습니다: ${errorMessage ?? '알 수 없는 오류'}")),
           );
         }
       } else if (mounted) {
@@ -109,26 +117,24 @@ class _StadiumDetailPageState extends State<StadiumDetailPage> {
   @override
   Widget build(BuildContext context) {
     final String stadiumName = _currentStadiumData['stadiumName'] ?? '이름 없음';
-    final String price = _currentStadiumData['price']?.toString() ?? '가격 정보 없음';
-    final String location = _currentStadiumData['location'] ?? '위치 정보 없음';
-    final String description = _currentStadiumData['description'] ?? '경기장 설명이 없습니다.';
-    final String stadiumType = _currentStadiumData['stadiumType'] ?? '종류 미지정';
-    final String region = _currentStadiumData['region'] ?? '지역 미지정';
+    final int stadiumCost = _currentStadiumData['stadiumCost'] ?? 0;
+    final String stadiumRegion = _currentStadiumData['stadiumRegion'] ?? '지역 정보 없음';
+    final String stadiumTel = _currentStadiumData['stadiumTel'] ?? '전화번호 정보 없음';
+    final String availableDays = _currentStadiumData['availableDays'] ?? '이용 가능 요일 정보 없음';
+    final String availableHours = _currentStadiumData['availableHours'] ?? '이용 가능 시간 정보 없음';
+    final int stadiumMany = _currentStadiumData['stadiumMany'] ?? 0;
+    final String ownerNickname = _currentStadiumData['ownerNickname'] ?? '소유자 정보 없음';
 
-    // 운영 시간 표시 로직
-    String operatingHoursText;
-    if (_currentStadiumData['alwaysOpen'] == true) {
-      operatingHoursText = '상시 운영';
-    } else if (_currentStadiumData['startDate'] != null && _currentStadiumData['endDate'] != null) {
-      operatingHoursText = '${_currentStadiumData['startDate']} ~ ${_currentStadiumData['endDate']}';
-    } else {
-      operatingHoursText = '운영 기간 정보 없음';
+    final List<dynamic>? imageUrls = _currentStadiumData['imageUrls'];
+    String? displayImageUrl;
+    if (imageUrls != null && imageUrls.isNotEmpty) {
+      displayImageUrl = imageUrls[0];
     }
 
     return Scaffold(
       appBar: AppBar(
         title: Text(stadiumName),
-        actions: widget.isLeader
+        actions: isOwner
             ? [
           IconButton(
             icon: const Icon(Icons.edit),
@@ -150,12 +156,11 @@ class _StadiumDetailPageState extends State<StadiumDetailPage> {
               child: CircleAvatar(
                 radius: 60,
                 backgroundColor: Colors.grey.shade300,
-                // `_getFullStadiumImageUrl`을 사용하여 이미지 표시
-                backgroundImage: _currentStadiumData['imageUrl'] != null && _currentStadiumData['imageUrl'].isNotEmpty
-                    ? NetworkImage(_getFullStadiumImageUrl(_currentStadiumData['imageUrl'])) as ImageProvider<Object>?
+                backgroundImage: displayImageUrl != null && displayImageUrl.isNotEmpty
+                    ? NetworkImage(_getFullStadiumImageUrl(displayImageUrl)) as ImageProvider<Object>?
                     : null,
-                child: _currentStadiumData['imageUrl'] == null || _currentStadiumData['imageUrl'].isEmpty
-                    ? const Icon(Icons.sports_soccer, size: 50, color: Colors.grey) // 기본 아이콘
+                child: displayImageUrl == null || displayImageUrl.isEmpty
+                    ? Image.asset("assets/images/butteoLogo.png", fit: BoxFit.cover)
                     : null,
               ),
             ),
@@ -167,11 +172,13 @@ class _StadiumDetailPageState extends State<StadiumDetailPage> {
               ),
             ),
             const SizedBox(height: 24),
-            _buildInfoRow(Icons.monetization_on, '가격', '$price 원'),
-            _buildInfoRow(Icons.location_on, '위치', location),
-            _buildInfoRow(Icons.access_time, '운영 기간', operatingHoursText),
-            _buildInfoRow(Icons.category, '종류', stadiumType),
-            _buildInfoRow(Icons.map, '지역', region),
+            _buildInfoRow(Icons.monetization_on, '이용 요금', '$stadiumCost 원'),
+            _buildInfoRow(Icons.location_on, '지역', stadiumRegion),
+            _buildInfoRow(Icons.phone, '연락처', stadiumTel),
+            _buildInfoRow(Icons.calendar_today, '이용 가능 요일', availableDays),
+            _buildInfoRow(Icons.access_time, '이용 가능 시간', availableHours),
+            _buildInfoRow(Icons.people, '수용 인원', '$stadiumMany 명'),
+            _buildInfoRow(Icons.person, '소유자', ownerNickname),
             const Divider(height: 32),
             Text(
               '경기장 설명',
@@ -179,14 +186,13 @@ class _StadiumDetailPageState extends State<StadiumDetailPage> {
             ),
             const SizedBox(height: 8),
             Text(
-              description,
+              '$stadiumName은(는) $stadiumRegion에 위치한 경기장입니다. $availableDays에 $availableHours 동안 이용 가능합니다.',
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             const SizedBox(height: 24),
             Center(
               child: ElevatedButton(
                 onPressed: () {
-                  // TODO: 예약하기 기능 구현
                   print('예약하기 버튼 클릭');
                 },
                 style: ElevatedButton.styleFrom(
