@@ -84,8 +84,6 @@ class _MatchResultRegistrationPageState
       winnerTeamId = widget.targetTeamId; // 상대 팀이 승리했으므로 상대 팀의 ID
       loserTeamId = widget.requestingTeamId; // 우리 팀의 ID
     } else {
-      // 무승부일 경우 처리: 서버 API가 무승부를 어떻게 처리하는지에 따라 달라짐
-      _showSnackBar('무승부는 현재 지원되지 않거나 별도 처리가 필요합니다.');
       winnerScore = myScore;
       loserScore = opponentScore;
       winnerTeamId = '';
