@@ -11,6 +11,12 @@ Future<List<MatchingData>> fetchMatchCardsFromServer() async {
     final response = await dio.get(
       "${ApiConstants.baseUrl}/matchings",
       options: Options(headers: {"Authorization": "Bearer $token"}),
+      queryParameters: {
+          'state': 'WAITING',
+  //         'page': 0,
+  //         'size': 1,
+  //         'sort': 'matchDate,asc' // 가장 가까운 날짜 순
+        },
     );
 
     if (response.statusCode == 200) {
