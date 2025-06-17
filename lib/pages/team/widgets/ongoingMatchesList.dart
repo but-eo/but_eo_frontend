@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:project/pages/team/match_result_registreation_page.dart'; // 경기 결과 등록 페이지 임포트
 import 'package:project/service/matchService.dart';
 
 class OngoingMatchesList extends StatefulWidget {
@@ -17,18 +18,21 @@ class _OngoingMatchesListState extends State<OngoingMatchesList> {
   @override
   void initState() {
     super.initState();
-    _matchesFuture = _fetchMatches();
+    _matchesFuture = _fetchMatches(); // 초기 데이터 로드 시작
   }
 
+  // 이 메서드는 Future<List<Map<String, dynamic>>> 타입을 반환해야 합니다.
   Future<List<Map<String, dynamic>>> _fetchMatches() async {
     try {
-      // Matchservice를 사용하여 진행 중 경기 데이터 가져오기
-      return await _matchservice.fetchOngoingMatchesByTeam(widget.teamId);
+      final List<Map<String, dynamic>> fetchedData = await _matchservice.fetchOngoingMatchesByTeam(widget.teamId);
+      // 데이터를 성공적으로 가져왔다면, 이 데이터를 직접 반환합니다.
+      return fetchedData;
     } catch (e) {
-      // SnackBar는 여기서 직접 표시하는 대신, FutureBuilder의 에러 처리를 통해 메시지를 보여줄 수 있습니다.
-      // 하지만 즉각적인 피드백을 위해 SnackBar도 유지합니다.
-      _showSnackBar("진행 중 경기 정보를 불러오는 데 실패했습니다: $e");
-      rethrow; // 에러를 다시 던져서 FutureBuilder가 처리하도록 함
+      if (mounted) { // 위젯이 아직 위젯 트리에 있는지 확인
+        _showSnackBar("진행 중 경기 정보를 불러오는 데 실패했습니다: $e");
+      }
+      // 에러가 발생하면, 이 에러를 다시 던져서 FutureBuilder가 에러를 잡을 수 있도록 합니다.
+      rethrow; // 'throw e;' 대신 'rethrow;'를 사용하여 스택 트레이스를 보존하는 것이 더 좋습니다.
     }
   }
 
@@ -63,7 +67,7 @@ class _OngoingMatchesListState extends State<OngoingMatchesList> {
                   ElevatedButton(
                     onPressed: () {
                       setState(() {
-                        _matchesFuture = _fetchMatches();
+                        _matchesFuture = _fetchMatches(); // 에러 발생 시 재시도
                       });
                     },
                     child: const Text("다시 시도"),
@@ -104,14 +108,36 @@ class _OngoingMatchesListState extends State<OngoingMatchesList> {
               }
               final String requestingTeamName = match['teamName'] ?? '알 수 없음';
               final String targetMatchName =
-              (match['challengerTeam'] != null && match['challellerTeam'] is Map)
+              (match['challengerTeam'] != null && match['challengerTeam'] is Map)
                   ? match['challengerTeam']['teamName'] ?? '상대팀 없음'
                   : '상대팀 없음';
 
+              final String requestingTeamId = widget.teamId;
+              final String targetTeamId =
+              (match['challengerTeam'] != null && match['challillerTeam'] is Map)
+                  ? match['challengerTeam']['teamId'] ?? ''
+                  : '';
+
               return InkWell(
-                onTap: () {
-                  _showSnackBar("진행 예정 경기의 상세 정보를 볼 수 있습니다.");
-                  // Navigator.push(context, MaterialPageRoute(builder: (context) => OngoingMatchDetailPage(match: match)));
+                onTap: () async {
+                  // 진행 중 경기는 경기 결과 등록 페이지로 이동
+                  // MatchResultRegistrationPage에서 true를 반환하면 목록을 새로고침
+                  final bool? result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MatchResultRegistrationPage(
+                        matchId: match['matchId'],
+                        requestingTeamName: requestingTeamName,
+                        targetMatchName: targetMatchName,
+                        requestingTeamId: requestingTeamId,
+                        targetTeamId: targetTeamId,
+                      ),
+                    ),
+                  );
+                  // 경기 결과 등록 후 돌아왔을 때 목록 새로고침 (진행 중 -> 완료로 상태 변경될 수 있으므로)
+                  if (result == true) {
+                    _fetchMatches(); // 새로고침을 위해 _fetchMatches() 다시 호출
+                  }
                 },
                 child: Card(
                   margin: const EdgeInsets.symmetric(vertical: 8.0),
