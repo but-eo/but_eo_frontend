@@ -63,7 +63,7 @@ class _TeamInfo extends StatelessWidget {
       children: [
         Text(teamName),
         Text("레이팅: $rating"),
-        Text("장소: $region"),
+        Text("장소: $region", overflow: TextOverflow.ellipsis, maxLines: 2,),
         Text(formatMatchDay(matchDay)),
       ],
     );
@@ -114,12 +114,13 @@ class Matchingcard extends StatelessWidget {
               children: [
                 _TeamImage(teamImageUrl: teamImg),
                 SizedBox(width: 10.0),
-                _TeamInfo(
+                Expanded(child: _TeamInfo(
                   teamName: teamName,
                   rating: rating,
                   region: region,
                   matchDay: matchDay,
-                ),
+                ),)
+
               ],
             ),
           ),
