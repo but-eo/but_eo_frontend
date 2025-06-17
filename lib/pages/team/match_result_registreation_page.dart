@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:project/utils/token_storage.dart';
 import 'package:project/contants/api_contants.dart';
-import 'package:project/service/reviewService.dart'; // ReviewService 임포트
+// import 'package:project/service/reviewService.dart'; // ReviewService 임포트 제거
 import 'package:project/appStyle/app_colors.dart'; // AppColors 임포트
 
 class MatchResultRegistrationPage extends StatefulWidget {
@@ -28,13 +28,13 @@ class MatchResultRegistrationPage extends StatefulWidget {
 
 class _MatchResultRegistrationPageState
     extends State<MatchResultRegistrationPage> {
-  // 점수 입력을 위한 TextEditingController 다시 사용
+  // 점수 입력을 위한 TextEditingController
   final TextEditingController _myTeamScoreController = TextEditingController();
   final TextEditingController _opponentTeamScoreController =
   TextEditingController();
 
   bool _isResultRegistered = false; // 경기 결과 등록 여부 상태 (기본값 false)
-  bool _hasReviewedOpponent = false; // 상대팀 리뷰 작성 여부 상태 (기본값 false)
+  // bool _hasReviewedOpponent = false; // 리뷰 관련 상태 변수 제거
 
   @override
   void initState() {
@@ -45,9 +45,8 @@ class _MatchResultRegistrationPageState
     print("내 팀 아이디 : ${widget.requestingTeamId}");
     print("상대팀 아이디 : ${widget.targetTeamId}");
 
-    // TODO: 실제 앱에서는 여기서 서버로부터 이미 등록된 경기 결과나 리뷰 여부를 확인하여
-    // _isResultRegistered 와 _hasReviewedOpponent 상태를 초기화해야 합니다.
-    // 예: ReviewService.checkIfReviewed(widget.matchId, widget.targetTeamId) 등.
+    // TODO: 실제 앱에서는 여기서 서버로부터 이미 등록된 경기 결과가 있는지 확인하여
+    // _isResultRegistered 상태를 초기화해야 합니다.
   }
 
   @override
@@ -75,8 +74,6 @@ class _MatchResultRegistrationPageState
       return;
     }
 
-    // 무승부 처리 로직은 백엔드의 MatchResultRequest DTO와 컨트롤러에 따라 다르게 구현될 수 있습니다.
-    // 여기서는 승패가 명확한 경우만 처리합니다.
     if (myScore == opponentScore) {
       _showSnackBar('무승부는 현재 지원되지 않거나 별도 처리가 필요합니다.');
       return;
@@ -112,7 +109,6 @@ class _MatchResultRegistrationPageState
         "${ApiConstants.baseUrl}/matchings/${widget.matchId}/result",
         options: Options(headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'}),
         data: {
-          // 'matchId': widget.matchId, // PathVariable로 받으므로 DTO에 없다면 불필요
           'winnerScore': winnerScore,
           'loserScore': loserScore,
           'winnerTeamId': winnerTeamId,
@@ -125,7 +121,8 @@ class _MatchResultRegistrationPageState
           _isResultRegistered = true; // 결과 등록 성공 시 상태 업데이트
         });
         _showSnackBar('경기 결과가 성공적으로 등록되었습니다.');
-        // 경기 결과 등록 후 바로 페이지를 닫지 않고, 리뷰 작성 기회를 제공
+        // 결과 등록 후 이전 화면으로 돌아감 (진행 중 경기 목록)
+        Navigator.pop(context, true); // true를 반환하여 이전 화면에서 새로고침하도록
       } else {
         _showSnackBar('결과 등록에 실패했습니다: ${response.statusCode}');
         print('결과 등록 실패 응답: ${response.data}');
@@ -139,123 +136,6 @@ class _MatchResultRegistrationPageState
     } catch (e) {
       _showSnackBar('예상치 못한 오류 발생 (결과 등록): $e');
       print('Error (결과 등록): $e');
-    }
-  }
-
-  // 상대팀 리뷰 작성 비동기 함수
-  void _writeReviewForOpponent() async {
-    String reviewContent = '';
-    int reviewRating = 5; // 초기 평점
-
-    final result = await showDialog<Map<String, dynamic>>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          titlePadding: const EdgeInsets.fromLTRB(24, 24, 16, 0),
-          contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-          actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          title: Row(
-            children: [
-              Text(
-                '${widget.targetMatchName} 팀 리뷰 작성',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-              ),
-              const SizedBox(width: 12),
-              StatefulBuilder(
-                builder: (BuildContext context, StateSetter setModalState) {
-                  return Row(
-                    children: List.generate(5, (index) {
-                      return GestureDetector(
-                        onTap: () {
-                          setModalState(() {
-                            reviewRating = index + 1;
-                          });
-                        },
-                        child: Icon(
-                          index < reviewRating ? Icons.star : Icons.star_border,
-                          color: Colors.amber,
-                          size: 20,
-                        ),
-                      );
-                    }),
-                  );
-                },
-              ),
-              const Spacer(),
-              InkWell(
-                onTap: () => Navigator.pop(context),
-                child: const Icon(Icons.close, size: 20, color: AppColors.brandBlack),
-              )
-            ],
-          ),
-          content: TextField(
-            maxLines: 5,
-            onChanged: (value) => reviewContent = value,
-            decoration: const InputDecoration(
-              hintText: '상대팀에 대한 평가를 작성해주세요',
-              hintStyle: TextStyle(color: AppColors.brandBlack),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(6)),
-              ),
-              contentPadding: EdgeInsets.all(12),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              style: TextButton.styleFrom(foregroundColor: AppColors.textSecondary),
-              child: const Text('취소'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (reviewContent.trim().isEmpty || reviewRating == 0) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('리뷰 내용과 평점을 모두 입력해주세요.')),
-                  );
-                  return;
-                }
-                Navigator.pop(context, {'content': reviewContent, 'rating': reviewRating});
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryBlue,
-                foregroundColor: AppColors.baseWhiteColor,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-              ),
-              child: const Text('저장'),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (result != null) {
-      final String content = result['content'];
-      final int rating = result['rating'];
-
-      final String? error = await ReviewService.writeReview(
-        matchId: widget.matchId,
-        targetTeamId: widget.targetTeamId,
-        rating: rating,
-        content: content,
-      );
-
-      if (error == null) {
-        setState(() {
-          _hasReviewedOpponent = true;
-        });
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('리뷰가 성공적으로 저장되었습니다.')),
-          );
-        }
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('리뷰 작성 실패: $error')),
-          );
-        }
-      }
     }
   }
 
@@ -330,7 +210,6 @@ class _MatchResultRegistrationPageState
             ),
             const SizedBox(height: 30),
             ElevatedButton(
-              // 경기 결과가 등록되지 않았고, 현재 로딩 중이 아니라면 활성화
               onPressed: _isResultRegistered ? null : _submitMatchResult,
               style: ElevatedButton.styleFrom(
                 backgroundColor: _isResultRegistered ? Colors.grey : AppColors.primaryBlue,
@@ -343,33 +222,7 @@ class _MatchResultRegistrationPageState
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
-
-            const SizedBox(height: 30),
-
-            Text(
-              '상대팀 (${widget.targetMatchName}) 평가하기',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 15),
-            ElevatedButton(
-              // 경기 결과가 등록되었고, 아직 리뷰를 작성하지 않았다면 활성화
-              onPressed: _isResultRegistered && !_hasReviewedOpponent ? _writeReviewForOpponent : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: (_isResultRegistered && !_hasReviewedOpponent) ? AppColors.baseGreenColor : Colors.grey,
-                foregroundColor: AppColors.baseWhiteColor,
-                padding: const EdgeInsets.symmetric(vertical: 15),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-              child: Text(
-                _hasReviewedOpponent ? '리뷰 작성 완료' : '상대팀 리뷰 작성',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ),
+            // 리뷰 관련 UI는 모두 제거됨
           ],
         ),
       ),

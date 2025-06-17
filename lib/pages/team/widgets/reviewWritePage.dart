@@ -31,6 +31,12 @@ class _ReviewWritePageState extends State<ReviewWritePage> {
   void _submitReview() async {
     final String reviewContent = _reviewContentController.text.trim();
 
+    print("[ReviewWritePage] 리뷰 제출 시작"); // Debug
+    print("[ReviewWritePage] matchId: ${widget.matchId}"); // Debug
+    print("[ReviewWritePage] targetTeamId: ${widget.targetTeamId}"); // Debug
+    print("[ReviewWritePage] rating: $_reviewRating"); // Debug
+    print("[ReviewWritePage] content length: ${reviewContent.length}"); // Debug
+
     if (reviewContent.isEmpty || _reviewRating == 0) {
       _showSnackBar('리뷰 내용과 평점을 모두 입력해주세요.');
       return;
@@ -51,6 +57,7 @@ class _ReviewWritePageState extends State<ReviewWritePage> {
       }
     } else {
       _showSnackBar('리뷰 작성 실패: $error');
+      print("[ReviewWritePage] 리뷰 작성 실패 오류: $error"); // Debug
     }
   }
 
@@ -112,11 +119,11 @@ class _ReviewWritePageState extends State<ReviewWritePage> {
                 hintStyle: TextStyle(color: AppColors.textSecondary),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppColors.baseGreenColor),
+                  borderSide: const BorderSide(color: AppColors.baseGreenColor),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppColors.primaryBlue, width: 2),
+                  borderSide: const BorderSide(color: AppColors.primaryBlue, width: 2),
                 ),
                 contentPadding: const EdgeInsets.all(16),
               ),
