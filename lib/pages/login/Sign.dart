@@ -484,8 +484,8 @@ class _SignState extends State<Sign> {
                           ),
                         ),
                         validator: (value) {
-                          if (value == null || value.length < 4) {
-                            return "닉네임은 최소 4자리 이상이어야 합니다.";
+                          if (value == null || value.length < 2) {
+                            return "닉네임은 최소 2자리 이상이어야 합니다.";
                           }
                           return null;
                         },
