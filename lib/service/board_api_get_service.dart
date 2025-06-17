@@ -40,6 +40,35 @@ Future<Map<String, dynamic>> fetchBoards(String event, String category, {int pag
   }
 }
 
+//최신 게시판 리스트 조회
+Future<Map<String, dynamic>> fetchLatestBoards() async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('accessToken'); // JWT 토큰
+
+  final uri = Uri.parse('${ApiConstants.baseUrl}/boards/latest');
+
+  final response = await http.get(
+    uri,
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    },
+  );
+
+  if (response.statusCode == 200) {
+    final decoded = utf8.decode(response.bodyBytes);
+    final List<dynamic> data = json.decode(decoded); // List 응답으로 처리
+
+    final List<Board> boards = data.map((item) => Board.fromJson(item)).toList();
+
+    return {
+      'boards': boards,
+    };
+  } else {
+    throw Exception('게시글 불러오기 실패');
+  }
+}
+
 
 // 게시판 클릭시 상세 게시판 조회
 Future<BoardDetail> fetchBoardDetail(String boardId) async {

@@ -238,6 +238,7 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: _scaffoldBgColor,
       appBar: AppBar(
         title: Text("게시글", style: TextStyle(color: _primaryTextColor, fontWeight: FontWeight.bold, fontSize: 19)),
