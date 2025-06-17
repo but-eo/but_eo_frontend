@@ -13,7 +13,6 @@ class TeamDetailPage extends StatefulWidget {
   const TeamDetailPage({super.key, this.team});
 
   @override
-  @override
   State<TeamDetailPage> createState() => _TeamDetailPageState();
 }
 
