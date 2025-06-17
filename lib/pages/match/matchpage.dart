@@ -330,11 +330,15 @@ class _MatchpageState extends State<Matchpage> {
   }
 
   String getShortRegion(String fullAddress) {
-    final parts = fullAddress.split(' ');
-    if (parts.length >= 3) {
-      return '${parts[1]} ${parts[3]} ${parts[4]}';
-    }
-    return fullAddress;
+    // '대한민국' 접두사가 있다면 제거합니다.
+    // 이 부분은 주소 표기의 일관성을 위해 필요합니다.
+    String cleanedAddress = fullAddress.startsWith('대한민국 ')
+        ? fullAddress.substring('대한민국 '.length)
+        : fullAddress;
+
+    // 'cleanedAddress'가 이제 우리가 원하는 상세 주소 문자열이 됩니다.
+    // 예를 들어, "대구광역시 수성구 유니버시아드로 180" 이 그대로 반환됩니다.
+    return cleanedAddress;
   }
 
   // _MatchpageState 클래스 내부에 추가
