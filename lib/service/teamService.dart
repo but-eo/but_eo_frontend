@@ -371,4 +371,21 @@ class TeamService {
       return regionKey; // 맵에 없는 경우 원본 키 반환
     }
   }
+
+  static Future<List<dynamic>> getMyJoinedTeams() async {
+    final dio = Dio();
+    final token = await TokenStorage.getAccessToken();
+    if (token == null) throw Exception("로그인이 필요합니다.");
+
+    try {
+      final response = await dio.get(
+        '${ApiConstants.baseUrl}/teams/my-teams',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      if (response.statusCode == 200) return response.data;
+      return [];
+    } catch (e) {
+      throw Exception("가입한 팀 목록을 가져오는 데 실패했습니다.");
+    }
+  }
 }
