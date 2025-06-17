@@ -3,8 +3,7 @@ import 'package:project/service/reviewService.dart';
 import 'package:project/appStyle/app_colors.dart';
 
 class TeamReviewPage extends StatefulWidget {
-  final String teamId; // 이 팀에 대한 리뷰를 조회하고 작성할 대상 팀 ID
-  // MatchResultRegistrationPage에서 넘어올 경우 필요한 추가 인자들 (선택 사항)
+  final String teamId;
   final String? sourceMatchId; // 어느 매치에서 이 팀을 만났는지
   final String? sourceTargetTeamName; // 이 팀의 이름 (표시용)
 
@@ -29,7 +28,6 @@ class _TeamReviewPageState extends State<TeamReviewPage> {
     super.initState();
     _fetchReviewData();
     // TODO: _hasUserWrittenReviewForThisTeam 상태를 초기화하는 로직 추가
-    // ReviewService.checkIfUserReviewedTeam(widget.teamId) 같은 API 호출 필요
   }
 
   Future<void> _fetchReviewData() async {
@@ -37,14 +35,11 @@ class _TeamReviewPageState extends State<TeamReviewPage> {
       _isLoading = true;
     });
     try {
-      print("📡 리뷰 요청 시작: ${widget.teamId}");
       final List<dynamic> fetchedReviews = await ReviewService.getTeamReviews(widget.teamId);
-      print("✅ 리뷰 응답 수신: ${fetchedReviews.length}개");
       setState(() {
         _teamReviews = List<Map<String, dynamic>>.from(fetchedReviews);
       });
       // TODO: 여기서 현재 사용자가 이 팀에 대해 작성한 리뷰가 있는지 확인하는 로직 추가
-      // _hasUserWrittenReviewForThisTeam = await ReviewService.checkIfUserReviewedTeam(widget.teamId);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

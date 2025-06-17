@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:project/utils/token_storage.dart';
 import 'package:project/contants/api_contants.dart';
-// import 'package:project/service/reviewService.dart'; // ReviewService 임포트 제거
-import 'package:project/appStyle/app_colors.dart'; // AppColors 임포트
+import 'package:project/appStyle/app_colors.dart';
 
 class MatchResultRegistrationPage extends StatefulWidget {
-  final String matchId; // 결과를 등록할 매치의 ID
+  final String matchId;
   final String requestingTeamName; // 요청 팀 이름 (표시용)
   final String targetMatchName; // 대상 매치 이름 (표시용)
   final String requestingTeamId; // 우리 팀의 ID

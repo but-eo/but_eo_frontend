@@ -1,7 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 import 'package:project/contants/api_contants.dart';
-import 'package:project/pages/match/matching_data.dart';
 import 'package:project/service/authHeaderService.dart';
 
 class Matchservice {
@@ -19,8 +17,6 @@ class Matchservice {
         options: options,
         data: requestBody,
       );
-      print("Status Code: ${response.statusCode}");
-      print("Response Data: ${response.data}");
 
       if (response.statusCode == 200) {
         print("도전 신청이 완료되었습니다. ${response.data}");

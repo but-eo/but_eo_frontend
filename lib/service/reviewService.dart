@@ -10,10 +10,7 @@ class ReviewService {
     try {
       final options = await AuthHeaderService.getAuthHeaderOnly();
       final url = '/team/$teamId';
-      print("📡 ReviewService GET 요청 URL: ${_dio.options.baseUrl}$url"); // Debug
-      print("📡 ReviewService GET 요청 헤더 (AuthHeaderService): ${options.headers}"); // Debug
       final response = await _dio.get(url, options: options);
-      print("✅ ReviewService GET 응답 수신 - 상태 코드: ${response.statusCode} / 데이터: ${response.data}"); // Debug
 
       if (response.statusCode == 200 && response.data is List) {
         return List<Map<String, dynamic>>.from(response.data);
@@ -21,12 +18,9 @@ class ReviewService {
         throw Exception('리뷰 데이터를 불러오지 못했습니다 (상태 코드: ${response.statusCode})');
       }
     } on DioException catch (e) {
-      print("❌ ReviewService GET DioException 발생: ${e.message}"); // Debug
-      print("🔍 ReviewService GET Dio 오류 응답 데이터: ${e.response?.data}"); // Debug
-      print("🔍 ReviewService GET Dio 오류 응답 상태: ${e.response?.statusCode}"); // Debug
+
       rethrow;
     } catch (e) {
-      print("❌ ReviewService GET 알 수 없는 오류: $e"); // Debug
       rethrow;
     }
   }
@@ -40,8 +34,6 @@ class ReviewService {
     required String content,
   }) async {
     try {
-      // AuthHeaderService.getAuthJsonOptions() 사용
-      // 리뷰 작성은 JSON 본문을 포함하므로 getAuthJsonOptions를 사용하는 것이 적절합니다.
       final options = await AuthHeaderService.getAuthJsonOptions();
       final body = {
         'matchId': matchId,
@@ -50,13 +42,7 @@ class ReviewService {
         'content': content,
       };
 
-      print("📡 ReviewService POST 요청 URL: ${_dio.options.baseUrl}/"); // Debug: POST는 BaseUrl에 바로 보냄
-      print("📡 ReviewService POST 요청 헤더 (AuthHeaderService): ${options.headers}"); // Debug
-      print("📡 ReviewService POST 요청 본문: $body"); // Debug
-
       final response = await _dio.post('', data: body, options: options);
-
-      print("✅ ReviewService POST 응답 수신 - 상태 코드: ${response.statusCode} / 데이터: ${response.data}"); // Debug
 
       if (response.statusCode == 200) {
         return null; // 성공
@@ -64,7 +50,6 @@ class ReviewService {
         return '리뷰 작성 실패: ${response.statusCode} - ${response.data ?? "응답 본문 없음"}';
       }
     } on DioException catch (e) {
-      print("❌ ReviewService POST DioException 발생: ${e.message}"); // Debug
       if (e.response != null) {
         print("🔍 ReviewService POST Dio 오류 응답 상태 코드: ${e.response?.statusCode}"); // Debug
         print("🔍 ReviewService POST Dio 오류 응답 데이터: ${e.response?.data}"); // Debug
