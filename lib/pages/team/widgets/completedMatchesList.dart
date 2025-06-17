@@ -121,9 +121,15 @@ class _CompletedMatchesListState extends State<CompletedMatchesList> {
                   ? match['challengerTeam']['teamId'] ?? ''
                   : '';
 
-              // 현재 스코어 정보 추출 (없을 경우 기본값)
-              final int homeScore = match['homeScore'] ?? 0;
-              final int awayScore = match['awayScore'] ?? 0;
+              // 스코어 정보는 백엔드에서 안준다고 했으므로 제거합니다.
+              // final int homeScore = match['homeScore'] ?? 0;
+              // final int awayScore = match['awayScore'] ?? 0;
+
+              // 상대팀 레이팅 정보만 사용합니다.
+              final int? targetTeamRating = (match['challengerTeam'] != null && match['challengerTeam'] is Map)
+                  ? match['challengerTeam']['rating'] as int? // int로 캐스팅
+                  : null;
+
 
               // 리뷰 작성 여부 (TODO: 실제로는 서버에서 가져와야 함)
               // 여기서는 임시로 'false'로 설정합니다.
@@ -180,20 +186,18 @@ class _CompletedMatchesListState extends State<CompletedMatchesList> {
                                 "상대 팀: $targetMatchName",
                                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                               ),
+                              // 상대 팀 레이팅을 여기에 표시 (더 이상 스코어는 표시하지 않음)
                               Text(
-                                "상대 팀 레이팅 : ${match['challengerTeam']['rating']}",
+                                "상대 팀 레이팅 : ${targetTeamRating ?? '정보 없음'}",
+                                style: const TextStyle(
+                                  fontSize: 16, // 원래 레이팅 텍스트 스타일 유지
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ],
                           ),
-                          // 스코어 표시
-                          Text(
-                            "$homeScore : $awayScore",
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primaryBlue,
-                            ),
-                          ),
+                          // 스코어 표시 부분 제거. 필요한 경우 여기에 다른 핵심 정보 추가
+                          // 예를 들어, 승패 여부 같은 것 (백엔드 데이터에 있다면)
                         ],
                       ),
                       const SizedBox(height: 12),

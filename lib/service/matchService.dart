@@ -106,7 +106,6 @@ class Matchservice {
     }
   }
 
-  // 백엔드 컨트롤러에 따라 "완료된 경기"로 간주되는 /team/{teamId}/complete 엔드포인트를 호출합니다.
   Future<List<Map<String, dynamic>>> fetchCompletedMatchesByTeam(
       String teamId) async {
     try {
