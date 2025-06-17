@@ -1,43 +1,22 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart'; // SnackBar 등을 위해 필요할 수 있습니다.
 import 'package:project/contants/api_contants.dart';
-import 'package:project/pages/match/matching_data.dart'; // 이 클래스에서는 직접 사용되지 않지만, import 목록에 있었으므로 유지합니다.
-import 'package:project/utils/token_storage.dart'; // 토큰 접근을 위해 필요합니다.
+import 'package:project/service/authHeaderService.dart';
 
 class Matchservice {
-  // Dio 인스턴스를 static final로 선언하여 한 번만 생성되도록 합니다.
   static final Dio dio = Dio();
 
-  // challengerTeamId를 인자로 추가하고, 이를 요청 본문에 포함시킵니다.
   Future<bool> challengeMatch(String matchId, String challengerTeamId) async {
-    // 1. 액세스 토큰 가져오기
-    final token = await TokenStorage.getAccessToken();
-    if (token == null) {
-      print(
-        "[Challenge Match] Access token is null. User might not be logged in.",
-      );
-      throw Exception("도전 신청 실패: 로그인이 필요합니다.");
-    }
-
     try {
+      final options = await AuthHeaderService.getAuthJsonOptions(); // AuthHeaderService 사용
       final url = "${ApiConstants.baseUrl}/matchings/$matchId/challenge";
-
-      // 요청 본문 생성 (서버에서 challengerTeamId를 기대할 것으로 예상)
       final requestBody = {"challenger": challengerTeamId};
-      print("challenger : ${challengerTeamId}");
+      print("challenger : $challengerTeamId");
 
       final response = await dio.post(
         url,
-        options: Options(
-          headers: {
-            "Authorization": "Bearer $token",
-            "Content-Type": "application/json", // JSON 본문을 보낼 때 중요
-          },
-        ),
-        data: requestBody, // 요청 본문 추가
+        options: options,
+        data: requestBody,
       );
-      print("Status Code: ${response.statusCode}");
-      print("Response Data: ${response.data}");
 
       if (response.statusCode == 200) {
         print("도전 신청이 완료되었습니다. ${response.data}");
@@ -51,10 +30,9 @@ class Matchservice {
         print("Status Code: ${e.response?.statusCode}");
         print("Response Data: ${e.response?.data}");
       } else {
-        
         print("Error Message: ${e.message}");
       }
-      throw Exception("도전 신청 실패: ${e.message}"); // 오류 메시지를 더 자세히 전달
+      throw Exception("도전 신청 실패: ${e.message}");
     } catch (e) {
       throw Exception("도전 신청 실패: $e");
     }
@@ -62,11 +40,11 @@ class Matchservice {
 
   Future<Map<String, dynamic>> fetchMatching(String matchId) async {
     try {
+      final options = await AuthHeaderService.getAuthHeaderOnly(); // AuthHeaderService 사용
       final url = "${ApiConstants.baseUrl}/matchings/$matchId";
-      final token = await TokenStorage.getAccessToken();
       final response = await dio.get(
         url,
-        options: Options(headers: {"Authorization": "Bearer $token"}),
+        options: options,
       );
       print("Status Code: ${response.statusCode}");
       print("Response Data: ${response.data}");
@@ -88,6 +66,79 @@ class Matchservice {
       throw Exception("매칭 정보 불러오기 실패: ${e.message}");
     } catch (e) {
       throw Exception("매칭 정보 불러오기 실패: $e");
+    }
+  }
+
+  // 백엔드 컨트롤러에 따라 "진행 중 경기"로 간주되는 /team/{teamId}/success 엔드포인트를 호출합니다.
+  Future<List<Map<String, dynamic>>> fetchOngoingMatchesByTeam(
+      String teamId) async {
+    try {
+      final options = await AuthHeaderService.getAuthHeaderOnly(); // AuthHeaderService 사용
+      final url = "${ApiConstants.baseUrl}/matchings/team/$teamId/success";
+      final response = await dio.get(
+        url,
+        options: options,
+      );
+
+      if (response.statusCode == 200) {
+        print("팀 진행 중 경기 조회 성공: ${response.data}");
+        if (response.data is List) {
+          return List<Map<String, dynamic>>.from(response.data);
+        } else {
+          throw Exception("API 응답 형식이 예상과 다릅니다 (List가 아님).");
+        }
+      } else {
+        throw Exception(
+            "팀 진행 중 경기 조회 실패: 서버 응답 오류 ${response.statusCode}");
+      }
+    } on DioException catch (e) {
+      if (e.response != null) {
+        print("DioError - 응답 데이터: ${e.response?.data}");
+        print("DioError - 응답 상태: ${e.response?.statusCode}");
+        throw Exception(
+            "팀 진행 중 경기 조회 서버 오류: ${e.response?.statusCode ?? '알 수 없음'}");
+      } else {
+        print("DioError - 요청 오류: ${e.message}");
+        throw Exception("팀 진행 중 경기 조회 네트워크 오류: ${e.message}");
+      }
+    } catch (e) {
+      throw Exception("팀 진행 중 경기 조회 중 예상치 못한 오류: $e");
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> fetchCompletedMatchesByTeam(
+      String teamId) async {
+    try {
+      final options = await AuthHeaderService.getAuthHeaderOnly(); // AuthHeaderService 사용
+      final url = "${ApiConstants.baseUrl}/matchings/team/$teamId/complete";
+      final response = await dio.get(
+        url,
+        options: options,
+      );
+
+      if (response.statusCode == 200) {
+        print("팀 완료된 경기 조회 성공: ${response.data}");
+        if (response.data is List) {
+          return List<Map<String, dynamic>>.from(response.data);
+        } else {
+          throw Exception("API 응답 형식이 예상과 다릅니다 (List가 아님).");
+        }
+      } else {
+        throw Exception(
+            "팀 완료된 경기 조회 실패: 서버 응답 오류 ${response.statusCode}");
+      }
+    } on DioException catch (e) {
+      if (e.response != null) {
+        print("DioError - 응답 데이터: ${e.response?.data}");
+        print("DioError - 응답 상태: ${e.response?.statusCode}");
+        throw Exception(
+            "팀 완료된 경기 조회 서버 오류: ${e.response?.statusCode ?? '알 수 없음'}");
+      } else {
+        print("DioError - 요청 오류: ${e.message}");
+        throw Exception("팀 완료된 경기 조회 네트워크 오류: ${e.message}");
+      }
+    } catch (e) {
+      throw Exception("팀 완료된 경기 조회 중 예상치 못한 오류: $e");
     }
   }
 }
