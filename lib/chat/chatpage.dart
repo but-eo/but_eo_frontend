@@ -27,7 +27,7 @@ class _ChatPageState extends State<ChatPage> {
   Future<void> loadChatRooms() async {
     final dio = Dio();
     String? token = await TokenStorage.getAccessToken();
-    print(token);
+    print("채팅방 로드 요청 토큰 :   ${token}");
     if (token == null || token.isEmpty) {
       print("토큰이 유효하지 않습니다.");
       return;
@@ -411,6 +411,7 @@ Future<Map<String, dynamic>?> createChatRoom(
       options: Options(headers: {'Authorization': 'Bearer $token'}),
     );
     if (response.statusCode == 200 || response.statusCode == 201) {
+      print("create ChatROOM : ${response.data}");
       return response.data;
     }
   } catch (e) {
