@@ -27,6 +27,7 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
     super.initState();
     _team = widget.team;
     if (_team != null) {
+      print("📦 초기 팀 데이터: $_team"); // ✅ 팀 정보 확인
       _checkTeamLeader(_team!);
       // TODO: 사용자가 이 팀에 이미 가입 요청을 했는지 확인하는 API를 호출하여 isRequested 상태를 초기화해야 합니다.
       // 예: _checkJoinRequestStatus(_team!['teamId'].toString());

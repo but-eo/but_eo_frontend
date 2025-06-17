@@ -220,7 +220,7 @@ class TeamService {
     }
   }
 
-  // 팀 상세조회
+// 팀 상세조회
   static Future<Map<String, dynamic>> getTeamById(String teamId) async {
     try {
       final token = await TokenStorage.getAccessToken();
@@ -230,6 +230,10 @@ class TeamService {
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
+      print("📡 [GET] 팀 상세 조회 요청: $teamId");
+      print("✅ 응답 상태 코드: ${res.statusCode}");
+      print("📦 응답 데이터: ${res.data}");
+
       if (res.statusCode == 200 && res.data is Map<String, dynamic>) {
         return res.data as Map<String, dynamic>;
       } else {
@@ -238,10 +242,11 @@ class TeamService {
         );
       }
     } catch (e) {
-      print("getTeamById 에러: $e");
+      print("❌ getTeamById 에러: $e");
       rethrow;
     }
   }
+
 
   static Future<List<dynamic>> getMyLeaderTeams() async {
     final token = await TokenStorage.getAccessToken();

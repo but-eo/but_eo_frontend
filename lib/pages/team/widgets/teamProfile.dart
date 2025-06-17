@@ -14,7 +14,7 @@ class TeamProfile extends StatelessWidget {
     final int draws = team['drawCount'] ?? 0;
     final int losses = team['loseCount'] ?? 0;
     final int rating = team['rating'] ?? 0;
-    final int totalReview = team['totalReview'] ?? 0;
+    final double avgReviewRating = team['avgReviewRating'] ?? 0;
     final teamId = team['teamId'].toString();
 
     return Column(
@@ -58,7 +58,7 @@ class TeamProfile extends StatelessWidget {
                     const Icon(Icons.rate_review_outlined, size: 16, color: Colors.grey),
                     const SizedBox(width: 4),
                     Text(
-                      "리뷰 $totalReview건",
+                      "매너 점수  $avgReviewRating점",
                       style: const TextStyle(
                         fontSize: 13,
                         color: Colors.black54,
