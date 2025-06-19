@@ -1,12 +1,9 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:project/contants/api_contants.dart';
 import 'package:project/data/teamEnum.dart';
-import 'package:project/pages/mainpage.dart';
 import 'package:project/pages/team/teamFormPage.dart';
 import 'package:project/pages/team/teaminvitationpage.dart';
 import 'package:project/pages/team/widgets/teamMatchRequestPage.dart';
-import 'package:project/pages/team/widgets/teamMatches.dart';
+import 'package:project/pages/team/teamMatches.dart';
 import 'package:project/service/teamInvitaionService.dart';
 import '../../service/teamService.dart';
 import 'package:project/pages/team/widgets/teamProfile.dart';
@@ -15,6 +12,7 @@ class TeamDetailPage extends StatefulWidget {
   final Map<String, dynamic>? team;
   const TeamDetailPage({super.key, this.team});
 
+  @override
   @override
   State<TeamDetailPage> createState() => _TeamDetailPageState();
 }

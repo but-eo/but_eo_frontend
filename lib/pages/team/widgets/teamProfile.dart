@@ -15,6 +15,7 @@ class TeamProfile extends StatelessWidget {
     final int losses = team['loseCount'] ?? 0;
     final int rating = team['rating'] ?? 0;
     final int totalReview = team['totalReview'] ?? 0;
+    final teamId = team['teamId'].toString();
 
     return Column(
       children: [

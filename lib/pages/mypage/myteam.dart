@@ -114,7 +114,7 @@ class _MyTeamPageState extends State<MyTeamPage> {
     if (!mounted) return;
     setState(() => _isLoadingMyLeaderTeams = true);
     try {
-      final teams = await TeamService.getMyLeaderTeams();
+      final teams = await TeamService.getMyJoinedTeams();
       if (mounted) {
         setState(() {
           _myLeaderTeams = teams;

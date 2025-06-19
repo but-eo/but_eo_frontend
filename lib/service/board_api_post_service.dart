@@ -168,3 +168,14 @@ Future<bool> updateComment({
     return false;
   }
 }
+
+Future<void> toggleBoardLike(String boardId, String token) async {
+  final uri = Uri.parse('${ApiConstants.baseUrl}/boards/$boardId/like-toggle');
+  final response = await http.post(uri, headers: {
+    'Authorization': 'Bearer $token',
+  });
+
+  if (response.statusCode != 200) {
+    throw Exception('좋아요 토글 실패');
+  }
+}

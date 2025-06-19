@@ -48,8 +48,7 @@ class MatchingApiService {
         "${ApiConstants.baseUrl}/matchings/my/latest-success",
         queryParameters: {
           'FREE'
-                  'page':
-              0,
+          'page': 0,
           'size': 1,
         },
         options: Options(

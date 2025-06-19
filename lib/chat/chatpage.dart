@@ -27,7 +27,7 @@ class _ChatPageState extends State<ChatPage> {
   Future<void> loadChatRooms() async {
     final dio = Dio();
     String? token = await TokenStorage.getAccessToken();
-    print(token);
+    print("채팅방 로드 요청 토큰 :   ${token}");
     if (token == null || token.isEmpty) {
       print("토큰이 유효하지 않습니다.");
       return;
@@ -83,12 +83,12 @@ class _ChatPageState extends State<ChatPage> {
             return ListTile(
               leading: CircleAvatar(
                 backgroundImage:
-                room['chatImg'] != null && room['chatImg'] != ''
-                    ? NetworkImage(
-                  "${ApiConstants.webSocketConnectUrl}/chatRoom/${room['chatImg']}",
-                )
-                    : const AssetImage('assets/images/butteoLogo.png')
-                as ImageProvider,
+                    room['chatImg'] != null && room['chatImg'] != ''
+                        ? NetworkImage(
+                          "${ApiConstants.webSocketConnectUrl}/chatRoom/${room['chatImg']}",
+                        )
+                        : const AssetImage('assets/images/butteoLogo.png')
+                            as ImageProvider,
               ),
               title: Text(room['roomName'] ?? '채팅방'),
               subtitle: Column(
@@ -184,29 +184,57 @@ class _ChatPageState extends State<ChatPage> {
                         itemBuilder: (context, index) {
                           final user = localSearchResults[index];
                           final userId = user['userHashId'].toString();
+                          // 1. 서버에서 받은 프로필 경로를 변수에 저장합니다.
+                          String profilePathFromServer = user['profile'] ?? '';
+
+                          // 2. 프로필 경로가 http로 시작하는지 확인합니다.
+                          final bool isFullUrl = profilePathFromServer
+                              .startsWith('http');
+
+                          // 3. 조건에 따라 최종 이미지 URL을 결정합니다.
+                          //    (상대 경로일 경우 ApiConstants.imageBaseUrl을 앞에 붙여줍니다.)
+                          String finalImageUrl =
+                              isFullUrl
+                                  ? profilePathFromServer
+                                  : (profilePathFromServer.isNotEmpty
+                                      ? '${ApiConstants.imageBaseUrl}$profilePathFromServer'
+                                      : '');
                           return ListTile(
                             leading:
-                            user['profile'] != null && user['profile'].isNotEmpty // null 또는 빈 문자열 체크
-                                ? CircleAvatar(
-                              backgroundImage: NetworkImage(
-                                user['profile'],
-                              ),
-                            )
-                                : CircleAvatar(child: Icon(Icons.person)),
-                            title: Text(user['name'] ?? '알 수 없는 사용자'), // null 체크
+                                finalImageUrl
+                                        .isNotEmpty // 1. 조건문을 finalImageUrl이 비어있는지로 변경
+                                    ? CircleAvatar(
+                                      backgroundImage: NetworkImage(
+                                        finalImageUrl,
+                                      ),
+                                      // 2. 여기서 finalImageUrl 사용!
+                                      onBackgroundImageError: (
+                                        exception,
+                                        stackTrace,
+                                      ) {
+                                        // 이미지 로드 실패 시 콘솔에 로그 출력
+                                        print(
+                                          '이미지 로드 실패: $finalImageUrl, 에러: $exception',
+                                        );
+                                      },
+                                    )
+                                    : const CircleAvatar(
+                                      child: Icon(Icons.person),
+                                    ),
+                            // 3. 이미지가 없을 때 기본 아이콘 표시
+                            title: Text(user['name'] ?? '알 수 없는 사용자'),
                             trailing: Checkbox(
                               value: localSelectedUsers[userId] ?? false,
                               onChanged: (bool? value) {
                                 setState(() {
                                   localSelectedUsers[userId] = value ?? false;
                                 });
-                                print(localSelectedUsers[userId]);
                               },
                             ),
                           );
                         },
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -214,11 +242,11 @@ class _ChatPageState extends State<ChatPage> {
                 TextButton(
                   onPressed: () async {
                     final selected =
-                    localSearchResults.where((user) {
-                      return localSelectedUsers[
-                      user['userHashId'].toString()] ==
-                          true;
-                    }).toList();
+                        localSearchResults.where((user) {
+                          return localSelectedUsers[user['userHashId']
+                                  .toString()] ==
+                              true;
+                        }).toList();
 
                     print(
                       '선택된 유저들: ${selected.map((e) => e['name']).toList()}',
@@ -233,10 +261,11 @@ class _ChatPageState extends State<ChatPage> {
                       if (selected.length == 1) {
                         chatRoomName = selected[0]['name'] ?? '새 채팅방';
                       } else if (selected.length > 1) {
-                        final firstTwoNames = selected
-                            .take(2)
-                            .map((user) => user['name'] ?? '이름 없음')
-                            .toList();
+                        final firstTwoNames =
+                            selected
+                                .take(2)
+                                .map((user) => user['name'] ?? '이름 없음')
+                                .toList();
                         final remainingCount = selected.length - 2;
                         chatRoomName = '${firstTwoNames.join(', ')}';
                         if (remainingCount > 0) {
@@ -246,14 +275,14 @@ class _ChatPageState extends State<ChatPage> {
                         chatRoomName = '새 채팅방';
                       }
 
-
                       final room = await createChatRoom(
                         selected.map((e) => e['userHashId']).toList(),
                         chatRoomName, // ✅ 생성된 이름 전달
                       );
                       if (room != null) {
                         // 메인 _ChatPageState의 setState를 호출하여 chatRooms 업데이트
-                        setState(() { // _ChatPageState의 setState
+                        setState(() {
+                          // _ChatPageState의 setState
                           chatRooms.add(room);
                         });
                         Navigator.pop(context); // 다이얼로그 닫기
@@ -261,7 +290,8 @@ class _ChatPageState extends State<ChatPage> {
                         final result = await Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => ChatDetailpage(chatRoom: room),
+                            builder:
+                                (context) => ChatDetailpage(chatRoom: room),
                           ),
                         );
                         if (result == 'refresh') {
@@ -275,7 +305,8 @@ class _ChatPageState extends State<ChatPage> {
                 TextButton(
                   onPressed: () {
                     // 다이얼로그 닫기 전에 상태 초기화 (선택 사항)
-                    setState(() { // _showCreateChatDialog 내부의 setState
+                    setState(() {
+                      // _showCreateChatDialog 내부의 setState
                       localSearchResults.clear();
                       localSelectedUsers.clear();
                     });
@@ -298,16 +329,21 @@ class _ChatPageState extends State<ChatPage> {
     try {
       final response = await dio.get(
         "${ApiConstants.baseUrl}/users/searchAll",
-        options: Options(headers: {'Authorization': 'Bearer $token'}), // 토큰 필요시 추가
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+        ), // 토큰 필요시 추가
       );
       if (response.statusCode == 200 && response.data is List) {
         // StatefulBuilder의 setState를 통해 localSearchResults 업데이트
-        if (mounted) { // 위젯이 마운트된 상태인지 확인
-          (context as Element).markNeedsBuild(); // StatefulBuilder의 setState를 직접 호출하는 대신 build를 강제
+        if (mounted) {
+          // 위젯이 마운트된 상태인지 확인
+          (context as Element)
+              .markNeedsBuild(); // StatefulBuilder의 setState를 직접 호출하는 대신 build를 강제
           // 대안: 다이얼로그 builder 내에서 StatefulWidget을 분리하거나,
           // StatefulBuilder의 setState 콜백을 명시적으로 사용해야 합니다.
           // 여기서는 setState가 다이얼로그의 build context에 바인딩되어 있으므로 직접 사용 가능
-          setState(() { // 이 setState는 AlertDialog의 StatefulBuilder에 속함
+          setState(() {
+            // 이 setState는 AlertDialog의 StatefulBuilder에 속함
             localSearchResults = List<Map<String, dynamic>>.from(response.data);
             localSelectedUsers.clear(); // 초기화
             for (var user in localSearchResults) {
@@ -361,7 +397,10 @@ Future<void> searchAll() async {
 
 // 채팅방 생성 (chatRoomName 매개변수 추가)
 Future<Map<String, dynamic>?> createChatRoom(
-    List<dynamic> userIds, String chatRoomName) async { // ✅ chatRoomName 매개변수 추가
+  List<dynamic> userIds,
+  String chatRoomName,
+) async {
+  // ✅ chatRoomName 매개변수 추가
   final dio = Dio();
   String? token = await TokenStorage.getAccessToken();
   try {
@@ -372,6 +411,7 @@ Future<Map<String, dynamic>?> createChatRoom(
       options: Options(headers: {'Authorization': 'Bearer $token'}),
     );
     if (response.statusCode == 200 || response.statusCode == 201) {
+      print("create ChatROOM : ${response.data}");
       return response.data;
     }
   } catch (e) {

@@ -5,6 +5,8 @@ import 'package:project/pages/match/matchpage.dart';
 import 'package:project/pages/team/teamDetailPage.dart';
 import 'package:project/pages/team/teamFormPage.dart';
 import 'package:project/widgets/loading_placeholder.dart';
+import 'package:project/pages/board/board.dart' as boardPage;
+
 
 import '../service/board_api_get_service.dart' as BoardApiService;
 import '../service/matching_api_service.dart';
@@ -24,7 +26,6 @@ class _HomepageState extends State<Homepage> {
   List<Map<String, dynamic>> leaderTeam = [];
   Future<Map<String, dynamic>?>? _upcomingMatchFuture;
   Future<List<dynamic>>? _myTeamsFuture;
-  Future<Map<String, dynamic>>? _latestPostsFuture;
 
   // ✨ 다른 페이지와 색감 통일을 위한 색상 변수 정의
   final Color _scaffoldBgColor = Colors.grey.shade100;
@@ -64,12 +65,6 @@ class _HomepageState extends State<Homepage> {
     setState(() {
       _upcomingMatchFuture = MatchingApiService.getUpcomingMatch();
       _myTeamsFuture = TeamService.getMyTeams();
-      _latestPostsFuture = BoardApiService.fetchBoards(
-        'FREE',
-        'FREE',
-        page: 0,
-        size: 5,
-      );
     });
   }
 
@@ -136,6 +131,12 @@ class _HomepageState extends State<Homepage> {
                 icon: Icons.article_outlined,
                 onMoreTap: () {
                   // TODO: 게시판 페이지로 이동
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => boardPage.Board(),
+                    ),
+                  );
                 },
               ),
               const SizedBox(height: 12),
@@ -270,8 +271,10 @@ class _HomepageState extends State<Homepage> {
               subtitle: "새로운 경기를 주최하거나, 매칭을 둘러보세요.",
               buttonText: "매칭 둘러보기",
               icon:
-              Icons
-                  .sports_soccer_outlined, // 또는 Icons.calendar_today_outlined
+
+                  Icons
+                      .sports_soccer_outlined, // 또는 Icons.calendar_today_outlined
+
               onPressed: () {
                 Navigator.push(
                   context,
@@ -295,14 +298,16 @@ class _HomepageState extends State<Homepage> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: FutureBuilder<Map<String, dynamic>>(
-        future: _latestPostsFuture,
+        future: BoardApiService.fetchLatestBoards(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return _buildPostsLoadingIndicator();
           }
+
           if (snapshot.hasError ||
               !snapshot.hasData ||
-              snapshot.data!.isEmpty) {
+              snapshot.data!['boards'] == null ||
+              (snapshot.data!['boards'] as List).isEmpty) {
             return Container(
               padding: const EdgeInsets.symmetric(vertical: 40),
               decoration: BoxDecoration(
@@ -317,8 +322,9 @@ class _HomepageState extends State<Homepage> {
               ),
             );
           }
-          final posts = snapshot.data!;
-          final List<Board> boards = posts['boards'];
+
+          final List<Board> boards = snapshot.data!['boards'];
+
           return Container(
             decoration: BoxDecoration(
               color: _cardBgColor,
@@ -332,11 +338,11 @@ class _HomepageState extends State<Homepage> {
               ],
             ),
             child: Column(
-              children: List.generate(posts.length, (index) {
+              children: List.generate(boards.length, (index) {
                 return _buildPostItem(
                   context,
-                  posts[index],
-                  index == posts.length - 1,
+                  boards[index],
+                  index == boards.length - 1,
                 );
               }),
             ),
@@ -430,9 +436,9 @@ class _HomepageState extends State<Homepage> {
     final theme = Theme.of(context);
     final Map<String, dynamic>? challengerTeam = match['challengerTeam'];
     final String teamName =
-    challengerTeam != null && challengerTeam.containsKey('teamName')
-        ? challengerTeam['teamName']
-        : '상대팀 정보 없음';
+        challengerTeam != null && challengerTeam.containsKey('teamName')
+            ? challengerTeam['teamName']
+            : '상대팀 정보 없음';
     final String matchRegion = match['matchRegion'] ?? '장소 미정';
     final String matchDateStr = match['matchDate'] ?? '';
     print("match : ${match}");
@@ -560,9 +566,9 @@ class _HomepageState extends State<Homepage> {
               Row(
                 children: [
                   Icon(
-                    Icons.thumb_up_alt_outlined,
+                    Icons.favorite_border_rounded,
                     size: 14,
-                    color: _secondaryTextColor,
+                    color: Colors.red.shade500,
                   ),
                   const SizedBox(width: 4),
                   Text(
@@ -573,7 +579,7 @@ class _HomepageState extends State<Homepage> {
                   Icon(
                     Icons.chat_bubble_outline,
                     size: 14,
-                    color: _secondaryTextColor,
+                    color: Colors.blue.shade300,
                   ),
                   const SizedBox(width: 4),
                   Text(

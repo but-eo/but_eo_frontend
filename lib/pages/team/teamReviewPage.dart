@@ -1,57 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:project/service/reviewService.dart';
-
-//TODO : 색 옮기기
-class AppColors {
-  static const baseBlackColor = Color(0xff1b1b1d);
-  static const baseGrey10Color = Color(0xfff6f6f6);
-  static const baseGreenColor = Color(0xff03c75a);
-  static const baseWhiteColor = Colors.white;
-
-  static final Color brandBlue = Colors.blue.shade500;
-  static const Color brandBlack = Color(0xff1b1b1d);
-  static const Color lightGrey = Color(0xfff6f6f6);
-  static final Color mediumGrey = Colors.grey.shade600;
-  static const Color textPrimary = Colors.black87;
-  static final Color textSecondary = mediumGrey;
-  static final Color textSubtle = Colors.black54;
-}
+import 'package:project/appStyle/app_colors.dart';
 
 class TeamReviewPage extends StatefulWidget {
   final String teamId;
-  const TeamReviewPage({super.key, required this.teamId});
+  final String? sourceMatchId; // 어느 매치에서 이 팀을 만났는지
+  final String? sourceTargetTeamName; // 이 팀의 이름 (표시용)
+
+  const TeamReviewPage({
+    super.key,
+    required this.teamId,
+    this.sourceMatchId,
+    this.sourceTargetTeamName,
+  });
 
   @override
   State<TeamReviewPage> createState() => _TeamReviewPageState();
 }
 
 class _TeamReviewPageState extends State<TeamReviewPage> {
-  // 로딩 상태를 위한 변수
   bool _isLoading = true;
-  // 현재 팀의 리뷰 목록
   List<Map<String, dynamic>> _teamReviews = [];
-  // 현재 사용자가 이 팀에 리뷰를 작성했는지 여부 (성공적으로 작성 후 true로 설정)
-  bool _hasUserWrittenReview = false; // TODO: 서버에서 실제 값 가져오도록 구현 필요
+  bool _hasUserWrittenReviewForThisTeam = false; // 현재 로그인한 사용자가 이 팀에 대해 리뷰를 작성했는지 여부
 
   @override
   void initState() {
     super.initState();
     _fetchReviewData();
+    // TODO: _hasUserWrittenReviewForThisTeam 상태를 초기화하는 로직 추가
   }
 
-  // 팀 리뷰 데이터를 서버에서 가져오는 함수
   Future<void> _fetchReviewData() async {
     setState(() {
-      _isLoading = true; // 데이터 로딩 시작
+      _isLoading = true;
     });
-
     try {
       final List<dynamic> fetchedReviews = await ReviewService.getTeamReviews(widget.teamId);
-
       setState(() {
         _teamReviews = List<Map<String, dynamic>>.from(fetchedReviews);
-
       });
+      // TODO: 여기서 현재 사용자가 이 팀에 대해 작성한 리뷰가 있는지 확인하는 로직 추가
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -65,84 +53,95 @@ class _TeamReviewPageState extends State<TeamReviewPage> {
     }
   }
 
+  // 리뷰 작성 팝업 및 API 호출 로직
   void _writeReview() async {
-    String reviewContent = '';
-    int reviewRating = 5; // 초기 평점 5점
+    // sourceMatchId가 없을 경우 경고 또는 다른 처리 필요
+    if (widget.sourceMatchId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('리뷰를 작성할 경기의 정보가 부족합니다.')),
+      );
+      return;
+    }
 
-    final result = await showDialog<Map<String, dynamic>>( // Map<String, dynamic>으로 결과 받기
+    String reviewContent = '';
+    int reviewRating = 5; // 초기 평점
+
+    final result = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('리뷰 작성', style: TextStyle(fontWeight: FontWeight.bold)),
-          content: StatefulBuilder( // AlertDialog 내의 상태를 업데이트하기 위해 StatefulBuilder 사용
-            builder: (BuildContext context, StateSetter setModalState) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // 별점 입력 위젯
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+          titlePadding: const EdgeInsets.fromLTRB(24, 24, 16, 0),
+          contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+          actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          title: Row(
+            children: [
+              Text(
+                '${widget.sourceTargetTeamName ?? '상대팀'} 팀 리뷰 작성', // 상대팀 이름 표시
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+              const SizedBox(width: 12),
+              StatefulBuilder(
+                builder: (BuildContext context, StateSetter setModalState) {
+                  return Row(
                     children: List.generate(5, (index) {
-                      return InkWell(
+                      return GestureDetector(
                         onTap: () {
-                          setModalState(() { // 다이얼로그 내의 상태 업데이트
+                          setModalState(() {
                             reviewRating = index + 1;
                           });
                         },
                         child: Icon(
                           index < reviewRating ? Icons.star : Icons.star_border,
                           color: Colors.amber,
-                          size: 30,
+                          size: 20,
                         ),
                       );
                     }),
-                  ),
-                  const SizedBox(height: 16),
-                  // 리뷰 내용 입력 필드
-                  TextField(
-                    maxLines: 5,
-                    onChanged: (value) => reviewContent = value,
-                    decoration: InputDecoration(
-                      hintText: '이 팀에 대한 리뷰를 입력해주세요.',
-                      border: const OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(10)),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: const BorderRadius.all(Radius.circular(10)),
-                        borderSide: BorderSide(color: AppColors.brandBlack),
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            },
+                  );
+                },
+              ),
+              const Spacer(),
+              InkWell(
+                onTap: () => Navigator.pop(context),
+                child: const Icon(Icons.close, size: 20, color: AppColors.brandBlack),
+              )
+            ],
+          ),
+          content: TextField(
+            maxLines: 5,
+            onChanged: (value) => reviewContent = value,
+            decoration: const InputDecoration(
+              hintText: '상대팀에 대한 평가를 작성해주세요',
+              hintStyle: TextStyle(color: AppColors.brandBlack),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.all(Radius.circular(6)),
+              ),
+              contentPadding: EdgeInsets.all(12),
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('취소', style: TextStyle(color: AppColors.mediumGrey)), // 취소 버튼 색상 변경
+              style: TextButton.styleFrom(foregroundColor: AppColors.textSecondary),
+              child: const Text('취소'),
             ),
-            ElevatedButton( // '작성 완료' 버튼을 ElevatedButton으로 변경
-              onPressed: () async {
+            ElevatedButton(
+              onPressed: () {
                 if (reviewContent.trim().isEmpty || reviewRating == 0) {
-                  // 내용 또는 평점이 없을 경우 경고 메시지 표시
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('리뷰 내용과 평점을 모두 입력해주세요.')),
-                    );
-                  }
-                  return; // 함수 종료
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('리뷰 내용과 평점을 모두 입력해주세요.')),
+                  );
+                  return;
                 }
                 Navigator.pop(context, {'content': reviewContent, 'rating': reviewRating});
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.brandBlue, // 버튼 배경색 변경
-                foregroundColor: AppColors.baseWhiteColor, // 버튼 텍스트 색상 변경
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                backgroundColor: AppColors.primaryBlue,
+                foregroundColor: AppColors.baseWhiteColor,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
               ),
-              child: const Text('작성 완료'),
+              child: const Text('저장'),
             ),
           ],
         );
@@ -153,30 +152,25 @@ class _TeamReviewPageState extends State<TeamReviewPage> {
       final String content = result['content'];
       final int rating = result['rating'];
 
-      // TODO: matchId는 현재 페이지에서 알 수 없는 정보 지금 매치가 안됨
-      const String placeholderMatchId = 'TODO_MATCH_ID';
-
       final String? error = await ReviewService.writeReview(
-        matchId: placeholderMatchId,
-        targetTeamId: widget.teamId,
+        matchId: widget.sourceMatchId!, // matchId는 반드시 있어야 함
+        targetTeamId: widget.teamId, // 이 페이지의 teamId가 리뷰 대상
         rating: rating,
         content: content,
       );
 
       if (error == null) {
-        // 리뷰 작성 성공
         setState(() {
-          _hasUserWrittenReview = true; // 리뷰 작성 성공했음을 표시
+          _hasUserWrittenReviewForThisTeam = true; // 리뷰 작성 완료 상태 업데이트
         });
         await _fetchReviewData(); // 리뷰 목록 새로고침
-        if (mounted) { // 위젯이 마운트된 상태인지 확인
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('리뷰가 성공적으로 저장되었습니다.')),
           );
         }
       } else {
-        // 리뷰 작성 실패
-        if (mounted) { // 위젯이 마운트된 상태인지 확인
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('리뷰 작성 실패: $error')),
           );
@@ -190,131 +184,125 @@ class _TeamReviewPageState extends State<TeamReviewPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('팀 리뷰'),
-        backgroundColor: AppColors.brandBlue,
+        backgroundColor: AppColors.primaryBlue,
         foregroundColor: AppColors.baseWhiteColor,
         centerTitle: true,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          : Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // '상대팀들이 남긴 리뷰' 제목
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '상대팀들이 남긴 리뷰',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary, // 텍스트 색상 변경
-                      ),
-                    ),
-                    // 리뷰 작성 버튼 섹션 (오른쪽에 작게 배치)
-                    if (!_hasUserWrittenReview) // 이미 리뷰를 작성했다면 버튼을 숨깁니다.
-                      Card(
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)), // 둥근 모양으로 변경
-                        margin: EdgeInsets.zero, // 기본 마진 제거
-                        child: InkWell(
-                          onTap: _writeReview,
-                          borderRadius: BorderRadius.circular(20),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), // 패딩 더 줄이기
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.edit_note, color: AppColors.brandBlack, size: 20), // 아이콘 색상 변경
-                                const SizedBox(width: 6), // 간격 줄이기
-                                Text(
-                                  '리뷰 작성',
-                                  style: TextStyle(
-                                      fontSize: 14, // 텍스트 크기 줄이기
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.brandBlack // 텍스트 색상 변경
-                                  ),
-                                ),
-                              ],
+                Text(
+                  '${widget.sourceTargetTeamName ?? '이 팀'}에 대한 리뷰', // 팀 이름 표시
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                // 현재 사용자가 이 팀에 대해 아직 리뷰를 작성하지 않았을 경우에만 버튼 표시
+                if (!_hasUserWrittenReviewForThisTeam && widget.sourceMatchId != null)
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    margin: EdgeInsets.zero,
+                    child: InkWell(
+                      onTap: _writeReview,
+                      borderRadius: BorderRadius.circular(20),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.edit_note, color: AppColors.brandBlack, size: 20),
+                            const SizedBox(width: 6),
+                            Text(
+                              '리뷰 작성',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.brandBlack,
+                              ),
                             ),
-                          ),
+                          ],
                         ),
                       ),
-                  ],
-                ),
-                const Divider(height: 20, thickness: 1), // 구분선 추가
-                const SizedBox(height: 12),
-                // 리뷰 목록
-                Expanded(
-                  child: _teamReviews.isEmpty
-                      ? Center(
-                    child: Text(
-                      '아직 이 팀에 대한 리뷰가 없습니다.',
-                      style: TextStyle(fontSize: 16, color: AppColors.textSecondary), // 텍스트 색상 변경
                     ),
-                  )
-                      : ListView.separated(
-                    itemCount: _teamReviews.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 10), // 리뷰 사이 간격
-                    itemBuilder: (context, index) {
-                      final review = _teamReviews[index];
-                      // 각 리뷰를 Card 위젯으로 감싸서 더 보기 좋게 만듭니다.
-                      return Card(
-                        elevation: 3, // 그림자 더 강조
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), // 둥근 모서리
-                        margin: const EdgeInsets.symmetric(vertical: 4), // 목록 아이템 간 여백
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                  ),
+              ],
+            ),
+            const Divider(height: 20, thickness: 1),
+            const SizedBox(height: 12),
+            Expanded(
+              child: _teamReviews.isEmpty
+                  ? Center(
+                child: Text(
+                  '아직 이 팀에 대한 리뷰가 없습니다.',
+                  style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
+                ),
+              )
+                  : ListView.separated(
+                itemCount: _teamReviews.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 10),
+                itemBuilder: (context, index) {
+                  final review = _teamReviews[index];
+                  return Card(
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    margin: const EdgeInsets.symmetric(vertical: 4),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
                             children: [
-                              Row(
-                                children: [
-                                  const Icon(Icons.sports_soccer, color: Colors.deepOrange, size: 20), // 아이콘 색상 유지 (포인트 색상)
-                                  const SizedBox(width: 8),
-                                  Expanded( // 텍스트가 길어질 경우를 대비해 Expanded 추가
-                                    child: Text(
-                                      review['writerName'] ?? '익명 팀', // 리뷰 작성 팀 이름 (writerName 필드 사용)
-                                      style: TextStyle(
-                                          fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary), // 텍스트 색상 변경
-                                      overflow: TextOverflow.ellipsis, // 텍스트 오버플로우 처리
-                                    ),
+                              const Icon(Icons.sports_soccer, color: Colors.deepOrange, size: 20),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  review['writerTeamName'] ?? '익명 팀', // 작성 팀 이름 표시
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textPrimary,
                                   ),
-                                  const SizedBox(width: 10),
-                                  // 평점 별 아이콘 표시
-                                  Row(
-                                    children: List.generate(5, (starIndex) {
-                                      final double currentRating = (review['rating'] ?? 0).toDouble(); // rating 필드 사용
-                                      return Icon(
-                                        starIndex < currentRating ? Icons.star : Icons.star_border,
-                                        color: Colors.amber, // 별점 색상 유지
-                                        size: 18,
-                                      );
-                                    }),
-                                  ),
-                                ],
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
-                              const SizedBox(height: 10),
-                              Text(
-                                review['content'] ?? '내용 없음',
-                                style: TextStyle(fontSize: 14, color: AppColors.textSubtle), // 텍스트 색상 변경
+                              const SizedBox(width: 10),
+                              Row(
+                                children: List.generate(5, (starIndex) {
+                                  final double currentRating = (review['rating'] ?? 0).toDouble();
+                                  return Icon(
+                                    starIndex < currentRating ? Icons.star : Icons.star_border,
+                                    color: Colors.amber,
+                                    size: 18,
+                                  );
+                                }),
                               ),
                             ],
                           ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
+                          const SizedBox(height: 10),
+                          Text(
+                            review['content'] ?? '내용 없음',
+                            style: TextStyle(fontSize: 14, color: AppColors.textSubtle),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
-          ),
-
-        ],
+          ],
+        ),
       ),
     );
   }
