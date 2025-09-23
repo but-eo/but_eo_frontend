@@ -362,17 +362,19 @@ class _LoginState extends State<Login> {
                   SizedBox(height: size.height * 0.03),
                   ElevatedButton(
                     onPressed: () async {
-                      if (_formKey.currentState!.validate()) {
-                        _formKey.currentState!.save();
-                        print(email);
-                        print(password);
+                      // if (_formKey.currentState!.validate()) {
+                      //   _formKey.currentState!.save();
+                      //   print(email);
+                      //   print(password);
 
-                        await loginUser(email!, password!);
-                        print(loginAuth);
-                        if (loginAuth) {
-                          navigateToMainPage();
-                        }
-                      }
+                      //   await loginUser(email!, password!);
+                      //   print(loginAuth);
+                      //   if (loginAuth) {
+                      //     navigateToMainPage();
+                      //   }
+                      // }
+                      navigateToMainPage();
+                      
                     },
                     child: Text(
                       "로그인",
