@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:project/contants/api_contants.dart';
+import 'package:project/pages/mypage/TodayWeather.dart';
 import '../../utils/token_storage.dart';
 import 'CustomerServiceMainPage.dart';
 import 'EditProfilePage.dart';
@@ -166,6 +167,12 @@ class _MyPageScreenState extends State<MyPageScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const AskedQuestions()),
+                );
+              }),
+              _buildListTile(Icons.sunny, '오늘의 날씨', context, onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const TodayWeatherPage()),
                 );
               }),
               _buildListTile(Icons.campaign_outlined, '공지사항', context, onTap: () {
