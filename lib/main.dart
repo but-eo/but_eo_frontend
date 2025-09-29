@@ -12,6 +12,7 @@ import 'package:project/pages/login/login.dart';
 import 'package:project/pages/match/matchpage.dart';
 import 'package:project/pages/mypage/mypage.dart';
 import 'package:project/pages/mypage/myteam.dart';
+import 'package:project/pages/mypage/ad.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 
@@ -46,6 +47,7 @@ class MyApp extends StatelessWidget {
         Main.id: (context) => Main(),
         '/myteam': (context) => MyTeamPage(), // 이 부분 추가
         '/mypage': (context) => MyPageScreen(),
+        '/shorts': (context) => const ShortsPage(),
       },
       home: SplashScreen(),
     );

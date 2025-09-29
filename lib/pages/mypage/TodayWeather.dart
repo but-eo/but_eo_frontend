@@ -17,7 +17,7 @@ class _TodayWeatherPageState extends State<TodayWeatherPage> {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ 날씨별 그라데이션
+    // 날씨별 그라데이션 적용
     final bgGradient = _getBackgroundGradient(weatherData);
 
     return Scaffold(
@@ -37,33 +37,37 @@ class _TodayWeatherPageState extends State<TodayWeatherPage> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
+              // 지역 선택 버튼
               ElevatedButton(
                 onPressed: () async {
+                  // MapSelectPage로 이동하여 위/경도 데이터를 받아옴
                   final selectedLatLng = await Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const MapSelectPage()),
                   );
 
                   if (selectedLatLng != null) {
+                    // 선택된 위/경도로 날씨 정보 가져오기
                     fetchWeatherByLatLng(selectedLatLng);
                   }
                 },
                 child: const Text("지역 선택"),
               ),
               const SizedBox(height: 16),
+              // 로딩/에러/날씨 정보 표시 영역
               Expanded(
                 child: isLoading
-                    ? const Center(child: CircularProgressIndicator())
+                    ? const Center(child: CircularProgressIndicator()) // 로딩 중
                     : errorMessage != null
-                    ? Center(
-                  child: Text(
-                    errorMessage!,
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                )
-                    : weatherData != null
-                    ? _buildWeatherCard(weatherData!)
-                    : const SizedBox.shrink(),
+                        ? Center( // 에러 발생 시
+                            child: Text(
+                              errorMessage!,
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                          )
+                        : weatherData != null
+                            ? _buildWeatherCard(weatherData!) // 날씨 데이터 표시
+                            : const SizedBox.shrink(), // 초기 상태
               ),
             ],
           ),
@@ -72,8 +76,10 @@ class _TodayWeatherPageState extends State<TodayWeatherPage> {
     );
   }
 
+  // OpenWeatherMap API에서 날씨 정보 가져오기
   Future<void> fetchWeatherByLatLng(dynamic latLng) async {
-    const apiKey = "1a481eee596ec14c3a587e505a5ff6c9";
+    // 주의: 실제 앱에서는 API Key를 이렇게 직접 노출하지 않도록 관리해야 합니다.
+    const apiKey = "1a481eee596ec14c3a587e505a5ff6c9"; 
     final url =
         "https://api.openweathermap.org/data/2.5/weather?lat=${latLng.latitude}&lon=${latLng.longitude}&appid=$apiKey&units=metric&lang=kr";
 
@@ -105,6 +111,7 @@ class _TodayWeatherPageState extends State<TodayWeatherPage> {
     }
   }
 
+  // 날씨 정보를 카드 형태로 보여주는 위젯
   Widget _buildWeatherCard(Map<String, dynamic> data) {
     final cityName = data['name'];
     final description = data['weather'][0]['description'];
@@ -126,6 +133,7 @@ class _TodayWeatherPageState extends State<TodayWeatherPage> {
           ),
         ),
         const SizedBox(height: 10),
+        // 날씨 아이콘 표시
         Image.network(
           "https://openweathermap.org/img/wn/$iconCode@2x.png",
           width: 120,
@@ -142,6 +150,7 @@ class _TodayWeatherPageState extends State<TodayWeatherPage> {
           style: const TextStyle(fontSize: 18, color: Colors.white70),
         ),
         const SizedBox(height: 20),
+        // 습도, 바람 정보 표시
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
@@ -153,6 +162,7 @@ class _TodayWeatherPageState extends State<TodayWeatherPage> {
     );
   }
 
+  // 서브 정보(습도, 바람) 타일 위젯
   Widget _buildInfoTile(IconData icon, String label, String value) {
     return Column(
       children: [
@@ -172,8 +182,9 @@ class _TodayWeatherPageState extends State<TodayWeatherPage> {
     );
   }
 
-  // ✅ 날씨별 그라데이션 색상
+  // 날씨 상태에 따른 배경 그라데이션 반환
   LinearGradient _getBackgroundGradient(Map<String, dynamic>? data) {
+    // 날씨 데이터가 없으면 기본값
     if (data == null) {
       return const LinearGradient(
         colors: [Colors.blueGrey, Colors.lightBlueAccent],
@@ -185,28 +196,28 @@ class _TodayWeatherPageState extends State<TodayWeatherPage> {
     final weatherMain = data['weather'][0]['main'].toString().toLowerCase();
 
     if (weatherMain.contains("clear")) {
-      // 맑음: 연한 주황
+      // 맑음: 연한 주황 (Clear)
       return const LinearGradient(
         colors: [Color(0xFFFFE0B2), Color(0xFFFFCC80)],
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
       );
     } else if (weatherMain.contains("cloud")) {
-      // 구름: 연한 회색
+      // 구름: 연한 회색 (Clouds)
       return const LinearGradient(
         colors: [Color(0xFFB0BEC5), Color(0xFFCFD8DC)],
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
       );
     } else if (weatherMain.contains("rain")) {
-      // 비: 회색
+      // 비: 회색 (Rain)
       return const LinearGradient(
         colors: [Color(0xFF90A4AE), Color(0xFF607D8B)],
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
       );
     } else if (weatherMain.contains("snow")) {
-      // 눈: 흰색
+      // 눈: 흰색 (Snow)
       return const LinearGradient(
         colors: [Colors.white, Color(0xFFE0F7FA)],
         begin: Alignment.topCenter,

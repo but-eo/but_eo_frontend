@@ -10,6 +10,10 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # 🚀 쇼츠 기능을 위한 video_player 패키지 추가
+  video_player: ^2.8.3 # 최신 버전 확인 후 필요시 업데이트
+  # google_mobile_ads: ^4.0.0 # 만약 광고를 추가한다면 이 패키지를 여기에 추가합니다.
+
   url_launcher: ^6.3.1
   cupertino_icons: ^1.0.8
   flutter_svg: ^2.0.4
@@ -52,9 +56,9 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/locations.json
+    # 🎥 쇼츠 동영상 에셋 경로 추가
+    - assets/videos/
 #  fonts:
 #    - family: Montserrat
 #      fonts:
 #        - asset: fonts/Montserrat-SemiBold.ttf
-
-
